@@ -18,8 +18,7 @@ iterator::iterator(std::unordered_map<std::pair<std::string, std::string>, doubl
 #include <iostream>
 
 void iterator::accept(const std::string &left, const std::string &right, double value) {
-    summation += value;
-    std::cerr << '(' << left << ',' << right << ")/" << len << '=' << value << std::endl;
+    summation += value;  // Summing up all the probabilities for the current iteration.
     auto it = current_step.insert(std::make_pair(std::make_pair(left, right), value));
     if (!it.second) it.first->second += value;
 }
@@ -30,7 +29,7 @@ void iterator::nextIteration() {
         double tmp = (it.second / summation) * lambda_pow;
         auto final = embedding.insert(std::make_pair(cp, tmp)); // try to insert the current value
         if (!final.second) {
-            final.first->second += tmp; // Update the embedding with the current value
+            final.first->second += tmp; // If a previous value exist, add this probability to the other one that was previously set up.
         }
     }
     current_step.clear();
@@ -40,11 +39,13 @@ void iterator::nextIteration() {
 }
 
 void iterator::finalize(double weight) {
-    double S = 0;
+    double S = 0; // Define a probability distribution over the all components: we need to normalize their values. Summing up all the results
     for (const auto& it : embedding) {
         S += it.second;
     }
     for (auto& it : embedding) {
-        it.second = (it.second / S) * lambda * weight;
+        const double normalized_over_current_length_distribution = (it.second / S); // Normalization of the component
+        const double weight_the_resulting_value_with_the_graph_s_weight = normalized_over_current_length_distribution * weight; // Multiplying by weight, so that if all the elegible criteria are met, the desired probability is returned
+        it.second = weight_the_resulting_value_with_the_graph_s_weight;
     }
 }

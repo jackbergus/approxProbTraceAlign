@@ -10,6 +10,7 @@
 #include <Eigen/Sparse>
 #include <unordered_map>
 #include <functional>
+#include <set>
 #include "Iterator.h"
 
 
@@ -39,6 +40,7 @@ struct ReadGraph {
     std::vector<std::unordered_map<std::pair<std::string, std::string>, double, pair_hash>> decomposedEmbedding;
     std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> embedding;
     typedef Eigen::Triplet<double> T;
+    std::vector<std::string> pathNameList;
     std::vector<T> tripletList;
 
     ReadGraph() = default;
@@ -50,6 +52,20 @@ struct ReadGraph {
      * @param filename  File from which the graph will be read
      */
     ReadGraph(const std::string& filename);
+
+    static ReadGraph fromString(const std::string& string, double stringWeight) {
+        assert(string.size() > 1);
+        ReadGraph rg;
+        size_t n = string.size();
+        rg.init(n, n-1, 0, n-1);
+        for (size_t i = 0; i<n-1; i++) {
+            rg.addNode(i, std::string{string[i]});
+            rg.addEdge(i, i+1, 1.0);
+        }
+        rg.addNode(n-1, std::string{string[n-1]});
+        rg.finalizeEdgesMatrix(stringWeight);
+        return rg;
+    }
 
     ////////////////////// Matrix iterations
 
@@ -119,6 +135,11 @@ struct ReadGraph {
     //Print the decomposed paths, if generated
     void printAllPathsEmbeddings();
 
+    std::unordered_map<std::string, Eigen::VectorXd> generateEmbeddings(std::set<std::pair<std::string, std::string>> &k);
+
+    void extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k) const;
+
+    void pushGraphEmbedding();
 private:
     /**
      * Prints an embedding
@@ -175,6 +196,7 @@ private:
     void removeNode(size_t i);
 
     double insertPath(const std::vector<size_t> &path, size_t max, ReadGraph &rg);
+
 };
 
 

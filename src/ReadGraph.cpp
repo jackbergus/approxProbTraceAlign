@@ -2,6 +2,8 @@
 // Created by giacomo on 15/10/20.
 //
 
+#include <numeric>
+#include <iterator>
 #include "ReadGraph.h"
 
 
@@ -80,6 +82,7 @@ void ReadGraph::finalizeEdgesMatrix(double cost) {
 void ReadGraph::generateDecomposedEmbeddings(double lambda) {
     // Mark all the vertices as not visited
     std::vector<bool> visited;
+    pathNameList.clear();
     visited.insert(visited.begin(), nodes, false);
     std::vector<size_t> path;
     ///path.reserve(nodes);
@@ -92,8 +95,9 @@ void ReadGraph::generateDecomposedEmbeddings(double lambda) {
 void ReadGraph::decomposeStart(double lambda) {
     std::vector<std::pair<size_t, double>> e;
     double tmp = weight;
+    pathNameList.clear();
     for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,source); it; ++it){
-        std::cerr << "Decompose" << std::endl;
+        ///std::cerr << "Decompose" << std::endl;
         std::vector<bool> visited;
         visited.insert(visited.begin(), nodes, false);
         std::vector<size_t> path;
@@ -137,7 +141,7 @@ void ReadGraph::print(const std::unordered_map<std::pair<std::string, std::strin
 }
 
 void ReadGraph::generatePathEmbedding(std::vector<size_t> &path, size_t max, double lambda) {
-    std::cerr << "NewPath" << std::endl;
+    ///std::cerr << "NewPath" << std::endl;
     ReadGraph rg;
     double pathCost = insertPath(path, max, rg);
     rg.finalizeEdgesMatrix(weight * pathCost);
@@ -170,6 +174,11 @@ void ReadGraph::generateAllPossibleSubgraphsFromPaths(int u, int d, std::vector<
     // current path[]
     if (u == d) {
         assert(path_index == path.size());
+        std::stringstream  s;
+        for (const auto& x : path) {
+            s << inv_label_conversion[x];
+        }
+        pathNameList.emplace_back(s.str());
         generatePathEmbedding(path, path_index, lambda);
     }
     else // If current vertex is not destination
@@ -193,4 +202,39 @@ void ReadGraph::removeNode(size_t k) {
     for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,k); it; ++it)
         it.valueRef() = 0.0;
     inv_label_conversion.erase(k);
+}
+
+#include <set>
+
+std::unordered_map<std::string, Eigen::VectorXd> ReadGraph::generateEmbeddings(std::set<std::pair<std::string, std::string>> &k) {
+    size_t i = 0;
+    std::unordered_map<std::string, Eigen::VectorXd> result;
+    ///std::set<std::pair<std::string, std::string>> k;
+    if (k.empty()) // Either using the exterior embedding, or calculate its own embedding space
+        extractEmbeddingSpace(k);
+    size_t j = 0;
+    for (const auto& x: decomposedEmbedding) {
+        Eigen::VectorXd embedding(k.size());
+        size_t i = 0;
+        for (const auto& cp : k) {
+            auto it = x.find(cp);
+            embedding[i] = it == x.end() ? 0 : it->second;
+            i++;
+        }
+        result.emplace(pathNameList[j++], (embedding));
+    }
+    return result;
+}
+
+void ReadGraph::extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k) const {
+    for (const auto& x : decomposedEmbedding) {
+        for (const auto& e : x) {
+            k.insert(e.first);
+        }
+    }
+}
+
+void ReadGraph::pushGraphEmbedding() {
+    decomposedEmbedding.emplace_back(embedding);
+    pathNameList.emplace_back("*");
 }

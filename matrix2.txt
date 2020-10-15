@@ -4,9 +4,9 @@ source: 0
 target: 2
 weight: 1.0
 0 a
-1 b
+1 z
 2 c
-3 d
+3 k
 0 1 0.01
 1 2 1
 0 3 0.99
