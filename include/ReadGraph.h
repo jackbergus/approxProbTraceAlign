@@ -14,6 +14,7 @@
 #include <matrix_graph_path/ConditionalReadGraphIterable.h>
 #include "Iterator.h"
 #include "matrix_graph_path/PathIterator.h"
+#include <optional>
 
 template <typename T> void matrix_iterator(Eigen::SparseMatrix<double, Eigen::RowMajor>& A, std::unordered_map<size_t, std::string>& map, T& obj) {
     for (int k=0; k < A.outerSize(); ++k)
@@ -30,6 +31,10 @@ template <typename T> void matrix_iterator(Eigen::SparseMatrix<double, Eigen::Ro
 
 
 struct ReadGraph {
+
+    using unstructured_embedding = std::unordered_map<std::pair<std::string, std::string>, double, pair_hash>;
+    using path_to_uembedding = std::unordered_map<std::string, std::vector<ReadGraph::unstructured_embedding>>;
+
     size_t nodes = -1;
     size_t edges = -1;
     size_t source = -1;
@@ -38,10 +43,10 @@ struct ReadGraph {
     double weight = 1.0;
     Eigen::SparseMatrix<double, Eigen::RowMajor> A;
     std::unordered_map<size_t, std::string> inv_label_conversion;
-    std::vector<std::unordered_map<std::pair<std::string, std::string>, double, pair_hash>> decomposedEmbedding;
-    std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> embedding;
+    ///std::vector<unstructured_embedding> decomposedEmbedding;
+    ///unstructured_embedding embedding;
     typedef Eigen::Triplet<double> T;
-    std::vector<std::string> pathNameList;
+    ///std::vector<std::string> pathNameList;
     std::vector<T> tripletList;
 
     ReadGraph() = default;
@@ -114,7 +119,9 @@ struct ReadGraph {
      *
      * @param lambda    Decay factor for penalizing matches with transitive closures
      */
-    void generateDecomposedEmbeddings(double lambda);
+    void
+    generatePathEmbeddings(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map,
+                           const std::optional<double> optWeight = {}, const std::optional<size_t> optSource = {});
 
     /**
      * Decomposes the paths starting from the outgoing edges of the current source path. This should be done when
@@ -123,26 +130,21 @@ struct ReadGraph {
      *
      * @param decomposition  Graph decomposition (the source node is updated to each adj node of the source nodes)
      */
-    void decomposeStart(double lambda);
+    void decomposeStart(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map);
 
     /**
      * Generates an embedding for the whole graph, without any decomposition
      *
      * @param lambda    Transitive closure decay factor
      */
-    void generateEmbeddings(double lambda);
+    unstructured_embedding generateWholeGraphEmbedding(double lambda);
 
-    //Print the embedding associated to the single graph, if any
-    void printLocalEmbedding();
+    static std::unordered_map<std::string, Eigen::VectorXd>
+    generateStructuredEmbeddings(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding);
 
-    //Print the decomposed paths, if generated
-    void printAllPathsEmbeddings();
+    static void extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding);
 
-    std::unordered_map<std::string, Eigen::VectorXd> generateEmbeddings(std::set<std::pair<std::string, std::string>> &k);
-
-    void extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k) const;
-
-    void pushGraphEmbedding();
+    //void pushGraphEmbedding();
 
     /**
      * Returns the java-friendly interface to iterators (hasNext && next)
@@ -169,13 +171,11 @@ struct ReadGraph {
 
 
 
-private:
-
     /**
-     * Prints an embedding
-     * @param embedding
-     */
-    void print(const std::unordered_map<std::pair<std::string, std::string>, double, pair_hash>& embedding);
+ * Prints an embedding
+ * @param embedding
+ */
+    void print(const unstructured_embedding& embedding);
 
     /**
      * Generates the embedding for the graph's path
@@ -187,45 +187,24 @@ private:
      * @param max           Size limit
      * @param lambda        Decay factor while traversing the path
      */
-    void generatePathEmbedding(std::vector<size_t>& path, size_t max, double lambda);
-    void generateAllPossibleSubgraphsFromPaths(int u, int d, std::vector<bool>& visited,
-                                               std::vector<size_t>& path, size_t& path_index, double lambda);
+    inline
+    ReadGraph::unstructured_embedding
+    generatePathEmbedding(const std::vector<size_t> &path, double lambda, double weight);
 
 
+    static inline double
+    insertPath(const std::vector<size_t> &path, ReadGraph &rg, const std::unordered_map<size_t, std::string> &map,
+               Eigen::SparseMatrix<double, Eigen::RowMajor> &A);
 
-    void generateAllPossiblePathsRecursively2(int u, int d, std::vector<bool> &visited, std::vector<size_t> &path, size_t &path_index, double lambda, std::vector<std::vector<size_t>>& result) {
-        // Mark the current node and store it in path[]
-        visited[u] = true;
-        path.emplace_back(u);
-        ///path[path_index] = u;
-        path_index++;
+private:
 
-        // If current vertex is same as destination, then print
-        // current path[]
-        if (u == d) {
-            assert(path_index == path.size());
-            result.emplace_back(path);
-        }
-        else // If current vertex is not destination
-        {
-            for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,u); it; ++it)
-            {
-                assert(it.row() == u);
-                size_t dst = it.col();
-                if (!visited[dst])
-                    generateAllPossibleSubgraphsFromPaths(dst, d, visited, path, path_index, lambda);
-            }
-        }
 
-        // Remove current vertex from path[] and mark it as unvisited
-        path_index--;
-        path.pop_back();
-        visited[u] = false;
-    }
+    /*void generateAllPossibleSubgraphsFromPaths(int u, int d, std::vector<bool>& visited,
+                                               std::vector<size_t>& path, size_t& path_index, double lambda);*/
+
 
     void removeNode(size_t i);
 
-    double insertPath(const std::vector<size_t> &path, size_t max, ReadGraph &rg);
 
     template <typename T> void printStream(T& obj) {
         obj << "nodes: " << nodes << std::endl;

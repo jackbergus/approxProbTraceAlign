@@ -32,6 +32,13 @@ struct ConditionalReadGraphIterable {
 
     PathIterator begin();
     PathIterator end();
+    void resetParameters(size_t src, size_t tgt, Eigen::SparseMatrix<double, Eigen::RowMajor>* a,
+                         std::unordered_map<size_t, std::string>* map) {
+        source = src;
+        target = tgt;
+        A      = a;
+        inv_label_conversion = map;
+    }
 
 private:
     /**

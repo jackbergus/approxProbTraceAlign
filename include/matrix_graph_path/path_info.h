@@ -7,12 +7,14 @@
 
 #include <string>
 #include <ostream>
+#include <vector>
 
 struct path_info {
     double      cost;
     std::string path;
+    std::vector<size_t> actualPath;
 
-    path_info(double cost, const std::string &path);
+    path_info(double cost, const std::string &path, const std::vector<size_t>& ap);
     path_info();
     path_info(const path_info&) = default;
     path_info& operator=(const path_info&) = default;
