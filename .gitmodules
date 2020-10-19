@@ -1,3 +1,6 @@
 [submodule "submodules/antlr4"]
 	path = submodules/antlr4
 	url = https://github.com/antlr/antlr4
+[submodule "submodules/lemon"]
+	path = submodules/lemon
+	url = https://github.com/hcorrada/lemon-mirror

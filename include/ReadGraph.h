@@ -13,7 +13,6 @@
 #include <set>
 #include "Iterator.h"
 
-
 template <typename T> void matrix_iterator(Eigen::SparseMatrix<double, Eigen::RowMajor>& A, std::unordered_map<size_t, std::string>& map, T& obj) {
     for (int k=0; k < A.outerSize(); ++k)
     {
@@ -66,6 +65,8 @@ struct ReadGraph {
         rg.finalizeEdgesMatrix(stringWeight);
         return rg;
     }
+
+    void printGraph() const;
 
     ////////////////////// Matrix iterations
 

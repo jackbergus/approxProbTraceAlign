@@ -238,3 +238,20 @@ void ReadGraph::pushGraphEmbedding() {
     decomposedEmbedding.emplace_back(embedding);
     pathNameList.emplace_back("*");
 }
+
+
+void matrix_print(const Eigen::SparseMatrix<double, Eigen::RowMajor>& A, const std::unordered_map<size_t, std::string>& map) {
+    for (int k=0; k < A.outerSize(); ++k)
+    {
+        for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,k); it; ++it)
+        {
+            size_t i = it.row(), j = it.col();
+            double v = it.value();
+            std::cout << i << '(' << map.at(i) << ") =[" << v << "]=>" << j << '(' << map.at(j) << ')' << std::endl;
+        }
+    }
+}
+
+void ReadGraph::printGraph() const {
+    matrix_print(A, inv_label_conversion);
+}

@@ -2,6 +2,7 @@
 
 
 #include "ReadGraph.h"
+#include "RegexVisitor.h"
 
 double score(const Eigen::VectorXd& left, const Eigen::VectorXd& right) {
     return left.dot(right);
@@ -74,7 +75,7 @@ void doMultiplePetriTest(double lambda, double stringWeight) {
 
 }
 
-int main() {
+void tests() {
 
     doTest(1.0, 1.0);
     doTest(1.0, 0.3);
@@ -85,4 +86,43 @@ int main() {
     doMultiplePetriTest(1.0, 0.3);
     doMultiplePetriTest(0.7, 1.0);
     doMultiplePetriTest(0.7, 0.3);
+}
+
+#include <fstream>
+#include <regexLexer.h>
+#include <regexParser.h>
+#include "Regex.h"
+#include "ThomsonNFA.h"
+
+void parse() {
+    std::ifstream file("test.txt", std::ifstream::binary);
+    // Convert the file into ANTLR's format.
+    antlr4::ANTLRInputStream stream = antlr4::ANTLRInputStream(file);
+
+    // Give the input to the lexer.
+    regexLexer lexer{&stream};
+    //regexLexer* lexer = new regexLexer(&stream);
+    // Generate the tokens.
+    antlr4::CommonTokenStream tokens(&lexer);
+
+    file.close();
+
+    tokens.fill();
+
+    // Create the translation that will parse the input.
+    regexParser parser(&tokens);
+    parser.setBuildParseTree(true);
+    RegexVisitor visitor;
+
+
+    ThomsonNFA nfa{visitor.visit(parser.regex()).as<Regex<std::string>*>()};
+    nfa.generateGraph(1.0).printGraph();
+
+}
+
+int main() {
+
+    parse();
+
+
 }
