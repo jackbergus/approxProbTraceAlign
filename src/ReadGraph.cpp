@@ -82,50 +82,22 @@ void ReadGraph::finalizeEdgesMatrix(double cost) {
 void
 ReadGraph::generatePathEmbeddings(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map,
                                   std::optional<double> optWeight, std::optional<size_t> optSource ) {
-    // Mark all the vertices as not visited
-    ///std::vector<bool> visited;
-    //pathNameList.clear();
-    //visited.insert(visited.begin(), nodes, false);
-    ///std::vector<size_t> path;
-    ///path.reserve(nodes);
-    ///size_t path_index = 0; // Initialize path[] as empty
-
     iterable.resetParameters(optSource.value_or(source), target, &A, &inv_label_conversion);
-    ///path_to_uembedding map;
     for (const auto& x : iterable) {
         ReadGraph::unstructured_embedding res = generatePathEmbedding(x.actualPath, lambda, optWeight.value_or(weight));
         map[x.path].emplace_back(res);
     }
-    ///return map;
-    // Call the recursive helper function to print all paths
-    ///generateAllPossibleSubgraphsFromPaths(source, target, visited, path, path_index, lambda);
 }
 
 void ReadGraph::decomposeStart(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map) {
-    std::vector<std::pair<size_t, double>> e;
-
-    //double tmp = weight;
-    ///pathNameList.clear();
     for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,source); it; ++it){
-        ///std::cerr << "Decompose" << std::endl;
-        ///std::vector<bool> visited;
-        ///visited.insert(visited.begin(), nodes, false);
-        ///std::vector<size_t> path;
-        ///size_t path_index = 0;
-        //weight = tmp * it.value();
-
-        ///iterable.resetParameters(it.col(), target, &A, &inv_label_conversion);
-
         generatePathEmbeddings(lambda, iterable, map, {weight * it.value()}, {it.col()});
-        //ReadGraph::unstructured_embedding res = generatePathEmbedding(x.actualPath, lambda, weight);
-        //generateAllPossibleSubgraphsFromPaths(src, target, visited, path, path_index, lambda);
     }
 }
 
 ReadGraph::unstructured_embedding ReadGraph::generateWholeGraphEmbedding(double lambda) {
     Eigen::SparseMatrix<double, Eigen::RowMajor> current = A;
     ReadGraph::unstructured_embedding embedding;
-    ///size_t iteration = 1;
     iterator it{embedding, lambda};
     while (current.nonZeros() > 0) {
         matrix_iterator(current, inv_label_conversion, it);
@@ -144,7 +116,6 @@ void ReadGraph::print(const ReadGraph::unstructured_embedding &embedding) {
 
 ReadGraph::unstructured_embedding
 ReadGraph::generatePathEmbedding(const std::vector<size_t> &path, double lambda, double weight) {
-    ///std::cerr << "NewPath" << std::endl;
     ReadGraph rg;
     double pathCost = ReadGraph::insertPath(path, rg, inv_label_conversion, A);
     rg.finalizeEdgesMatrix(weight * pathCost);
@@ -168,41 +139,6 @@ double ReadGraph::insertPath(const std::vector<size_t> &path, ReadGraph &rg,
     return pathCost;
 }
 
-/*void ReadGraph::generateAllPossibleSubgraphsFromPaths(int u, int d, std::vector<bool> &visited, std::vector<size_t> &path, size_t &path_index, double lambda) {
-    // Mark the current node and store it in path[]
-    visited[u] = true;
-    path.emplace_back(u);
-    ///path[path_index] = u;
-    path_index++;
-
-    // If current vertex is same as destination, then print
-    // current path[]
-    if (u == d) {
-        assert(path_index == path.size());
-        std::stringstream  s;
-        for (const auto& x : path) {
-            s << inv_label_conversion[x];
-        }
-        pathNameList.emplace_back(s.str());
-        generatePathEmbedding(path, lambda);
-    }
-    else // If current vertex is not destination
-    {
-        for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,u); it; ++it)
-        {
-            assert(it.row() == u);
-            size_t dst = it.col();
-            if (!visited[dst])
-                generateAllPossibleSubgraphsFromPaths(dst, d, visited, path, path_index, lambda);
-        }
-    }
-
-    // Remove current vertex from path[] and mark it as unvisited
-    path_index--;
-    path.pop_back();
-    visited[u] = false;
-}*/
-
 void ReadGraph::removeNode(size_t k) {
     for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,k); it; ++it)
         it.valueRef() = 0.0;
@@ -215,7 +151,6 @@ std::unordered_map<std::string, Eigen::VectorXd>
 ReadGraph::generateStructuredEmbeddings(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding) {
     size_t i = 0;
     std::unordered_map<std::string, Eigen::VectorXd> result;
-    ///std::set<std::pair<std::string, std::string>> k;
     if (k.empty()) // Either using the exterior embedding, or calculate its own embedding space
         extractEmbeddingSpace(k, decomposedEmbedding);
     size_t j = 0;
@@ -244,12 +179,6 @@ void ReadGraph::extractEmbeddingSpace(std::set<std::pair<std::string, std::strin
         }
     }
 }
-
-/*void ReadGraph::pushGraphEmbedding() {
-    decomposedEmbedding.emplace_back(embedding);
-    pathNameList.emplace_back("*");
-}*/
-
 
 void matrix_print(const Eigen::SparseMatrix<double, Eigen::RowMajor>& A, const std::unordered_map<size_t, std::string>& map) {
     for (int k=0; k < A.outerSize(); ++k)

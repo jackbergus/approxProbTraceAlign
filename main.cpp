@@ -43,11 +43,8 @@ void doTest(double lambda, double stringWeight, bool doNotVisitLoopsTwice, size_
 
     ReadGraph g = ReadGraph::fromString("abc", stringWeight);
     ptg["g"] = {g.generateWholeGraphEmbedding(lambda)}; // Do not use the decay factor
-    ///g.pushGraphEmbedding();
     for (const auto& x : ReadGraph::generateStructuredEmbeddings(embedding_space, ptg)) {
-        ///std::cout << "left: " << x.second.format(CleanFmt) << std::endl;
         for (const auto& y : map) {
-            ///std::cout << "right " << y.first << ": " << y.second.format(CleanFmt) << std::endl;
             std::cout << "\tabc vs. " << y.first << " = " << score(x.second, y.second) << ", normalized = " << scoreNormalized(x.second, y.second) << std::endl;
         }
     }
@@ -70,14 +67,9 @@ void doMultiplePetriTest(double lambda, double stringWeight) {
 
     ReadGraph g3{"matrix3.txt"};
     getSingleGraphEmbedding("matrix3.txt", lambda, embedding_space, g3, map3);
-    /*g3.generateWholeGraphEmbedding(lambda);
-    ///g3.pushGraphEmbedding();
-    g3.extractEmbeddingSpace(embedding_space, <#initializer#>);*/
 
     ReadGraph g = ReadGraph::fromString("abc", stringWeight);
     getSingleGraphEmbedding("g", lambda, embedding_space, g, mapg);
-    /*g.generateWholeGraphEmbedding(lambda); // Do not use the decay factor
-    ///g.pushGraphEmbedding();*/
 
     auto v1 = ReadGraph::generateStructuredEmbeddings(embedding_space, map1).find("matrix.txt")->second;//generateWholeGraphEmbedding
     auto v2 = ReadGraph::generateStructuredEmbeddings(embedding_space, map2).find("matrix2.txt")->second;//generateWholeGraphEmbedding
@@ -125,7 +117,6 @@ void parse() {
 
     // Give the input to the lexer.
     regexLexer lexer{&stream};
-    //regexLexer* lexer = new regexLexer(&stream);
     // Generate the tokens.
     antlr4::CommonTokenStream tokens(&lexer);
 

@@ -74,10 +74,8 @@ bool PathIterator::calculateNext() {
     while (! S.empty()) {
         stack_info& current = S.top();
         if (current.firstInsertion) {
-            ///std::cout << '[' << current.currentNode << ']' << std::endl;
             current.firstInsertion = false;
             if ((current.currentNode == current.destination) && (current.path.size() <= maxPathLength)) {
-                ///std::cout << '[' << current.currentNode << "]!" << std::endl;
                 current.path.emplace_back(current.currentNode);
                 return true;
             } else {
@@ -104,7 +102,6 @@ bool PathIterator::calculateNext() {
 void PathIterator::visitCurrentNeighbourAndMoveNext(const stack_info &topStackInformation,
                                                     PathIterator::MatrixIt &currentIterationStep) {
     if (currentIterationStep) {
-        ///assert(it.row() == current.currentNode);
         size_t dst = currentIterationStep.col();
         if (canVisit(topStackInformation, currentIterationStep, dst)) {
             std::vector<size_t> v = topStackInformation.path;
