@@ -96,12 +96,13 @@ void ReadGraph::decomposeStart(double lambda, ConditionalReadGraphIterable &iter
 }
 
 ReadGraph::unstructured_embedding ReadGraph::generateWholeGraphEmbedding(double lambda) {
+    /// TODO: DONE
     Eigen::SparseMatrix<double, Eigen::RowMajor> current = A;
     ReadGraph::unstructured_embedding embedding;
-    iterator it{embedding, lambda};
+    OnlyTransitiveEdgesCost it{embedding, lambda};
     while (current.nonZeros() > 0) {
-        matrix_iterator(current, inv_label_conversion, it);
-        it.nextIteration();
+        matrix_iterator<OnlyTransitiveEdgesCost>(current, inv_label_conversion, it);
+        it.nextEdgeIteration();
         current = current * A;
     }
     it.finalize(weight);
@@ -115,27 +116,27 @@ void ReadGraph::print(const ReadGraph::unstructured_embedding &embedding) {
 }
 
 ReadGraph::unstructured_embedding
-ReadGraph::generatePathEmbedding(const std::vector<size_t> &path, double lambda, double weight) {
+ReadGraph::generatePathEmbedding(const std::vector<size_t> &path, double lambda, double w) {
     ReadGraph rg;
-    double pathCost = ReadGraph::insertPath(path, rg, inv_label_conversion, A);
-    rg.finalizeEdgesMatrix(weight * pathCost);
+    double pathCost = ReadGraph::generateGraphFromPath(path, rg, inv_label_conversion, A);
+    rg.finalizeEdgesMatrix(w * pathCost);
     return rg.generateWholeGraphEmbedding(lambda);
 }
 
-double ReadGraph::insertPath(const std::vector<size_t> &path, ReadGraph &rg,
-                             const std::unordered_map<size_t, std::string> &map,
-                             Eigen::SparseMatrix<double, Eigen::RowMajor> &A) {
+double ReadGraph::generateGraphFromPath(const std::vector<size_t> &path, ReadGraph &rg,
+                                        const std::unordered_map<size_t, std::string> &nodeLabelling,
+                                        Eigen::SparseMatrix<double, Eigen::RowMajor> &edge_weight_matrix) {
     size_t max = path.size();
     rg.init(*std::max_element(path.begin(), path.end())+1, max+1, path[0], path[max - 1]);
     double pathCost = 1;
     for (size_t i = 0; i<max-1; i++) {
         size_t j = path[i], k = path[i+1];
-        rg.addNode(j, map.at(j));
-        double cost = A.coeffRef(j, k);
+        rg.addNode(j, nodeLabelling.at(j));
+        double cost = edge_weight_matrix.coeffRef(j, k);
         pathCost *= cost;
         rg.addEdge(j, path[i+1], cost);
     }
-    rg.addNode(path[max-1], map.at(path[max - 1]));
+    rg.addNode(path[max-1], nodeLabelling.at(path[max - 1]));
     return pathCost;
 }
 

@@ -12,21 +12,10 @@
 #include <functional>
 #include <set>
 #include <matrix_graph_path/ConditionalReadGraphIterable.h>
-#include "Iterator.h"
+#include "embeddings/labelled_paths/OnlyTransitiveEdgesCost.h"
 #include "matrix_graph_path/PathIterator.h"
 #include <optional>
 
-template <typename T> void matrix_iterator(Eigen::SparseMatrix<double, Eigen::RowMajor>& A, std::unordered_map<size_t, std::string>& map, T& obj) {
-    for (int k=0; k < A.outerSize(); ++k)
-    {
-        for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,k); it; ++it)
-        {
-            size_t i = it.row(), j = it.col();
-            double v = it.value();
-            obj.accept(map[i], map[j], v);
-        }
-    }
-}
 
 
 
@@ -193,8 +182,8 @@ struct ReadGraph {
 
 
     static inline double
-    insertPath(const std::vector<size_t> &path, ReadGraph &rg, const std::unordered_map<size_t, std::string> &map,
-               Eigen::SparseMatrix<double, Eigen::RowMajor> &A);
+    generateGraphFromPath(const std::vector<size_t> &path, ReadGraph &rg, const std::unordered_map<size_t, std::string> &nodeLabelling,
+                          Eigen::SparseMatrix<double, Eigen::RowMajor> &edge_weight_matrix);
 
 private:
 

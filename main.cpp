@@ -20,13 +20,6 @@ void getSingleGraphEmbedding(const std::string& name, double lambda, std::set<st
     ReadGraph::extractEmbeddingSpace(embedding_space, map1);
 }
 
-void getPathEmbeddings(double lambda, bool doNotVisitLoopsTwice, size_t maxPathLength, const double minimumPathCost,
-                       std::set<std::pair<std::string, std::string>> &embedding_space, ReadGraph::path_to_uembedding &map,
-                       ReadGraph &g1) {
-    ConditionalReadGraphIterable it = g1.iterateOverPaths(doNotVisitLoopsTwice, maxPathLength, minimumPathCost);
-    g1.generatePathEmbeddings(lambda, it, map);
-    ReadGraph::extractEmbeddingSpace(embedding_space, map);
-}
 
 
 void doTest(double lambda, double stringWeight, bool doNotVisitLoopsTwice, size_t maxPathLength, const double minimumPathCost) {
