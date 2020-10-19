@@ -12,6 +12,7 @@
 #include <functional>
 #include <set>
 #include "Iterator.h"
+#include "../PathVisiting.h"
 
 template <typename T> void matrix_iterator(Eigen::SparseMatrix<double, Eigen::RowMajor>& A, std::unordered_map<size_t, std::string>& map, T& obj) {
     for (int k=0; k < A.outerSize(); ++k)
@@ -141,6 +142,16 @@ struct ReadGraph {
     void extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k) const;
 
     void pushGraphEmbedding();
+
+
+    PathVisiting test(
+            size_t maxPathLength, const double minimumPathCost = 2.0 * std::numeric_limits<double>::epsilon(),
+            bool doNotVisitLoopsTwice = true) {
+        PathVisiting pv{&A, &inv_label_conversion, maxPathLength, minimumPathCost, doNotVisitLoopsTwice};
+        pv.begin(source, target, weight);
+        return pv;
+    }
+
 private:
     /**
      * Prints an embedding
@@ -215,6 +226,7 @@ private:
             }
         }
     }
+
 
 
 };

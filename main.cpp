@@ -133,7 +133,10 @@ void doAlter() {
 
 int main() {
 
-    parse();
-
-
+    ///parse();
+    ReadGraph t{"matrix4.txt"};
+    PathVisiting x = t.test(1000, 0.00001, false);
+    while (x.hasNext()) {
+        std::cout << x.next() << std::endl;
+    }
 }

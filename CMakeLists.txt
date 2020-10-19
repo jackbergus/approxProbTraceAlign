@@ -13,16 +13,19 @@ set(antlr_sources antlr4/cpp/antlr4/regexBaseListener.cpp
         antlr4/cpp/antlr4/regexLexer.cpp
         antlr4/cpp/antlr4/regexListener.cpp
         antlr4/cpp/antlr4/regexParser.cpp
-        antlr4/cpp/antlr4/regexVisitor.cpp src/RegexVisitor.cpp include/RegexVisitor.h src/ThomsonNFA.cpp include/ThomsonNFA.h src/InputStream.cpp include/InputStream.h AlterString.cpp AlterString.h include/json.h)
+        antlr4/cpp/antlr4/regexVisitor.cpp src/RegexVisitor.cpp include/RegexVisitor.h src/ThomsonNFA.cpp include/ThomsonNFA.h src/InputStream.cpp include/InputStream.h src/AlterString.cpp include/AlterString.h include/json.h PathVisiting.cpp PathVisiting.h)
 
 add_subdirectory(submodules/lemon)
 include_directories(submodules/lemon)
 include_directories(cmake-build-debug/submodules/lemon)
+include_directories(submodules/generator)
 
 #find_package(antlr4-generator REQUIRED)
 #find_package(antlr4-runtime REQUIRED)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Boost 1.71 REQUIRED)
+INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 include_directories(include)
 include_directories(submodules/json/include)
 add_executable(fuzzyStringMatching2 ${antlr_sources} main.cpp src/ReadGraph.cpp include/ReadGraph.h src/Iterator.cpp include/Iterator.h include/Regex.h)
