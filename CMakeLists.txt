@@ -13,7 +13,7 @@ set(antlr_sources antlr4/cpp/antlr4/regexBaseListener.cpp
         antlr4/cpp/antlr4/regexLexer.cpp
         antlr4/cpp/antlr4/regexListener.cpp
         antlr4/cpp/antlr4/regexParser.cpp
-        antlr4/cpp/antlr4/regexVisitor.cpp src/RegexVisitor.cpp include/RegexVisitor.h src/ThomsonNFA.cpp include/ThomsonNFA.h)
+        antlr4/cpp/antlr4/regexVisitor.cpp src/RegexVisitor.cpp include/RegexVisitor.h src/ThomsonNFA.cpp include/ThomsonNFA.h src/InputStream.cpp include/InputStream.h AlterString.cpp AlterString.h include/json.h)
 
 add_subdirectory(submodules/lemon)
 include_directories(submodules/lemon)
@@ -24,5 +24,6 @@ include_directories(cmake-build-debug/submodules/lemon)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 include_directories(include)
+include_directories(submodules/json/include)
 add_executable(fuzzyStringMatching2 ${antlr_sources} main.cpp src/ReadGraph.cpp include/ReadGraph.h src/Iterator.cpp include/Iterator.h include/Regex.h)
 target_link_libraries(fuzzyStringMatching2 antlr4_static Eigen3::Eigen)

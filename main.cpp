@@ -93,6 +93,8 @@ void tests() {
 #include <regexParser.h>
 #include "Regex.h"
 #include "ThomsonNFA.h"
+#include "AlterString.h"
+
 
 void parse() {
     std::ifstream file("test.txt", std::ifstream::binary);
@@ -118,6 +120,15 @@ void parse() {
     ThomsonNFA nfa{visitor.visit(parser.regex()).as<Regex<std::string>*>()};
     nfa.generateGraph(1.0).printGraph();
 
+}
+
+void doAlter() {
+
+    std::string seed{"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"};
+    AlterString as{seed, 0.3};
+    for (size_t i = 0; i<10; i++) {
+        std::cout << as.alter("abcdefghijklmn") << std::endl;
+    }
 }
 
 int main() {

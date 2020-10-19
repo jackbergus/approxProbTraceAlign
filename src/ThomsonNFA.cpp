@@ -92,10 +92,35 @@ bool ThomsonNFA::epsilonClosure() {
     bool someChange = false;
     auto it = epsNodes.begin();
     while(it != epsNodes.end()) {
-        if((*it != source) &&
-        (*it != target) /*&&
-        (inDeg[*it]>0) &&
-        (outDeg[*it]>0)*/) {
+        if (*it == source) {
+            std::vector<std::pair<Node, double>> outs, ins;
+            for (lemon::ListDigraph::OutArcIt a(g, *it); a != lemon::INVALID; ++a) {
+                outs.emplace_back(g.target(a), edgeCost[a]);
+            }
+            for (lemon::ListDigraph::InArcIt a(g, *it); a != lemon::INVALID; ++a) {
+                ins.emplace_back(g.source(a), edgeCost[a]);
+            }
+            if (ins.empty() && (outs.size() == 1)) {
+                assert(outs[0].second);
+                source = outs[0].first;
+            }
+            g.erase(*it);
+            it = epsNodes.erase(it);
+        } else if (*it == target) {
+            std::vector<std::pair<Node, double>> outs, ins;
+            for (lemon::ListDigraph::OutArcIt a(g, *it); a != lemon::INVALID; ++a) {
+                outs.emplace_back(g.target(a), edgeCost[a]);
+            }
+            for (lemon::ListDigraph::InArcIt a(g, *it); a != lemon::INVALID; ++a) {
+                ins.emplace_back(g.source(a), edgeCost[a]);
+            }
+            if (outs.empty() && (ins.size() == 1)) {
+                assert(ins[0].second);
+                target = ins[0].first;
+            }
+            g.erase(*it);
+            it = epsNodes.erase(it);
+        } else {
             std::vector<std::pair<Node, double>> outs, ins;
             for (lemon::ListDigraph::OutArcIt a(g, *it); a != lemon::INVALID; ++a) {
                 outs.emplace_back(g.target(a), edgeCost[a]);
@@ -114,7 +139,6 @@ bool ThomsonNFA::epsilonClosure() {
                 }
             } else ++it;
         }
-        else ++it;
     }
     return someChange;
 }
@@ -150,9 +174,63 @@ ThomsonNFA::Node ThomsonNFA::addNode(const std::string &label) {
     return left;
 }
 
-ThomsonNFA::ThomsonNFA(const std::string &filename) : ThomsonNFA{} {
+ThomsonNFA::ThomsonNFA(const std::string &filename, bool isFile) : ThomsonNFA{} {
     std::unordered_map<size_t, Node> toNode;
-    FILE* file = fopen(filename.c_str(), "r");
+    FILE *file;
+    if (isFile)
+        file = fopen(filename.c_str(), "r");
+    else
+        file = fmemopen((void*)filename.c_str(), filename.size(), "r");
+    size_t error = 0;
+    size_t nodes = 0, edges = 0;
+    if (file) {
+        int i;
+        double w = 1;
+        // Reading the number of the nodes
+        i = fscanf(file, "nodes: %zd\n", &nodes);
+        error = (i == EOF || (i != 1));
+        if (error) return;
+        i = fscanf(file, "edges: %zd\n", &edges);
+        error = (i == EOF || (i != 1));
+        if (error) return;
+        i = fscanf(file, "source: %zd\n", &source);
+        error = (i == EOF || (i != 1));
+        if (error) return;
+        i = fscanf(file, "target: %zd\n", &target);
+        error = (i == EOF || (i != 1));
+        if (error) return;
+        i = fscanf(file, "weight: %lf\n", &w);
+        error = (i == EOF || (i != 1));
+        if (error) return;
+
+        for (size_t j = 0; j<nodes; j++) {
+            size_t node_no;
+            char string[124];
+            std::string k;
+            i = fscanf(file, "%zd %123s\n", &node_no, string);
+            error = (i == EOF || (i != 2));
+            if (error) return;
+            k = std::string(string);
+            toNode.emplace(node_no, addNode(k));
+        }
+
+
+        for (size_t j = 0; j<edges; j++) {
+            size_t src, dst;
+            double weight;
+            i = fscanf(file, "%zd %zd %lf\n", &src, &dst, &weight);
+            error = (i == EOF || (i != 3));
+            if (error) return;
+            assert(std::abs(weight) <= 1.0);
+            addArc(toNode.at(src), toNode.at(dst), weight);
+        }
+        fclose(file);
+        while (epsilonClosure());
+    }
+}
+
+ThomsonNFA::ThomsonNFA(FILE *file) : ThomsonNFA{} {
+    std::unordered_map<size_t, Node> toNode;
     size_t error = 0;
     size_t nodes = 0, edges = 0;
     if (file) {

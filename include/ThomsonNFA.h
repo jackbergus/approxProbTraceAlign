@@ -67,12 +67,17 @@ class ThomsonNFA {
 public:
     ThomsonNFA() :  nodeLabels{g}, edgeCost{g}, inDeg{g, 0}, outDeg{g, 0}, nodeId{g, 0} {}
     ThomsonNFA(Regex<std::string>* regex);
+    ThomsonNFA(const ThomsonNFA&) = default;
+    ThomsonNFA(ThomsonNFA&&) = default;
+    ThomsonNFA& operator=(const ThomsonNFA&) = default;
+    ThomsonNFA(FILE* file);
 
     /**
      * Loads a graph file as an NFA to be minimized.
      * @param filename
      */
-    ThomsonNFA(const std::string& filename);
+    ThomsonNFA(const std::string& filename, bool isFile);
+
 
     /**
      * Converts the loaded DFA (after the epsilonClosure) into a ReadGraph, so we can run our algorithms over it!

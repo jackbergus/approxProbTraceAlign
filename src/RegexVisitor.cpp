@@ -2,6 +2,7 @@
 // Created by giacomo on 19/10/20.
 //
 
+#include <json.h>
 #include "RegexVisitor.h"
 #include "Regex.h"
 
@@ -61,5 +62,5 @@ antlrcpp::Any RegexVisitor::visitPlus(regexParser::PlusContext *ctx) {
 }
 
 antlrcpp::Any RegexVisitor::visitString(regexParser::StringContext *ctx) {
-    return {new Regex<std::string>(ctx->STRING()->getText())};
+    return {new Regex<std::string>(UNESCAPE(ctx->STRING()->getText()))};
 }
