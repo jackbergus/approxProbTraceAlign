@@ -11,8 +11,9 @@
 #include <unordered_map>
 #include <functional>
 #include <set>
+#include <matrix_graph_path/ConditionalReadGraphIterable.h>
 #include "Iterator.h"
-#include "../PathVisiting.h"
+#include "matrix_graph_path/PathIterator.h"
 
 template <typename T> void matrix_iterator(Eigen::SparseMatrix<double, Eigen::RowMajor>& A, std::unordered_map<size_t, std::string>& map, T& obj) {
     for (int k=0; k < A.outerSize(); ++k)
@@ -143,16 +144,33 @@ struct ReadGraph {
 
     void pushGraphEmbedding();
 
+    /**
+     * Returns the java-friendly interface to iterators (hasNext && next)
+     *
+     * @param doNotVisitLoopsTwice      Whether I want to traverse the node only once or not
+     * @param maxPathLength             Maximum path length that I want to visit
+     * @param minimumPathCost           Minimum admissible cost for the path
+     * @return                          iterator
+     */
+    PathIterator javaPathIterator(bool doNotVisitLoopsTwice = true, size_t maxPathLength = std::numeric_limits<size_t>::max(),
+                                  const double minimumPathCost = 2.0 * std::numeric_limits<double>::epsilon());
 
-    PathVisiting test(
-            size_t maxPathLength, const double minimumPathCost = 2.0 * std::numeric_limits<double>::epsilon(),
-            bool doNotVisitLoopsTwice = true) {
-        PathVisiting pv{&A, &inv_label_conversion, maxPathLength, minimumPathCost, doNotVisitLoopsTwice};
-        pv.begin(source, target, weight);
-        return pv;
-    }
+
+    /**
+     * Iterate over the paths as an iterable
+     *
+     * @param doNotVisitLoopsTwice      Whether I want to traverse the node only once or not
+     * @param maxPathLength             Maximum path length that I want to visit
+     * @param minimumPathCost           Minimum admissible cost for the path
+     * @return                          Iterable
+     */
+    ConditionalReadGraphIterable iterateOverPaths(bool doNotVisitLoopsTwice = true, size_t maxPathLength = std::numeric_limits<size_t>::max(),
+                                                  const double minimumPathCost = 2.0 * std::numeric_limits<double>::epsilon());
+
+
 
 private:
+
     /**
      * Prints an embedding
      * @param embedding

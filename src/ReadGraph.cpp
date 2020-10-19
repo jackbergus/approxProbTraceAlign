@@ -255,3 +255,16 @@ void matrix_print(const Eigen::SparseMatrix<double, Eigen::RowMajor>& A, const s
 void ReadGraph::printGraph() const {
     matrix_print(A, inv_label_conversion);
 }
+
+PathIterator ReadGraph::javaPathIterator(bool doNotVisitLoopsTwice, size_t maxPathLength, const double minimumPathCost) {
+    return {&A,
+            &inv_label_conversion,
+            maxPathLength,
+            minimumPathCost,
+            doNotVisitLoopsTwice};
+}
+
+ConditionalReadGraphIterable
+ReadGraph::iterateOverPaths(bool doNotVisitLoopsTwice, size_t maxPathLength, const double minimumPathCost) {
+    return {this->source, this->target, this->weight, &A, &inv_label_conversion, maxPathLength, minimumPathCost, doNotVisitLoopsTwice};
+}

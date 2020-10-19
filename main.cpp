@@ -135,8 +135,10 @@ int main() {
 
     ///parse();
     ReadGraph t{"matrix4.txt"};
-    PathVisiting x = t.test(1000, 0.00001, false);
-    while (x.hasNext()) {
-        std::cout << x.next() << std::endl;
+    for (const auto& x : t.iterateOverPaths(false, 10)) {
+        std::cout << x << std::endl;
     }
+    /*while (x.hasNext()) {
+        std::cout << x.next() << std::endl;
+    }*/
 }
