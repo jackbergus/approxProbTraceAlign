@@ -1,0 +1,14 @@
+//
+// Created by giacomo on 19/10/20.
+//
+
+#ifndef FUZZYSTRINGMATCHING2_PATHVISITING_H
+#define FUZZYSTRINGMATCHING2_PATHVISITING_H
+
+
+class PathVisiting {
+
+};
+
+
+#endif //FUZZYSTRINGMATCHING2_PATHVISITING_H
