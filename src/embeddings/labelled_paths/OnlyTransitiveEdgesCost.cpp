@@ -7,7 +7,7 @@
 #include "embeddings/labelled_paths/OnlyTransitiveEdgesCost.h"
 
 OnlyTransitiveEdgesCost::OnlyTransitiveEdgesCost(std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> &E, double l,
-                                                 size_t len) : LabelledPathVisitingStrategy{E, l, len} {
+                                                 size_t len) : LabelledPathVisitingStrategy{E, l, len}, edge_summation{0.0} {
     /*assert(std::abs(l)<=1.0);
     lambda = l;
     this->len = len;

@@ -108,9 +108,9 @@ struct ReadGraph {
      *
      * @param lambda    Decay factor for penalizing matches with transitive closures
      */
-    void
+    /*void
     generatePathEmbeddings(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map,
-                           const std::optional<double> optWeight = {}, const std::optional<size_t> optSource = {});
+                           const std::optional<double> optWeight = {}, const std::optional<size_t> optSource = {});*/
 
     /**
      * Decomposes the paths starting from the outgoing edges of the current source path. This should be done when
@@ -121,17 +121,31 @@ struct ReadGraph {
      */
     void decomposeStart(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map);
 
-    /**
+    /*/**
      * Generates an embedding for the whole graph, without any decomposition
      *
      * @param lambda    Transitive closure decay factor
      */
-    unstructured_embedding generateWholeGraphEmbedding(double lambda);
+    //unstructured_embedding generateWholeGraphEmbedding(double lambda);*/
 
     static std::unordered_map<std::string, Eigen::VectorXd>
     generateStructuredEmbeddings(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding);
 
+    static Eigen::VectorXd
+    generateStructuredEmbedding(std::set<std::pair<std::string, std::string>> &k, const unstructured_embedding &x) {
+        assert(!k.empty());
+        Eigen::VectorXd embedding(k.size());
+        size_t i = 0;
+        for (const auto& cp : k) {
+            auto it = x.find(cp);
+            embedding[i] = it == x.end() ? 0 : it->second;
+            i++;
+        }
+        return embedding;
+    }
+
     static void extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding);
+    static void extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k, const ReadGraph::unstructured_embedding& y);
 
     //void pushGraphEmbedding();
 
@@ -176,12 +190,12 @@ struct ReadGraph {
      * @param max           Size limit
      * @param lambda        Decay factor while traversing the path
      */
-    inline
+    /*inline
     ReadGraph::unstructured_embedding
-    generatePathEmbedding(const std::vector<size_t> &path, double lambda, double weight);
+    generatePathEmbedding(const std::vector<size_t> &path, double lambda, double weight);*/
 
 
-    static inline double
+    static double
     generateGraphFromPath(const std::vector<size_t> &path, ReadGraph &rg, const std::unordered_map<size_t, std::string> &nodeLabelling,
                           Eigen::SparseMatrix<double, Eigen::RowMajor> &edge_weight_matrix);
 

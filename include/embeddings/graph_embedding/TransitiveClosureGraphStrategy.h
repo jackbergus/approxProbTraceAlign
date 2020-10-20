@@ -24,15 +24,15 @@ struct TransitiveClosureGraphStrategy : public GraphEmbeddingStrategy {
         Eigen::SparseMatrix<double, Eigen::RowMajor> current = rg.A;
         ReadGraph::unstructured_embedding embedding;
         T it{embedding, lambda};
-
-        for (const auto& path :
-                rg.iterateOverPaths(true, maxPath, rg.weight)) {
-            for ()
+        double tmp = 1.0;
+        std::swap(tmp, rg.weight);
+        for (const auto& path : rg.iterateOverPaths(true, maxPath, std::numeric_limits<double>::epsilon()*2)) {
+            for (const auto& nodeId : path.actualPath) {
+                it.acceptNode(rg.inv_label_conversion.at(nodeId), 1.0);
+            }
+            it.nextNodeIteration(path.cost);
         }
-
-        for (const auto& cp: rg.inv_label_conversion) {
-            it.acceptNode(cp.second, cp.second); // Setting up the nodes by frequency
-        }
+        std::swap(tmp, rg.weight);
         while (current.nonZeros() > 0) {
             matrix_iterator<T>(current, rg.inv_label_conversion, it);
             it.nextEdgeIteration();

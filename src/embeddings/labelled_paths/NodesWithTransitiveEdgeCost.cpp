@@ -7,7 +7,7 @@
 
 NodesWithTransitiveEdgeCost::NodesWithTransitiveEdgeCost(
         std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> &e, double l, size_t len)
-        : OnlyTransitiveEdgesCost(e, l, len) {}
+        : OnlyTransitiveEdgesCost(e, l, len), nodeSummation{0.0} {}
 
 void NodesWithTransitiveEdgeCost::acceptNode(const std::string &node, double value) {
     nodeSummation += value;
@@ -26,7 +26,8 @@ void NodesWithTransitiveEdgeCost::finalize(double weight) {
     for (auto& it : node_embedding) {
         const double normalized_over_current_length_distribution = (it.second / S); // Normalization of the component
         const double weight_the_resulting_value_with_the_graph_s_weight = normalized_over_current_length_distribution * nodeCost; // Multiplying by weight, so that if all the elegible criteria are met, the desired probability is returned
-        it.second = weight_the_resulting_value_with_the_graph_s_weight;
+        assert(
+                pair_embedding.insert(std::make_pair(std::make_pair(EPSILON, it.first), weight_the_resulting_value_with_the_graph_s_weight)).second);
     }
 }
 
@@ -39,4 +40,5 @@ void NodesWithTransitiveEdgeCost::nextNodeIteration(double thisNormalizationCost
             final.first->second += tmp; // If a previous value exist, add this probability to the other one that was previously set up.
         }
     }
+    nodeSummation = 0;
 }

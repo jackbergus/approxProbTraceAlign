@@ -79,7 +79,7 @@ void ReadGraph::finalizeEdgesMatrix(double cost) {
     A = matrix;
 }
 
-void
+/*void
 ReadGraph::generatePathEmbeddings(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map,
                                   std::optional<double> optWeight, std::optional<size_t> optSource ) {
     iterable.resetParameters(optSource.value_or(source), target, &A, &inv_label_conversion);
@@ -87,15 +87,16 @@ ReadGraph::generatePathEmbeddings(double lambda, ConditionalReadGraphIterable &i
         ReadGraph::unstructured_embedding res = generatePathEmbedding(x.actualPath, lambda, optWeight.value_or(weight));
         map[x.path].emplace_back(res);
     }
-}
+}*/
 
 void ReadGraph::decomposeStart(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map) {
-    for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,source); it; ++it){
+    assert(false && "TODO: you have to implement it!");
+    /*for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,source); it; ++it){
         generatePathEmbeddings(lambda, iterable, map, {weight * it.value()}, {it.col()});
-    }
+    }*/
 }
 
-ReadGraph::unstructured_embedding ReadGraph::generateWholeGraphEmbedding(double lambda) {
+/*ReadGraph::unstructured_embedding ReadGraph::generateWholeGraphEmbedding(double lambda) {
     /// TODO: DONE
     Eigen::SparseMatrix<double, Eigen::RowMajor> current = A;
     ReadGraph::unstructured_embedding embedding;
@@ -107,7 +108,7 @@ ReadGraph::unstructured_embedding ReadGraph::generateWholeGraphEmbedding(double 
     }
     it.finalize(weight);
     return embedding;
-}
+}*/
 
 void ReadGraph::print(const ReadGraph::unstructured_embedding &embedding) {
     for (const auto& it : embedding) {
@@ -115,13 +116,13 @@ void ReadGraph::print(const ReadGraph::unstructured_embedding &embedding) {
     }
 }
 
-ReadGraph::unstructured_embedding
+/*ReadGraph::unstructured_embedding
 ReadGraph::generatePathEmbedding(const std::vector<size_t> &path, double lambda, double w) {
     ReadGraph rg;
     double pathCost = ReadGraph::generateGraphFromPath(path, rg, inv_label_conversion, A);
     rg.finalizeEdgesMatrix(w * pathCost);
     return rg.generateWholeGraphEmbedding(lambda);
-}
+}*/
 
 double ReadGraph::generateGraphFromPath(const std::vector<size_t> &path, ReadGraph &rg,
                                         const std::unordered_map<size_t, std::string> &nodeLabelling,
@@ -152,19 +153,13 @@ std::unordered_map<std::string, Eigen::VectorXd>
 ReadGraph::generateStructuredEmbeddings(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding) {
     size_t i = 0;
     std::unordered_map<std::string, Eigen::VectorXd> result;
-    if (k.empty()) // Either using the exterior embedding, or calculate its own embedding space
-        extractEmbeddingSpace(k, decomposedEmbedding);
+    assert(!k.empty());
+    /*if (k.empty()) // Either using the exterior embedding, or calculate its own embedding space
+        extractEmbeddingSpace(k, decomposedEmbedding);*/
     size_t j = 0;
     for (const auto& cpM: decomposedEmbedding) {
         for (const auto& x : cpM.second) {
-            Eigen::VectorXd embedding(k.size());
-            size_t i = 0;
-            for (const auto& cp : k) {
-                auto it = x.find(cp);
-                embedding[i] = it == x.end() ? 0 : it->second;
-                i++;
-            }
-            result.emplace(cpM.first, (embedding));
+            result.emplace(cpM.first, ReadGraph::generateStructuredEmbedding(k, x));
         }
     }
     return result;
@@ -178,7 +173,7 @@ void ReadGraph::extractEmbeddingSpace(std::set<std::pair<std::string, std::strin
                 k.insert(e.first);
             }
         }
-    }
+    }//ReadGraph::unstructured_embedding
 }
 
 void matrix_print(const Eigen::SparseMatrix<double, Eigen::RowMajor>& A, const std::unordered_map<size_t, std::string>& map) {
@@ -208,4 +203,11 @@ PathIterator ReadGraph::javaPathIterator(bool doNotVisitLoopsTwice, size_t maxPa
 ConditionalReadGraphIterable
 ReadGraph::iterateOverPaths(bool doNotVisitLoopsTwice, size_t maxPathLength, const double minimumPathCost) {
     return {this->source, this->target, this->weight, &A, &inv_label_conversion, maxPathLength, minimumPathCost, doNotVisitLoopsTwice};
+}
+
+void ReadGraph::extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k,
+                                      const ReadGraph::unstructured_embedding &y) {
+    for (const auto& e : y) {
+        k.insert(e.first);
+    }
 }
