@@ -121,12 +121,6 @@ struct ReadGraph {
      */
     void decomposeStart(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map);
 
-    /*/**
-     * Generates an embedding for the whole graph, without any decomposition
-     *
-     * @param lambda    Transitive closure decay factor
-     */
-    //unstructured_embedding generateWholeGraphEmbedding(double lambda);*/
 
     static std::unordered_map<std::string, Eigen::VectorXd>
     generateStructuredEmbeddings(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding);
@@ -147,7 +141,7 @@ struct ReadGraph {
     static void extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding);
     static void extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k, const ReadGraph::unstructured_embedding& y);
 
-    //void pushGraphEmbedding();
+
 
     /**
      * Returns the java-friendly interface to iterators (hasNext && next)
@@ -180,19 +174,6 @@ struct ReadGraph {
  */
     void print(const unstructured_embedding& embedding);
 
-    /**
-     * Generates the embedding for the graph's path
-     *
-     * In order to do so, the path is selected as a subgraph: such graph is loaded, and then the embedding for the graph
-     * is computed
-     *
-     * @param path
-     * @param max           Size limit
-     * @param lambda        Decay factor while traversing the path
-     */
-    /*inline
-    ReadGraph::unstructured_embedding
-    generatePathEmbedding(const std::vector<size_t> &path, double lambda, double weight);*/
 
 
     static double
@@ -201,9 +182,6 @@ struct ReadGraph {
 
 private:
 
-
-    /*void generateAllPossibleSubgraphsFromPaths(int u, int d, std::vector<bool>& visited,
-                                               std::vector<size_t>& path, size_t& path_index, double lambda);*/
 
 
     void removeNode(size_t i);
