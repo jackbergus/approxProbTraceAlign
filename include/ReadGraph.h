@@ -18,12 +18,10 @@
 
 
 
-
 struct ReadGraph {
 
     using unstructured_embedding = std::unordered_map<std::pair<std::string, std::string>, double, pair_hash>;
     using path_to_uembedding = std::unordered_map<std::string, std::vector<ReadGraph::unstructured_embedding>>;
-
     size_t nodes = -1;
     size_t edges = -1;
     size_t source = -1;
@@ -37,6 +35,7 @@ struct ReadGraph {
     typedef Eigen::Triplet<double> T;
     ///std::vector<std::string> pathNameList;
     std::vector<T> tripletList;
+    std::string name;
 
     ReadGraph() = default;
     ReadGraph(const ReadGraph&) = default;
@@ -208,7 +207,5 @@ private:
 
 
 };
-
-
 
 #endif //FUZZYSTRINGMATCHING2_READGRAPH_H

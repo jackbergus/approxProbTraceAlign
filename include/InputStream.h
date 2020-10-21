@@ -18,8 +18,16 @@ enum input_format {
     READGRAPH
 };
 
+struct ReadGraphConfiguration {
+    std::string& str;
+    bool isFile;
+    double hasCost;
+    input_format format;
+};
+
 class InputStream {
     std::ifstream file;
+    const char empty[0] = {};
     antlr4::ANTLRInputStream stream;
     std::istringstream sstr;
 
@@ -28,6 +36,7 @@ class InputStream {
     Regex<std::string>* openRegex(const std::string& str, bool isFile);
 
 public:
+    InputStream() : stream(empty, 0) {}
 
     ReadGraph readGraph(const std::string& str, bool isFile, double hasCost, input_format format);
     ~InputStream();

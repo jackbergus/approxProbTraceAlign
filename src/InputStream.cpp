@@ -41,14 +41,17 @@ Regex<std::string> *InputStream::openRegex(const std::string &str, bool isFile) 
 }
 
 ReadGraph InputStream::readGraph(const std::string &str, bool isFile, double hasCost, input_format format) {
+    ReadGraph toret;
     switch (format) {
         case REGEX: {
             ThomsonNFA nfa{openRegex(str, isFile)};
-            return nfa.generateGraph(hasCost);
+            toret = nfa.generateGraph(hasCost);
         }
         case READGRAPH: {
             ThomsonNFA nfa{str, isFile};
-            return nfa.generateGraph(hasCost);
+            toret = nfa.generateGraph(hasCost);
         }
     }
+    toret.name = str;
+    return toret;
 }

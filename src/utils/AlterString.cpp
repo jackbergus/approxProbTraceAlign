@@ -2,7 +2,7 @@
 // Created by giacomo on 19/10/20.
 //
 
-#include "AlterString.h"
+#include "utils/AlterString.h"
 
 AlterString::AlterString(const std::string &chrs, double noiseThreshold, size_t seedError, size_t seedValue,
                          size_t randomPosition) : errorType{0.0,1.0}, pick(0, chrs.size()-2), chrs{chrs}, noiseThreshold{noiseThreshold} {

@@ -143,9 +143,11 @@ void testsDemultiplexed() {
 #include <fstream>
 #include <regexLexer.h>
 #include <regexParser.h>
+#include <benchmarking/Ranking.h>
 #include "Regex.h"
 #include "ThomsonNFA.h"
-#include "AlterString.h"
+#include "utils/AlterString.h"
+#include "distances/path/GenericStringCostFunction.h"
 
 
 void parse() {
@@ -189,9 +191,51 @@ void generatePaths() {
     }
 }
 
+#include <ostream>
+#include <distances/strings/LevensteinDistance.h>
+#include <benchmarking/BenchmarkStrategy.h>
+
+struct BenchmarkGenericStringCostFunction : public BenchmarkStrategy {
+
+    GenericStringCostFunction<LevensteinDistance> pathSimilarity{1, 1, 1};
+
+    BenchmarkGenericStringCostFunction(const std::string &datasetName, const std::string &configuration,
+                                       bool doNotVisitLoopsTwice, size_t maxPathLength, const double minimumPathCost)
+            : BenchmarkStrategy(datasetName, configuration, doNotVisitLoopsTwice, maxPathLength, minimumPathCost,
+                                [](const ReadGraphRankingStruct& left, const ReadGraphRankingStruct& right) {
+                                    return GeneralizedLevensteinDistance(left.readGraphPath, right.readGraphPath);
+            }){}
+
+    void scorePath(const std::string &query, ReadGraph *, const struct path_info &path_from_graph,
+                   PathRanking &pathRanking, double &benchmark_time) override {
+        auto start = std::chrono::system_clock::now();
+        double score = pathSimilarity.distance(query, path_from_graph);
+        auto end = std::chrono::system_clock::now();
+        pathRanking.addScore(path_from_graph, score);
+        benchmark_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    }
+
+    void scoreGraph(const std::string &query, ReadGraph *rg, const std::string &graph_name,
+                    Ranking<ReadGraphRankingStruct> &graphRanking, double &benchmark_time) override {
+        double cost = -1000000000000000000000.0;
+        struct path_info x;
+        auto start = std::chrono::system_clock::now();
+        for (const struct path_info& path : rg->iterateOverPaths(this->doNotVisitLoopsTwice, this->maxPathLength, this->minimumPathCost)) {
+            double currentCost = pathSimilarity.distance(query, path);
+            if (currentCost > cost) {
+                cost = currentCost;
+                x = path;
+            }
+        }
+        auto end = std::chrono::system_clock::now();
+        graphRanking.addScore({x.path, rg}, cost);
+        benchmark_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    }
+
+};
+
 int main() {
 
-    testsDemultiplexed();
 
 
 }

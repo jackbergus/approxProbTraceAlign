@@ -7,3 +7,9 @@
 [submodule "submodules/json"]
 	path = submodules/json
 	url = https://github.com/nlohmann/json
+[submodule "submodules/maigc_enum"]
+	path = submodules/maigc_enum
+	url = https://github.com/Neargye/magic_enum
+[submodule "submodules/libfort"]
+	path = submodules/libfort
+	url = https://github.com/seleznevae/libfort
