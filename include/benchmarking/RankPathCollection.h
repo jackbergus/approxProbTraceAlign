@@ -40,7 +40,7 @@ struct RankPathCollection {
 
                     benchmark_time_by_path_size_disjoint[cp.first].emplace_back(benchmark_time);//path.actualPath.size()
                     benchmark_time_by_distinctNodes_disjoint[cp.second].emplace_back(benchmark_time);//distinct_chars(dc)
-                    benchmark_time += benchmark_time;
+                    totalTime += benchmark_time;
                     nPaths += 1.0;
                 }
                 for (const auto& cp: benchmark_time_by_path_size_disjoint) {
@@ -52,6 +52,7 @@ struct RankPathCollection {
             }
         }
         averageTime = totalTime / nPaths;
+        return rank;
     }
 
 };

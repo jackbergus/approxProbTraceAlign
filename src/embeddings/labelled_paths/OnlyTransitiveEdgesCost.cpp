@@ -41,8 +41,11 @@ void OnlyTransitiveEdgesCost::nextEdgeIteration() {
 void OnlyTransitiveEdgesCost::finalize(double weight) {
     double S = 0; // Define a probability distribution over the all components: we need to normalize their values. Summing up all the results
     for (const auto& it : pair_embedding) {
-        S += it.second;
+        S += (it.second * it.second);
     }
+    if (S <= std::numeric_limits<double>::epsilon())
+        S = std::numeric_limits<double>::epsilon();
+    std::cerr << S << std::endl;
     for (auto& it : pair_embedding) {
         const double normalized_over_current_length_distribution = (it.second / S); // Normalization of the component
         const double weight_the_resulting_value_with_the_graph_s_weight = normalized_over_current_length_distribution * weight; // Multiplying by weight, so that if all the elegible criteria are met, the desired probability is returned

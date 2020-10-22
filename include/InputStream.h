@@ -19,10 +19,15 @@ enum input_format {
 };
 
 struct ReadGraphConfiguration {
-    std::string& str;
+    std::string str;
     bool isFile;
     double hasCost;
     input_format format;
+
+    ReadGraphConfiguration(const std::string &str, bool isFile, double hasCost, input_format format);
+    ReadGraphConfiguration() = default;
+    ReadGraphConfiguration& operator=(const ReadGraphConfiguration&) = default;
+    ReadGraphConfiguration(const ReadGraphConfiguration&) = default;
 };
 
 class InputStream {
@@ -39,6 +44,7 @@ public:
     InputStream() : stream(empty, 0) {}
 
     ReadGraph readGraph(const std::string& str, bool isFile, double hasCost, input_format format);
+    ReadGraph readGraph(const ReadGraphConfiguration &grafo);
     ~InputStream();
 
 };

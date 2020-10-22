@@ -15,7 +15,7 @@
 #include <cassert>
 
 template <typename BenchmarkKey> struct Ranking {
-    Ranking() = default;
+    Ranking() {}
     Ranking(const Ranking&) = default;
     Ranking&operator=(const Ranking&) = default;
     ~Ranking() {}
@@ -34,8 +34,17 @@ template <typename BenchmarkKey> struct Ranking {
     }
 
     double SpearmanCorrelationIndex(const Ranking<BenchmarkKey>& ranking, double defaultValue) {
-        std::unordered_set<BenchmarkKey> S{localS};
-        S.insert(ranking.localS.begin(), ranking.localS.end());
+        std::vector<BenchmarkKey> S;
+        auto begin = localS.size()>=ranking.localS.size() ? localS.begin() : ranking.localS.begin(),
+                end = localS.size() >= ranking.localS.size() ? localS.end() : ranking.localS.end();
+        auto& set = localS.size() >= ranking.localS.size()  ? ranking.localS : localS;
+
+        for (; begin != end; begin++) {
+            if (set.contains(*begin)) S.emplace_back(*begin);
+        }
+
+        std::set_intersection(localS.begin(), localS.end(), ranking.localS.begin(), ranking.localS.end(), std::back_inserter(S));
+        //S.insert(ranking.localS.begin(), ranking.localS.end());
         double average = summation / size;
         double aAverage = ranking.summation / ranking.size;
         double over = 0.0;
@@ -118,6 +127,28 @@ template <typename BenchmarkKey> struct Ranking {
     //template <typename SimilarityFunction>
     double normalizedRank(const struct Ranking<BenchmarkKey>& rhs, const std::function<double(const BenchmarkKey&, const BenchmarkKey&)>&  function) {
         return rankingDistance(*this, rhs, function) / std::sqrt(rankingDistance(*this, *this, function) * rankingDistance(rhs, rhs, function));
+    }
+
+    Ranking<BenchmarkKey> topK(size_t topK) {
+        Ranking<BenchmarkKey> toReturn;
+        for (auto it = orderedList.rbegin(), en = orderedList.rend(); it != en; it++) {
+            for (const auto& x : it->second) {
+                toReturn.addScore(x, it->first);
+            }
+            if (toReturn.size >= topK) break;
+        }
+        return toReturn;
+    }
+
+    Ranking<BenchmarkKey> topK(size_t topK, std::function<double(double)>& f) {
+        Ranking<BenchmarkKey> toReturn;
+        for (auto it = orderedList.rbegin(), en = orderedList.rend(); it != en; it++) {
+            for (const auto& x : it->second) {
+                toReturn.addScore(x, f(it->first));
+            }
+            if (toReturn.size >= topK) break;
+        }
+        return toReturn;
     }
 
 private:

@@ -9,11 +9,10 @@
 #include <InputStream.h>
 #include <benchmarking/BenchmarkStrategy.h>
 #include <ostream>
+#include "../../GraphCartridge.h"
 
 class BenchmarkConfiguration {
-    InputStream stream;
-    std::map<std::string, ReadGraph> graphs;
-    std::vector<ReadGraph> graphVector;
+    GraphCartridge graphCartridge;
     BenchmarkStrategy* benchmark;
 
 public:

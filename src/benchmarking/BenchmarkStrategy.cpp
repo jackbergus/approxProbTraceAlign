@@ -135,9 +135,9 @@ PathRanking BenchmarkStrategy::doPartialRank(ReadGraph &rg, const path_info &exp
     Ranking rank = rankGraphPaths(query, rg, totalTime, benchmark_time_by_path_size, benchmark_time_by_distinctnodes_size, avgTime);
 
     // ranking expected: if the path is returned, the distance between the expected result and the given query
-    double expectedScore     = rank.score(expected, 0.0);
+    /*double expectedScore     = rank.score(expected, 0.0);
     double expectedRank      = rank.getRanking(expected);
-    double expectedPrecision = rank.getRankingPrecision(expected);
+    double expectedPrecision = rank.getRankingPrecision(expected);*/
 
     table_time_benchmarks.emplace_back(dataset_name, configuration, TOTAL_TIME, query_length, query_distinct_nodes, 0.0, totalTime);
     table_time_benchmarks.emplace_back(dataset_name, configuration, AVG_TIME, query_length, query_distinct_nodes, 0.0, avgTime);
@@ -148,9 +148,9 @@ PathRanking BenchmarkStrategy::doPartialRank(ReadGraph &rg, const path_info &exp
         table_time_benchmarks.emplace_back(dataset_name, configuration, N_DISTINCT_NODES, query_length, query_distinct_nodes, (double)cp.first, cp.second);
     }
 
-    table_precision_benchmarks.emplace_back(dataset_name, configuration, query_length, query_distinct_nodes, eSCase, expectedScore);
+    /*table_precision_benchmarks.emplace_back(dataset_name, configuration, query_length, query_distinct_nodes, eSCase, expectedScore);
     table_precision_benchmarks.emplace_back(dataset_name, configuration, query_length, query_distinct_nodes, eRCase, expectedRank);
-    table_precision_benchmarks.emplace_back(dataset_name, configuration, query_length, query_distinct_nodes, ePCase, expectedPrecision);
+    table_precision_benchmarks.emplace_back(dataset_name, configuration, query_length, query_distinct_nodes, ePCase, expectedPrecision);*/
 
     return rank;
 }
@@ -190,7 +190,7 @@ std::ostream &operator<<(std::ostream &os, const BenchmarkStrategy &strategy) {
     os << "2) Similarity Benchmark (single path ranking): " << std::endl;
     {
         fort::char_table table;
-        TimeBenchmarkRowEntry::init_header(table);
+        PrecisionBenchmarkRowEntry::init_header(table);
         for (const auto& time_benchmark_row : strategy.table_precision_benchmarks) {
             table << time_benchmark_row;
         }

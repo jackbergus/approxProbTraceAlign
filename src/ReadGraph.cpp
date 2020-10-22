@@ -4,6 +4,7 @@
 
 #include <numeric>
 #include <iterator>
+#include <ThomsonNFA.h>
 #include "ReadGraph.h"
 
 
@@ -99,16 +100,32 @@ double ReadGraph::generateGraphFromPath(const std::vector<size_t> &path, ReadGra
                                         const std::unordered_map<size_t, std::string> &nodeLabelling,
                                         Eigen::SparseMatrix<double, Eigen::RowMajor> &edge_weight_matrix) {
     size_t max = path.size();
-    rg.init(*std::max_element(path.begin(), path.end())+1, max+1, path[0], path[max - 1]);
+    size_t source = path[0];
+    size_t target = path[max-1];
     double pathCost = 1;
+    double graphCost = 1.0;
     for (size_t i = 0; i<max-1; i++) {
         size_t j = path[i], k = path[i+1];
+        if ((nodeLabelling.at(j) == EPSILON))  {
+            assert(i == 0);
+            graphCost *= edge_weight_matrix.coeffRef(j, k);
+            source = path[1];
+            continue;
+        }
+        if ((nodeLabelling.at(k) == EPSILON)) {
+            assert(i == max-2);
+            graphCost *= edge_weight_matrix.coeffRef(j, k);
+            target = path[max-2];
+            continue;
+        }
         rg.addNode(j, nodeLabelling.at(j));
         double cost = edge_weight_matrix.coeffRef(j, k);
         pathCost *= cost;
-        rg.addEdge(j, path[i+1], cost);
+        rg.addEdge(j, k, cost);
     }
-    rg.addNode(path[max-1], nodeLabelling.at(path[max - 1]));
+    rg.init(*std::max_element(path.begin(), path.end())+1, max+1, source, target);
+    rg.addNode(target, nodeLabelling.at(target));
+    rg.weight = graphCost;
     return pathCost;
 }
 

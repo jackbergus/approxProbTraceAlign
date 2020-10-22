@@ -5,6 +5,7 @@
 #ifndef FUZZYSTRINGMATCHING2_TRANSITIVECLOSUREGRAPHSTRATEGY_H
 #define FUZZYSTRINGMATCHING2_TRANSITIVECLOSUREGRAPHSTRATEGY_H
 
+#include <ThomsonNFA.h>
 #include "GraphEmbeddingStrategy.h"
 
 /**
@@ -18,22 +19,24 @@ struct TransitiveClosureGraphStrategy : public GraphEmbeddingStrategy {
             "T must be a descendant of LabelledPathVisitingStrategy"
     );
 
-    TransitiveClosureGraphStrategy(const double lambda, size_t maxPath) : lambda(lambda), maxPath(maxPath) {}
+    TransitiveClosureGraphStrategy(double lambda, size_t maxPath) : lambda(lambda), maxPath(maxPath) {}
 
     ReadGraph::unstructured_embedding operator()(ReadGraph &rg) override {
         Eigen::SparseMatrix<double, Eigen::RowMajor> current = rg.A;
         ReadGraph::unstructured_embedding embedding;
         T it{embedding, lambda};
-        double tmp = 1.0;
-        std::swap(tmp, rg.weight);
+        ///double tmp = 1.0;
+        ///std::swap(tmp, rg.weight);
         for (const auto& path : rg.iterateOverPaths(true, maxPath, std::numeric_limits<double>::epsilon()*2)) {
             for (const auto& nodeId : path.actualPath) {
-                it.acceptNode(rg.inv_label_conversion.at(nodeId), 1.0);
+                if (rg.inv_label_conversion.at(nodeId) != EPSILON)
+                    it.acceptNode(rg.inv_label_conversion.at(nodeId), 1.0);
             }
-            it.nextNodeIteration(path.cost);
+            it.nextNodeIteration(1.0);
         }
-        std::swap(tmp, rg.weight);
-        while (current.nonZeros() > 0) {
+        ///std::swap(tmp, rg.weight);
+        size_t i = 0;
+        while ((current.nonZeros() > 0) && ((i++) != maxPath)) {
             matrix_iterator<T>(current, rg.inv_label_conversion, it);
             it.nextEdgeIteration();
             current = current * rg.A;

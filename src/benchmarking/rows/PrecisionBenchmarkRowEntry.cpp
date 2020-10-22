@@ -14,7 +14,7 @@ PrecisionBenchmarkRowEntry::PrecisionBenchmarkRowEntry(const std::string &datase
                                                                                                                    expectedScore) {}
 
 fort::char_table &PrecisionBenchmarkRowEntry::init_header(fort::char_table &os) {
-    return os << "dataset_name" << "configuration" << "query_size" << "distinct_query_chars" << "eSCase" << "expectedScore" << fort::endr;
+    return os << fort::header << "dataset_name" << "configuration" << "query_size" << "distinct_query_chars" << "eSCase" << "expectedScore" << fort::endr;
 }
 
 std::ostream &operator<<(std::ostream &os, const PrecisionBenchmarkRowEntry &entry) {
@@ -22,6 +22,6 @@ std::ostream &operator<<(std::ostream &os, const PrecisionBenchmarkRowEntry &ent
 }
 
 fort::char_table &operator<<(fort::char_table &os, const PrecisionBenchmarkRowEntry &entry) {
-    return os << entry.dataset_name << entry.configuration <<entry.query_size<<entry.distinct_query_chars<<magic_enum::enum_name(entry.eSCase) << entry.expectedScore << fort::endr;
+    return os  << entry.dataset_name << entry.configuration <<entry.query_size<<entry.distinct_query_chars<<magic_enum::enum_name(entry.eSCase) << entry.expectedScore << fort::endr;
 
 }

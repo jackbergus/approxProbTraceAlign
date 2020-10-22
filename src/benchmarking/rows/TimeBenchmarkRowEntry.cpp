@@ -17,7 +17,7 @@ fort::char_table &operator<<(fort::char_table &os, const TimeBenchmarkRowEntry &
 }
 
 fort::char_table &TimeBenchmarkRowEntry::init_header(fort::char_table &os) {
-    return os << "dataset" << "experiment_type" << "query_length" << "query_no_distinct_nodes" << "entry_type" << "entry_value" << "time "  << fort::endr;
+    return os << fort::header << "dataset" << "experiment_type" << "query_length" << "query_no_distinct_nodes" << "entry_type" << "entry_value" << "time "  << fort::endr;
 }
 
 TimeBenchmarkRowEntry::TimeBenchmarkRowEntry(const std::string &dataset, const std::string &experimentType,

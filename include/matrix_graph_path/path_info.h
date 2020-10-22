@@ -34,11 +34,12 @@ namespace std {
         std::size_t operator()(const struct path_info& k) const
         {
 
-            std::size_t seed = k.actualPath.size();
-            for(auto& i : k.actualPath) {
+            // The hashing is defined for the hashmap of Ranking, where the only relevant fact is the path itself
+            std::size_t seed = k.path.size();
+            /*for(auto& i : k.actualPath) {
                 seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            }
-            return hash_combine<std::string>(hash_combine<double>(seed, k.cost), k.path);
+            }*/
+            return hash_combine<std::string>(/*hash_combine<double>(seed, k.path)*/ seed, k.path);
         }
     };
 

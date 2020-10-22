@@ -13,7 +13,7 @@
  * This data structure implements an iterator over a current matrix, representing the i-th closure of the graph
  */
 struct OnlyTransitiveEdgesCost : public LabelledPathVisitingStrategy {
-    double edge_summation;
+    double edge_summation = 0.0;
     std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> currentEdgeStep;
 
     /**

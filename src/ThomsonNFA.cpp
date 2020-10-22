@@ -103,9 +103,11 @@ bool ThomsonNFA::epsilonClosure() {
             if (ins.empty() && (outs.size() == 1)) {
                 assert(outs[0].second);
                 source = outs[0].first;
+                g.erase(*it);
+                it = epsNodes.erase(it);
+            } else {
+                it++;
             }
-            g.erase(*it);
-            it = epsNodes.erase(it);
         } else if (*it == target) {
             std::vector<std::pair<Node, double>> outs, ins;
             for (lemon::ListDigraph::OutArcIt a(g, *it); a != lemon::INVALID; ++a) {
@@ -117,9 +119,11 @@ bool ThomsonNFA::epsilonClosure() {
             if (outs.empty() && (ins.size() == 1)) {
                 assert(ins[0].second);
                 target = ins[0].first;
+                g.erase(*it);
+                it = epsNodes.erase(it);
+            } else {
+                it++;
             }
-            g.erase(*it);
-            it = epsNodes.erase(it);
         } else {
             std::vector<std::pair<Node, double>> outs, ins;
             for (lemon::ListDigraph::OutArcIt a(g, *it); a != lemon::INVALID; ++a) {

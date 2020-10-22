@@ -46,12 +46,21 @@ ReadGraph InputStream::readGraph(const std::string &str, bool isFile, double has
         case REGEX: {
             ThomsonNFA nfa{openRegex(str, isFile)};
             toret = nfa.generateGraph(hasCost);
+            break;
         }
         case READGRAPH: {
             ThomsonNFA nfa{str, isFile};
             toret = nfa.generateGraph(hasCost);
+            break;
         }
     }
     toret.name = str;
     return toret;
 }
+
+ReadGraph InputStream::readGraph(const ReadGraphConfiguration &grafo) {
+    return readGraph(grafo.str, grafo.isFile, grafo.hasCost, grafo.format);
+}
+
+ReadGraphConfiguration::ReadGraphConfiguration(const std::string &str, bool isFile, double hasCost, input_format format)
+        : str(str), isFile(isFile), hasCost(hasCost), format(format) {}
