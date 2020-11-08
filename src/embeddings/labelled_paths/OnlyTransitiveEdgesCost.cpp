@@ -16,11 +16,14 @@ OnlyTransitiveEdgesCost::OnlyTransitiveEdgesCost(std::unordered_map<std::pair<st
 }
 
 #include <iostream>
+#include <ThomsonNFA.h>
 
 void OnlyTransitiveEdgesCost::acceptMultiedge(const std::string &left, const std::string &right, double value) {
-    edge_summation += value;  // Summing up all the probabilities for the current iteration.
-    auto it = currentEdgeStep.insert(std::make_pair(std::make_pair(left, right), value));
-    if (!it.second) it.first->second += value;
+    if ((left != EPSILON) && (right != EPSILON)) {
+        edge_summation += value;  // Summing up all the probabilities for the current iteration.
+        auto it = currentEdgeStep.insert(std::make_pair(std::make_pair(left, right), value));
+        if (!it.second) it.first->second += value;
+    }
 }
 
 void OnlyTransitiveEdgesCost::nextEdgeIteration() {
@@ -45,9 +48,9 @@ void OnlyTransitiveEdgesCost::finalize(double weight) {
     }
     if (S <= std::numeric_limits<double>::epsilon())
         S = std::numeric_limits<double>::epsilon();
-    std::cerr << S << std::endl;
+    ///std::cerr << S << std::endl;
     for (auto& it : pair_embedding) {
-        const double normalized_over_current_length_distribution = (it.second / S); // Normalization of the component
+        const double normalized_over_current_length_distribution = (it.second / S) ; // Normalization of the component
         const double weight_the_resulting_value_with_the_graph_s_weight = normalized_over_current_length_distribution * weight; // Multiplying by weight, so that if all the elegible criteria are met, the desired probability is returned
         it.second = weight_the_resulting_value_with_the_graph_s_weight;
     }

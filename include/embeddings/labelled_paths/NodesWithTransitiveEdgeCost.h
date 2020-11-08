@@ -12,8 +12,9 @@ struct NodesWithTransitiveEdgeCost : public OnlyTransitiveEdgesCost {
     std::unordered_map<std::string, double> currentNodeStep;
     std::unordered_map<std::string, double> node_embedding;
     double nodeSummation;
+    double tuning;
 
-    NodesWithTransitiveEdgeCost(std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> &e, double l,
+    NodesWithTransitiveEdgeCost(std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> &e, double tuning_factor, double l,
                                 size_t len = 1);
 
     ~NodesWithTransitiveEdgeCost() override {};

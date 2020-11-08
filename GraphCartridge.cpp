@@ -6,7 +6,7 @@
 
 void GraphCartridge::loadGraph(const ReadGraphConfiguration &grafo) {
     ReadGraph g = stream.readGraph(grafo);
-    g.printGraph();
+    ///g.printGraph();
     assert(graphs.insert(std::make_pair(g.name, g)).second);
     //graphVector.emplace_back(g);
 }

@@ -21,8 +21,8 @@ struct EmbedPathsOverSingleGraphStrategy : public MultiplePathsEmbeddingStrategy
 
     TransitiveClosureGraphStrategy<T> strategy;
 
-    EmbedPathsOverSingleGraphStrategy(double lambda, bool doNotVisitLoopsTwice, size_t maxPathLength, const double minimumPathCost)
-            : MultiplePathsEmbeddingStrategy(doNotVisitLoopsTwice, maxPathLength, minimumPathCost), strategy{lambda, maxPathLength} {
+    EmbedPathsOverSingleGraphStrategy(double tuning_factor, double lambda, bool doNotVisitLoopsTwice, size_t maxPathLength, const double minimumPathCost)
+            : MultiplePathsEmbeddingStrategy(doNotVisitLoopsTwice, maxPathLength, minimumPathCost), strategy{tuning_factor, lambda, maxPathLength} {
     }
 
     ReadGraph::unstructured_embedding generatePathEmbedding(ReadGraph &g, const path_info &path) override {

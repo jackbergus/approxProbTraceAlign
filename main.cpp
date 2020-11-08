@@ -1,5 +1,5 @@
 
-
+#define DULCIOR
 
 #include <embeddings/path_embedding/MultiplePathsEmbeddingStrategy.h>
 #include <embeddings/graph_embedding/GraphEmbeddingStrategy.h>
@@ -29,11 +29,51 @@ void doTestDemultiplexed(double stringWeight, MultiplePathsEmbeddingStrategy* st
     ReadGraph g = ReadGraph::fromString("abc", stringWeight);
     auto tmp = (*testStrategy)(g);
     auto x = ReadGraph::generateStructuredEmbedding(embedding_space, tmp);
+
+
     for (const auto& y : map) {
         std::cout << "\tabc vs. " << y.first << " = " << score(x, y.second) << ", normalized = " << scoreNormalized(x, y.second) << std::endl;
     }
 }
 
+#include <sstream>
+#include <benchmarking/Ranking.h>
+
+Ranking<std::string> doTestDemultiplexed2(double stringWeight, MultiplePathsEmbeddingStrategy* strategy, GraphEmbeddingStrategy* testStrategy, const std::string& matrix="matrix6.txt", const std::string& caba="caba") {
+    std::set<std::pair<std::string,std::string>> embedding_space;
+    ReadGraph t{matrix};
+    ReadGraph::path_to_uembedding ptg;
+    ReadGraph::path_to_uembedding ptu = (*strategy)(t);
+    ReadGraph::extractEmbeddingSpace(embedding_space, ptu);
+    auto map = ReadGraph::generateStructuredEmbeddings(embedding_space, ptu);
+    std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+    ReadGraph g = ReadGraph::fromString(caba, stringWeight);
+    auto tmp = (*testStrategy)(g);
+    auto x = ReadGraph::generateStructuredEmbedding(embedding_space, tmp);
+    std::cout << "q=" << x.format(CleanFmt) << std::endl << std::endl;
+    std::map<double, std::string> results;
+    Ranking<std::string> pathRanking;
+    for (const auto& y : map) {
+        double sc = score(x, y.second);
+        pathRanking.addScore(y.first, sc);
+        std::ostringstream iss;
+        iss << y.second.format(CleanFmt);
+        results[sc] += ("\n\t" + caba + " vs. " + y.first + " = " + std::to_string(sc) +" \n" + iss.str() +"\n\n");
+    }
+    for (auto it = results.rbegin(); it != results.rend(); it++) {
+        std::cout << "SCORE = " << it->first << std::endl << '\t' << it->second << std::endl;
+
+    }
+#ifndef DULCIOR
+    return pathRanking;
+#else
+    Ranking<std::string> finalRanking;
+    for (const auto& y: map) {
+        finalRanking.addScore(y.first, pathRanking.getRanking(y.first));
+    }
+    return finalRanking;
+#endif
+}
 
 
 
@@ -88,7 +128,7 @@ void testsDemultiplexed() {
         delete mpes;
         delete ges;
     }
-#endif
+
 
     {
         MultiplePathsEmbeddingStrategy* mpes = new EmbedPathsOverSingleGraphStrategy<NodesWithTransitiveEdgeCost>(1.0, true, 100, 0.00001);
@@ -109,7 +149,7 @@ void testsDemultiplexed() {
     }
 
 
-#if 1
+//#if 1
     {
         GraphEmbeddingStrategy*         ges  = new TransitiveClosureGraphStrategy<OnlyTransitiveEdgesCost>(1.0, 100);
         doMultiplePetriDemultiplexedTest(1.0,  ges);
@@ -135,8 +175,8 @@ void testsDemultiplexed() {
         doMultiplePetriDemultiplexedTest(0.3, ges);
         delete ges;
     }
+//#endif
 #endif
-
 
 }
 
@@ -198,6 +238,7 @@ void generatePaths() {
 #include <distances/strings/LevensteinDistance.h>
 #include <benchmarking/BenchmarkStrategy.h>
 #include <benchmarking/BenchmarkConfiguration.h>
+#include <distances/strings/LevensteinSimilarity.h>
 
 struct BenchmarkGenericStringCostFunction : public BenchmarkStrategy {
 
@@ -267,15 +308,15 @@ class ProposedRanking : public RankingTest {
     std::unordered_map<ReadGraph*, ReadGraph::path_to_uembedding> readGraphMap;
 
 public:
-    ProposedRanking(bool doNotVisiPahtsTwive, size_t maxPathLength, double minimumPathCost, const double lambda)
-            : RankingTest(doNotVisiPahtsTwive, maxPathLength, minimumPathCost), lambda(lambda), eposgs(lambda, doNotVisiPahtsTwive, maxPathLength, minimumPathCost), gEmbed(lambda, maxPathLength) {}
+    ProposedRanking(double tuning_factor, bool doNotVisiPahtsTwive, size_t maxPathLength, double minimumPathCost, const double lambda)
+            : RankingTest(doNotVisiPahtsTwive, maxPathLength, minimumPathCost), lambda(lambda), eposgs(tuning_factor, lambda, doNotVisiPahtsTwive, maxPathLength, minimumPathCost), gEmbed(tuning_factor, lambda, maxPathLength) {}
 
     void loadPathEmbedding(const struct path_info &path, size_t pathId, ReadGraph &sourceGraph,
                            const std::string &query) override {
         assert(pathId == storePathsWithGraphs.size());
         /*const auto& x = */storePathsWithGraphs.emplace_back(path, &sourceGraph);
         auto it = readGraphMap.find(&sourceGraph);
-        std::cout << pathId << ": " << path.cost << std::endl;
+        ///std::cout << pathId << ": " << path.cost << std::endl;
         if (it == readGraphMap.end()) {
             ReadGraph::path_to_uembedding multiEmbeddings = eposgs(sourceGraph);
             ReadGraph::extractEmbeddingSpace(embeddingSpace, multiEmbeddings);
@@ -322,12 +363,232 @@ void simpleBenchmark() {
     std::cout << configuration << std::endl;
 }
 
+Ranking<std::string> generate_example_expected_ranking(const std::string& matrix = "matrix6.txt", const std::string& caba = "caba") {
+    ReadGraph g{matrix};
+    std::vector<std::pair<double,std::string>> paths;
+    for (const auto& path:
+            g.iterateOverPaths(false, 5,std::numeric_limits<double>::epsilon()*2)) {
+        std::cout << "path = " << path.path << " prob = " << path.cost << std::endl;
+        paths.emplace_back( path.cost, path.path);
+    }
+    /*TransitiveClosureGraphStrategy<NodesWithTransitiveEdgeCost> embedding(-1, 0.7,  5);
+     ReadGraph::unstructured_embedding l = embedding(g);*/
+
+    /*ReadGraph g2 = ReadGraph::fromString("caba", 1.0);
+    ReadGraph::unstructured_embedding l2 = embedding(g2);*/
+
+    std::map<double, std::vector<std::string>> rankingMap;
+    Ranking<std::string> expectedRanking;
+    for (const auto& x : paths) {
+        double distance = GeneralizedLevensteinDistance(x.second, caba);
+        double score = 1.0/(distance/5.0+1.0);
+        expectedRanking.addScore(x.second, x.first* score);
+        std::cout << x.second << ": probability=" << x.first << " distance: " << distance << " similarity: " << score << " RANKING: " << x.first * score << std::endl;
+        rankingMap[x.first * score ].emplace_back(x.second);
+    }
+    size_t maxRank = 1;
+    for (auto it = rankingMap.rbegin(); it != rankingMap.rend(); it++) {
+        std::cout << maxRank << " [" << it->first << "]" << std::endl;
+        for (const auto & y : it->second) {
+            std::cout << '\t' << y << " ";
+        }
+        std::cout << std::endl;
+        maxRank++;
+    }
+#ifndef DULCIOR
+    return expectedRanking;
+#else
+    Ranking<std::string> finalRanking;
+    for (const auto& y: paths) {
+        finalRanking.addScore(y.second, expectedRanking.getRanking(y.second));
+    }
+    return finalRanking;
+#endif
+    ///exit(1);
+}
+
+struct algorithm_map {
+    size_t index;
+    std::vector<size_t> edits;
+    std::vector<size_t> sequence;
+    double precision = 0.0;
+    double simialrity = 0.0;
+    double score = 0.0;
+
+    algorithm_map(const algorithm_map&) = default;
+    algorithm_map& operator=(const algorithm_map& ) = default;
+    algorithm_map(size_t index, const std::vector<size_t> &edits, const std::vector<size_t> &sequence) : index(index),
+                                                                                                         edits(edits),
+                                                                                                         sequence(
+                                                                                                                 sequence) {};
+    algorithm_map() {}
+};
+
+void
+doBenchmark(const std::string &matrix, const std::string &query, double tuning_factor, double lambda, double min_path,
+            size_t max_path);
+
+void rectify(struct algorithm_map& x) {}
+void rectify2(struct algorithm_map& x) {
+    size_t N = x.edits.size();
+    if ((N>=2) && ((x.edits[N-1] == x.edits[N-2]))) {  // Removing the clashes of slight changes in the order. Nevertheless, I will analyse the monotonicity, so this information won't be discarded
+        x.edits.pop_back();
+    }
+}
+
+double minimum_edit_maximum_substring(const std::vector<size_t>&  ranking) {
+
+
+    std::vector<algorithm_map> backup;
+
+    std::vector<size_t> expected(ranking.size());
+    std::iota(expected.begin(), expected.end(), 1);
+    double S = ranking.size();
+
+    {
+        std::unordered_map<size_t, algorithm_map> C;
+        C[0] = {};
+        C[0].index = 0;
+        for (size_t i = 0, N = ranking.size(); i<N; i++) {
+            size_t current  = ranking[i];
+            if ((i == 0) || (ranking[i] > ranking[i-1])) {
+                for (auto& kv : C) kv.second.sequence.emplace_back(ranking[i]);
+                for (size_t j = ranking[i-1]+1, M = ranking[i]-1; j<M; j++) {
+                    for (auto& kv : C) kv.second.edits.emplace_back(j);
+                }
+                for (auto& kv : C) rectify(kv.second);
+            } else {
+                for (const auto& kv : C) backup.emplace_back(kv.second);
+                for (auto& kv: C) {
+                    kv.second.edits.emplace_back(ranking[i]);
+                    kv.second.sequence.emplace_back(ranking[i]);
+                    rectify2(kv.second);
+                }
+                C[i] = {};
+                C[i].index = i;
+                C[i].sequence.emplace_back(ranking[i]);
+            }
+        }
+        for (const auto& kv : C) backup.emplace_back(kv.second);
+    }
+
+    double max = -1; long long int index = -1;
+    for (size_t i = 0, N = backup.size(); i<N; i++) {
+        algorithm_map& ref = backup[i];
+
+        // /////////////////////////////////////////////////////////
+        // Discard the sequence if it is prevalently decrementing //
+        // /////////////////////////////////////////////////////////
+        long long int summation = 0;
+        for (size_t j = 1, M = ref.sequence.size(); j<M; j++) {
+            long long int difference = (((long long int)ref.sequence[j])-((long long int)ref.sequence[j-1]));
+            if ((difference < 0) && (summation > 0)) summation = 0;
+            summation += (((long long int)ref.sequence[j])-((long long int)ref.sequence[j-1]));
+        }
+        if (summation <= 0) continue;
+        // /////////////////////////////////////////////////////////
+        // /////////////////////////////////////////////////////////
+        // /////////////////////////////////////////////////////////
+
+        ref.precision = ((double)ref.sequence.size())/S;
+        ref.simialrity = 1.0/(((double)ref.edits.size())/5.0+1.0);
+        ref.score = ref.precision * ref.simialrity;
+        if ((ref.score > max ) || ((ref.score == max) && (ref.simialrity > backup[index].simialrity)) ||((ref.score == max) && (ref.simialrity == backup[index].simialrity) && (ref.precision > backup[index].precision)) ) {
+            max = ref.score;
+            index = i;
+        }
+    }
+
+
+    if ((max < 0) || (index == -1)) {
+        std::cout<< "There is no good sequence" << std::endl;
+        return 0;
+    }
+    std::cout << "Score " << backup[index].score << " for: ";
+    for (const auto& sol : backup[index].sequence)
+        std::cout << sol << ", ";
+    std::cout << std::endl;
+    return backup[index].score;
+
+}
+
+
 int main() {
 
+    minimum_edit_maximum_substring({3,7,1,2,4,6,5,8});
+    minimum_edit_maximum_substring({1,4,5,7,8,2,3,6});
+    minimum_edit_maximum_substring({8,7,6,5,4,2,3,1});
+    exit(2);
+
+    ///generate_example_expected_ranking();
+#define DEBUG
+#ifdef DEBUG
+    if (0){
+        /*TransitiveClosureGraphStrategy<NodesWithTransitiveEdgeCost> tcgs(0.0001, 0.7, 5);
+        std::set<std::pair<std::string,std::string>> embedding_space;
+        ReadGraph g1{"matrix5.txt"};
+        g1.printGraph();*/
+
+
+        /*ProposedRanking ir{-1, false, 5, std::numeric_limits<double>::epsilon()*2, 0.7};
+        ir.loadGraph({"matrix5.txt", true, 1.0, input_format::READGRAPH});
+        std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << ir.generateRanking("caba", 10) << std::endl;
+        exit(1);
+        */
+        /*const ReadGraph::unstructured_embedding &uv1 = tcgs(g1);
+        ReadGraph::extractEmbeddingSpace(embedding_space, uv1);
+        exit(1);*/
+
+        std::vector<size_t> target{1,2,3,4,5,6,7,8};
+        std::vector<size_t> returned1{1,4,5,7,8,2,3,6};
+        std::vector<size_t> returned2{3,7,1,2,4,6,5,8};
+        std::cout << GeneralizedLevensteinDistance(target,returned1) << std::endl;
+        std::cout << GeneralizedLevensteinDistance(target,returned2) << std::endl;
+
+    } else {
+        std::string matrix = "matrix5.txt";
+        std::string query = "caba";
+        double tuning_factor = 0.0001;
+        double lambda = 0.7;
+        double min_path = std::numeric_limits<double>::epsilon()*2;
+        size_t max_path = 5;
+
+        std::cout << "MATRIX5" << std::endl;
+        std::cout << "~~~~~~~" << std::endl;
+        std::cout << "~~~~~~~" << std::endl;
+        std::cout << "~~~~~~~" << std::endl;
+        doBenchmark("matrix5.txt", query, tuning_factor, lambda, min_path, max_path);
+        std::cout << "MATRIX6" << std::endl;
+        std::cout << "~~~~~~~" << std::endl;
+        std::cout << "~~~~~~~" << std::endl;
+        std::cout << "~~~~~~~" << std::endl;
+        doBenchmark("matrix6.txt", query, tuning_factor, lambda, min_path, max_path);
+
+
+    } exit(1);
+#endif
+
+#if goodBenchmark
     ///parse();
-    ProposedRanking ir{false, 200, 0.000001, 0.6};
-    ir.loadGraph({"test2.txt", true, 1.0, input_format::REGEX});
-    std::cout << ir.generateRanking("abcdef", 10) << std::endl;
+    {
+        ProposedRanking ir{-1, false, 200, 0.000001, 1.0};
+        ir.loadGraph({"test2.txt", true, 1.0, input_format::REGEX});
+        std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << ir.generateRanking("abcdefghijkl", 10) << std::endl;
+    }
+    {
+        ProposedRanking ir{-1, false, 200, 0.000001, 1.0};
+        ir.loadGraph({"test2.txt", true, 1.0, input_format::REGEX});
+        std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << ir.generateRanking("GH", 10) << std::endl;
+    }
+    {
+        ProposedRanking ir{-1, false, 200, 0.000001, 1.0};
+        ir.loadGraph({"test2.txt", true, 1.0, input_format::REGEX});
+        std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << ir.generateRanking("GHIJ", 10) << std::endl;
+    }
+#else // testingone
+
+#endif
+
     ///testsDemultiplexed();
 
 
@@ -364,4 +625,23 @@ int main() {
     std::cout << score(v3,v3) << " vs. " << scoreNormalized(v3, v3) << std::endl;
 
 #endif
+}
+
+void
+doBenchmark(const std::string &matrix, const std::string &query, double tuning_factor, double lambda, double min_path,
+            size_t max_path) {
+    Ranking<std::string> expected = generate_example_expected_ranking(matrix, query);
+
+    std::cout << std::endl << std::endl << std::endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+    MultiplePathsEmbeddingStrategy* mpes = new EmbedPathsOverSingleGraphStrategy<NodesWithTransitiveEdgeCost>(tuning_factor, lambda, false, max_path, min_path);
+    GraphEmbeddingStrategy*         ges  = new TransitiveClosureGraphStrategy<NodesWithTransitiveEdgeCost>(tuning_factor, lambda,  max_path);
+    Ranking<std::string> competitor = doTestDemultiplexed2(1.0, mpes, ges, matrix, query);
+    delete mpes;
+    delete ges;
+
+    LevensteinSimilarity similarity;
+    std::cout << "Ranking distance: " << expected.normalizedRank(competitor, [&similarity](const std::string& left, const std::string& right) { return similarity.similarity(left, right); })  << std::endl;
+    std::cout << "Spearman Index: " << expected.SpearmanCorrelationIndex(competitor, 1.0) << std::endl;
+    std::cout << "expected" << std::endl <<  expected << std::endl;
+    std::cout << "competitor" << std::endl << competitor << std::endl;
 }

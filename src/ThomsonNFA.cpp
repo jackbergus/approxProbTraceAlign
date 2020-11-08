@@ -165,15 +165,17 @@ ReadGraph ThomsonNFA::generateGraph(double withCost) {
         ret.addNode(nodeId[*it], nodeLabels[*it]);
     }
     for (auto it = g.arcs().begin(); it != g.arcs().end(); it++) {
-        ret.addEdge(nodeId[g.source(it)], nodeId[g.target(it)], edgeCost[it]);
+        ret.addEdge(nodeId[g.source(*it)], nodeId[g.target(*it)], edgeCost[*it]);
     }
     ret.finalizeEdgesMatrix(withCost);
+    ///ret.printGraph();
     return ret;
 }
 
 ThomsonNFA::Node ThomsonNFA::addNode(const std::string &label) {
     auto left = g.addNode();
-    epsNodes.emplace_back(left);
+    if (label == EPSILON)
+        epsNodes.emplace_back(left);
     nodeLabels[left] = label;
     return left;
 }

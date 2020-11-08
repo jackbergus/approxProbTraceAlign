@@ -13,6 +13,7 @@
 #include <matrix_graph_path/path_info.h>
 #include <distances/strings/Levenstein.h>
 #include <cassert>
+#include <ostream>
 
 template <typename BenchmarkKey> struct Ranking {
     Ranking() {}
@@ -117,8 +118,8 @@ template <typename BenchmarkKey> struct Ranking {
         for (const auto& cpl : lhs.scoring) {
             for (const auto& cpr : rhs.scoring) {
                 double maxScore = (cpl.second * cpr.second);
-                double similarity = 1.0 / (1.0 + function(cpl.first, cpl.first) / 5.0);
-                sum += (maxScore * similarity);
+                //double similarity = 1.0 / (1.0 + function(cpl.first, cpl.first) / 5.0);
+                sum += (maxScore * function(cpl.first, cpl.first));
             }
         }
         return sum;
@@ -149,6 +150,17 @@ template <typename BenchmarkKey> struct Ranking {
             if (toReturn.size >= topK) break;
         }
         return toReturn;
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Ranking &ranking) {
+        for (auto it = ranking.orderedList.rbegin(); it != ranking.orderedList.rend(); it++) {
+            os << it->first << ": ";
+            for (const auto& y : it->second) {
+                os << y << ", ";
+            }
+            os << std::endl;
+        }
+        return os;
     }
 
 private:

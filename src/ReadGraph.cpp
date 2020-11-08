@@ -65,10 +65,12 @@ void ReadGraph::init(size_t vSize, size_t eSize, size_t src, size_t tgt) {
 }
 
 bool ReadGraph::addNode(size_t id, const std::string &label) {
+    ///std::cerr << '[' << id << "] = " << label << std::endl;
     return inv_label_conversion.insert(std::make_pair(id, label)).second;
 }
 
 void ReadGraph::addEdge(size_t src, size_t dst, double weight) {
+    ///std::cerr << '[' << src << ", " << dst << "] = " << weight << std::endl;
     assert(0 <= weight && weight <= 1);
     if (weight != 0) tripletList.emplace_back(src,dst,weight);
 }

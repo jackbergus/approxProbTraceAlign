@@ -6,8 +6,9 @@
 #include "embeddings/labelled_paths/NodesWithTransitiveEdgeCost.h"
 
 NodesWithTransitiveEdgeCost::NodesWithTransitiveEdgeCost(
-        std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> &e, double l, size_t len)
+        std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> &e, double tuning_factor, double l, size_t len)
         : OnlyTransitiveEdgesCost{e, l, len},
+        tuning{tuning_factor},
         nodeSummation{0.0} {}
 
 void NodesWithTransitiveEdgeCost::acceptNode(const std::string &node, double value) {
@@ -18,8 +19,8 @@ void NodesWithTransitiveEdgeCost::acceptNode(const std::string &node, double val
 }
 
 void NodesWithTransitiveEdgeCost::finalize(double weight) {
-    double edgeCost = std::pow(lambda, len);
-    double nodeCost = 1-edgeCost;
+    double edgeCost = tuning == -1.0 ? 1.0 : std::pow(tuning, len);
+    double nodeCost = tuning == -1.0 ? 1.0 : edgeCost/*1-edgecost*/;
     OnlyTransitiveEdgesCost::finalize(weight * edgeCost);
     double S = 0; // Define a probability distribution over the all components: we need to normalize their values. Summing up all the results
     for (const auto& it : node_embedding) {
