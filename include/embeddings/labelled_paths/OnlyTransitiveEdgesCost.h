@@ -8,12 +8,15 @@
 #include <unordered_map>
 #include <utils/pair_hash.h>
 #include "LabelledPathVisitingStrategy.h"
+#define NEW_DEFINITION
 
 /**
  * This data structure implements an iterator over a current matrix, representing the i-th closure of the graph
  */
 struct OnlyTransitiveEdgesCost : public LabelledPathVisitingStrategy {
+#ifndef NEW_DEFINITION
     double edge_summation = 0.0;
+#endif
     std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> currentEdgeStep;
 
     /**
@@ -47,6 +50,11 @@ struct OnlyTransitiveEdgesCost : public LabelledPathVisitingStrategy {
 
     void acceptNode(const std::string &node, double value) override {}; // noop
     void nextNodeIteration(double thisNormalizationCost) override {}; // noop
+
+private:
+#ifdef NEW_DEFINITION
+    std::unordered_map<std::string, size_t> L_node_frequency;
+#endif
 };
 
 

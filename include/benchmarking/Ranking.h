@@ -163,6 +163,16 @@ template <typename BenchmarkKey> struct Ranking {
         return os;
     }
 
+    std::vector<size_t> reorderForInducedRanking(const Ranking<BenchmarkKey>& expectedRanking) {
+        std::vector<size_t> toReturn;
+        for (auto it = orderedList.rbegin(), en = orderedList.rend(); it != en; it++) {
+            for (const auto& k : it->second) {
+                toReturn.emplace_back(expectedRanking.getRanking(k));
+            }
+        }
+        return toReturn;
+    }
+
 private:
     std::unordered_set<BenchmarkKey> localS;
     std::map<double, std::vector<BenchmarkKey>> orderedList;

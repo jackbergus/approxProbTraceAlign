@@ -1,5 +1,5 @@
 
-#define DULCIOR
+////#define DULCIOR
 
 #include <embeddings/path_embedding/MultiplePathsEmbeddingStrategy.h>
 #include <embeddings/graph_embedding/GraphEmbeddingStrategy.h>
@@ -438,6 +438,10 @@ void rectify2(struct algorithm_map& x) {
 
 double minimum_edit_maximum_substring(const std::vector<size_t>&  ranking) {
 
+    std::cout << "{{{INPUT: ";
+    for (const size_t& x : ranking)
+        std::cout << x << ", ";
+    std::cout << "}}}a" << std::endl;
 
     std::vector<algorithm_map> backup;
 
@@ -484,6 +488,7 @@ double minimum_edit_maximum_substring(const std::vector<size_t>&  ranking) {
             long long int difference = (((long long int)ref.sequence[j])-((long long int)ref.sequence[j-1]));
             if ((difference < 0) && (summation > 0)) summation = 0;
             summation += (((long long int)ref.sequence[j])-((long long int)ref.sequence[j-1]));
+            if ((summation < 0) && (difference>0)) break;
         }
         if (summation <= 0) continue;
         // /////////////////////////////////////////////////////////
@@ -507,7 +512,7 @@ double minimum_edit_maximum_substring(const std::vector<size_t>&  ranking) {
     std::cout << "Score " << backup[index].score << " for: ";
     for (const auto& sol : backup[index].sequence)
         std::cout << sol << ", ";
-    std::cout << std::endl;
+    std::cout << "from index " << index <<  std::endl;
     return backup[index].score;
 
 }
@@ -515,10 +520,10 @@ double minimum_edit_maximum_substring(const std::vector<size_t>&  ranking) {
 
 int main() {
 
-    minimum_edit_maximum_substring({3,7,1,2,4,6,5,8});
+    /*minimum_edit_maximum_substring({3,7,1,2,4,6,5,8});
     minimum_edit_maximum_substring({1,4,5,7,8,2,3,6});
     minimum_edit_maximum_substring({8,7,6,5,4,2,3,1});
-    exit(2);
+    exit(2);*/
 
     ///generate_example_expected_ranking();
 #define DEBUG
@@ -642,6 +647,7 @@ doBenchmark(const std::string &matrix, const std::string &query, double tuning_f
     LevensteinSimilarity similarity;
     std::cout << "Ranking distance: " << expected.normalizedRank(competitor, [&similarity](const std::string& left, const std::string& right) { return similarity.similarity(left, right); })  << std::endl;
     std::cout << "Spearman Index: " << expected.SpearmanCorrelationIndex(competitor, 1.0) << std::endl;
+    std::cout << "Derived Ranking: " << minimum_edit_maximum_substring(competitor.reorderForInducedRanking(expected)) << std::endl;
     std::cout << "expected" << std::endl <<  expected << std::endl;
     std::cout << "competitor" << std::endl << competitor << std::endl;
 }
