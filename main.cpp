@@ -517,8 +517,7 @@ double minimum_edit_maximum_substring(const std::vector<size_t>&  ranking) {
 
 }
 
-
-int main() {
+void benchmarking() {
 
     /*minimum_edit_maximum_substring({3,7,1,2,4,6,5,8});
     minimum_edit_maximum_substring({1,4,5,7,8,2,3,6});
@@ -630,6 +629,11 @@ int main() {
     std::cout << score(v3,v3) << " vs. " << scoreNormalized(v3, v3) << std::endl;
 
 #endif
+}
+
+
+int main() {
+
 }
 
 void
