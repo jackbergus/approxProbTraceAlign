@@ -66,6 +66,7 @@ void ReadGraph::init(size_t vSize, size_t eSize, size_t src, size_t tgt) {
 
 bool ReadGraph::addNode(size_t id, const std::string &label) {
     ///std::cerr << '[' << id << "] = " << label << std::endl;
+    nodes = std::max(nodes, id);
     return inv_label_conversion.insert(std::make_pair(id, label)).second;
 }
 
@@ -77,6 +78,8 @@ void ReadGraph::addEdge(size_t src, size_t dst, double weight) {
 
 void ReadGraph::finalizeEdgesMatrix(double cost) {
     weight = cost;
+    edges = tripletList.size();
+    nodes++;
     Eigen::SparseMatrix<double, Eigen::RowMajor> matrix(nodes, nodes);
     matrix.setFromTriplets(tripletList.begin(), tripletList.end());
     A = matrix;

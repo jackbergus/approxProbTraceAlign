@@ -49,14 +49,18 @@ struct LogOperationConfiguration {
 #include <utils/fixed_bimap.h>
 
 struct ConfigurationFile {
+    /**
+     * Loading the class from a configuration file, if it exists. Otherwise, the default parameters are going to be loaded
+     * @param filename
+     */
     ConfigurationFile(const std::string& filename);
 
     char  varepsilon = '.';
     std::string  admissibleCharList{"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
 
     ReadGraph    finalGraph;
-    FileFormat   input_file_format;
-    std::string  input_file;
+    FileFormat   input_file_format      = PetriMatrix;
+    std::string  input_file             = "data/petri_matrix.txt";
     bool         is_input_compressed    = false;
     size_t       ith_graph              = 0;
 

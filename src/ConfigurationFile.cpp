@@ -584,6 +584,9 @@ void ConfigurationFile::run() {
             graph = parseREGEX(this->input_file, epsilon);
             break;
     }
+    bool rememberToLog = false;
+    bool useEstimator = false;
+
 
     if (isFileFormatPetri(this->input_file_format)) {
         if (!this->use_estimator) {
@@ -599,19 +602,19 @@ void ConfigurationFile::run() {
                 this->trace_file_format = NoLog;
             } else {
                 std::cout << "Using an estimator: a log file will be loaded" << std::endl;
+                useEstimator = true;
             }
-            we.setGraph(&graph);
 
             switch (this->trace_file_format) {
                 case XESLog:
                     log = xesParse(this->traces_file);
                     performLogOperation(this->operations, log);
-                    we.setLog(log);
+                    rememberToLog = true;
                     break;
                 case RawLog:
                     log = read_log(this->traces_file, this->separator_if_any);
                     performLogOperation(this->operations, log);
-                    we.setLog(log);
+                    rememberToLog = true;
                     break;
 
                 case NoLog:
@@ -637,6 +640,21 @@ void ConfigurationFile::run() {
         auto now = std::chrono::high_resolution_clock::now();
         std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
     }
+
+    if (rememberToLog && useEstimator) {
+        auto t1 = std::chrono::high_resolution_clock::now();
+        std::cout << "Retrieving the estimator phase after the varepsilon closure... " << std::flush;
+        we.setGraph(&graph);
+        we.setLog(log);
+        for (const auto& id : graph.getNodes()) {
+            graph.updateNodeWeight(id, we.getNodeWeight(id, this->estimator_type));
+        }
+        graph.transfer_weight_from_nodes_to_edges();
+        auto now = std::chrono::high_resolution_clock::now();
+        std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
+    }
+
+    graph.render();
 
     std::cout << "Converting to the simple benchmark graph" << std::endl;
     std::cout << " 1) Initializing the final graph" << std::endl;

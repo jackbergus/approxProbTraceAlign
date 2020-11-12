@@ -10,7 +10,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QtWidgets/QMessageBox>
-#include "../../ConfigurationFile.h"
+#include "ConfigurationFile.h"
 #include <QTableView>
 #include <QStandardItemModel>
 

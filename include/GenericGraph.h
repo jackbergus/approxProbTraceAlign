@@ -12,6 +12,7 @@
 #include <cassert>
 #include <unordered_set>
 #include <utils/fixed_bimap.h>
+#include <src/gvpp.hpp>
 
 template <typename id_type>
 class GenericGraph {
@@ -120,6 +121,10 @@ public:
 
     double getNodeWeight(const id_type& id) const {
         return node_labelled_weighted.at(id).second;
+    }
+
+    void updateNodeWeight(const id_type& id, double newCost) {
+        node_labelled_weighted.at(id).second = newCost;
     }
 
     std::vector<std::pair<id_type, double>> outgoing(const id_type& id) const {
@@ -234,6 +239,24 @@ public:
                 bimap.put(cp.second.first, admissible_chars[nlabels++]);
             }
         }
+    }
+
+
+    void render() {
+        gvpp::Graph<> render{};
+        std::unordered_map<id_type, std::string> nodes;
+        for (const auto& n : node_labelled_weighted) {
+            std::string label = n.second.first + " [w=" + std::to_string(n.second.second) +"]";
+            std::string id = std::to_string(n.first);
+            render.addNode(id, label);
+            nodes.emplace(n.first, id);
+        }
+        for (const auto& n : node_labelled_weighted) {
+            for (const auto& out : outgoing(n.first)) {
+                render.addEdge(render.getNode(nodes.at(n.first)), render.getNode(nodes.at(out.first)), std::to_string(out.second));
+            }
+        }
+        renderToFile(render, "dot", "x11");
     }
 
 };

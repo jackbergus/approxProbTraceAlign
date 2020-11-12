@@ -19,3 +19,6 @@
 [submodule "submodules/yaml"]
 	path = submodules/yaml
 	url = https://github.com/jbeder/yaml-cpp
+[submodule "submodules/gvpp"]
+	path = submodules/gvpp
+	url = https://github.com/compilin/gvpp/

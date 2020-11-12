@@ -4,3 +4,5 @@ cmake-build-debug/*
 data/dist/*
 data/ProM*
 data/lib/
+data/java-se-8u41-ri/
+data/java-se-8u41-ri/*

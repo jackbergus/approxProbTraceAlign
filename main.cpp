@@ -641,8 +641,8 @@ void benchmarking() {
 struct MyOpts
 {
     std::string configuration = "configuration.yaml";
-    bool gui = true;
-    bool run = false;
+    bool gui = false;
+    bool run = true;
 };
 
 
