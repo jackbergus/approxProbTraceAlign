@@ -40,11 +40,17 @@ struct LogOperationConfiguration {
     LogOperationConfiguration() {}
     LogOperationConfiguration(const LogOperationConfiguration&) = default;
     LogOperationConfiguration& operator=(const LogOperationConfiguration&) = default;
+    LogOperationConfiguration(LogOperations operation, double factor, bool keepLowUpOtherwise) : operation(operation),
+                                                                                                 factor(factor),
+                                                                                                 keep_low_up_otherwise(
+                                                                                                         keepLowUpOtherwise) {}
 };
 
 #include <utils/fixed_bimap.h>
 
 struct ConfigurationFile {
+    ConfigurationFile(const std::string& filename);
+
     char  varepsilon = '.';
     std::string  admissibleCharList{"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
 
@@ -66,11 +72,15 @@ struct ConfigurationFile {
     double       min_prob                       = std::numeric_limits<double>::epsilon()*2;
 
     bool                         use_estimator;
-    spd_we::WeightEstimatorCases estimator_type;
+    spd_we::WeightEstimatorCases estimator_type = spd_we::W_CONSTANT;
 
     fixed_bimap<std::string, char>   action_to_single_char;
 
-    void load();
+    void run();
+    void serialize();
+
+private:
+    std::string configuration_filename;
 };
 
 bool isFileFormatPetri(enum FileFormat format);

@@ -551,7 +551,7 @@ GenericGraph<size_t> parseREGEX(const std::string& filename, const std::string& 
     graph.setWeight(1.0);
     return graph;
 }
-void ConfigurationFile::load() {
+void ConfigurationFile::run() {
     GenericGraph<size_t> graph;
     spd_we::WeightEstimator<size_t> we;
     std::vector<Transaction<std::string>> log;
@@ -676,6 +676,187 @@ void ConfigurationFile::load() {
         for (const auto& path : finalGraph.iterateOverPaths(false, max_length, min_prob)) {
             std::cout << " New trace = '" << path.path << "' with probability = " << path.cost << std::endl;
             finalLog.emplace(path.path);
+        }
+    }
+
+}
+
+#include <yaml-cpp/yaml.h>
+#include <magic_enum.hpp>
+
+#define ENUM_SERIALIZE(arg)             YAML::Key << #arg << YAML::Value << (magic_enum::enum_name(arg).data())
+#define SIMPLE_SERIALIZE(arg)           YAML::Key << #arg << YAML::Value << arg
+#define STRING_SERIALIZE(arg)           SIMPLE_SERIALIZE(arg)
+#define BOOL_SERIALIZE(arg)             SIMPLE_SERIALIZE(arg)
+#define INT_SERIALIZE(arg)              SIMPLE_SERIALIZE(arg)
+#define DBL_SERIALIZE(arg)              SIMPLE_SERIALIZE(arg)
+
+void ConfigurationFile::serialize() {
+    YAML::Emitter out;
+    out.SetIndent(4);
+    out << YAML::BeginMap;
+
+    out << ENUM_SERIALIZE(input_file_format);
+    out << STRING_SERIALIZE(input_file);
+    out << BOOL_SERIALIZE(is_input_compressed);
+    out << INT_SERIALIZE(ith_graph);
+
+    out << ENUM_SERIALIZE(trace_file_format);
+    out << STRING_SERIALIZE(traces_file);
+    out << BOOL_SERIALIZE(are_traces_compressed);
+    out << STRING_SERIALIZE(separator_if_any);
+
+    out << BOOL_SERIALIZE(add_traces_to_log);
+    out << INT_SERIALIZE(max_length);
+    out << DBL_SERIALIZE(min_prob);
+
+    out << BOOL_SERIALIZE(use_estimator);
+    out << ENUM_SERIALIZE(estimator_type);
+
+    if (!operations.empty()) {
+        out << YAML::Key << "operations" << YAML::Value;
+        out << YAML::BeginSeq;
+        for (const auto& arg : operations) {
+            const auto operation = arg.operation;
+            const auto factor    = arg.factor;
+            const auto keep_low_up_otherwise = arg.keep_low_up_otherwise;
+            out << YAML::BeginMap;
+            out << ENUM_SERIALIZE(operation);
+            out << DBL_SERIALIZE(factor);
+            out << BOOL_SERIALIZE(keep_low_up_otherwise);
+            out << YAML::EndMap;
+        }
+        out << YAML::EndSeq;
+    }
+
+    out << STRING_SERIALIZE(varepsilon);
+    out << STRING_SERIALIZE(admissibleCharList);
+
+    out << YAML::EndMap;
+
+    {
+        std::ofstream file(configuration_filename);
+        file << out.c_str();
+    }
+}
+
+#include <sys/stat.h>
+inline bool exists_test3 (const std::string& name) {
+    struct stat buffer;
+    return (stat (name.c_str(), &buffer) == 0);
+}
+
+#define PARSE_ENUM_EXT(str, arg, etype)                                                              \
+    {                                                                                       \
+        auto it = config[ str ];                                                           \
+        if (it) {                                                                           \
+            auto tentativeEnum = magic_enum::enum_cast<etype>(it.as<std::string>());        \
+            if (tentativeEnum.has_value()) {                                                \
+                arg = tentativeEnum.value();                                                \
+            }                                                                               \
+        }                                                                                   \
+    }
+
+
+
+#define PARSE_ENUM(arg, etype)         PARSE_ENUM_EXT( #arg, arg, etype)                                                  /*   \
+    {                                                                                       \
+        auto it = config[ #arg ];                                                           \
+        if (it) {                                                                           \
+            auto tentativeEnum = magic_enum::enum_cast<etype>(it.as<std::string>());        \
+            if (tentativeEnum.has_value()) {                                                \
+                arg = tentativeEnum.value();                                                \
+            }                                                                               \
+        }                                                                                   \
+    }*/
+
+#define PARSE_STRING(arg)                       \
+    {                                           \
+        auto it = config[ #arg ];               \
+        if (it) {                               \
+            arg = it.as<std::string>();         \
+        }                                       \
+    }                                           \
+
+#define PARSE_CHAR(arg)                         \
+    {                                           \
+        auto it = config[ #arg ];               \
+        if (it) {                               \
+            arg = it.as<std::string>()[0];      \
+        }                                       \
+    }                                           \
+
+#define PARSE_INT(arg)                          \
+    {                                           \
+        auto it = config[ #arg ];               \
+        if (it) {                               \
+            arg = it.as<size_t>();              \
+        }                                       \
+    }                                           \
+
+#define PARSE_DBL_EXT(str, arg)                          \
+    {                                           \
+        auto it = config[ str ];               \
+        if (it) {                               \
+            arg = it.as<double>();              \
+        }                                       \
+    }                                           \
+
+
+#define PARSE_DBL(arg)     PARSE_DBL_EXT( #arg, arg)
+
+#define PARSE_BOOL_EXT(str, arg)                          \
+    {                                           \
+        auto it = config[ str ];               \
+        if (it) {                               \
+            arg = it.as<bool>();              \
+        }                                       \
+    }                                           \
+
+    /*arg.factor*/
+#define PARSE_BOOL(arg)       PARSE_BOOL_EXT( #arg, arg )
+
+
+    //keep_low_up_otherwise
+
+ConfigurationFile::ConfigurationFile(const std::string &filename) : configuration_filename{filename} {
+    if (exists_test3(configuration_filename)) {
+        // Perform the parsing if and only if the configuration file exists
+        YAML::Node config = YAML::LoadFile(configuration_filename);
+
+        PARSE_ENUM(input_file_format, FileFormat);
+        PARSE_STRING(input_file);
+        PARSE_INT(ith_graph);
+        PARSE_BOOL(is_input_compressed);
+
+        PARSE_ENUM(trace_file_format, TracesFormat);
+        PARSE_STRING(traces_file);
+        PARSE_BOOL(are_traces_compressed);
+        PARSE_CHAR(separator_if_any);
+
+        PARSE_BOOL(add_traces_to_log);
+        PARSE_INT(max_length);
+        PARSE_DBL(min_prob);
+
+        PARSE_BOOL(use_estimator);
+        PARSE_ENUM(estimator_type, spd_we::WeightEstimatorCases);
+
+        PARSE_STRING(admissibleCharList);
+        PARSE_CHAR(varepsilon);
+
+        {
+            const auto operationList = config["operations"];
+            if ((operationList) && (operationList.IsSequence())) {
+                for (const auto & i : operationList) {
+                    const auto& config = i;
+
+                    LogOperationConfiguration arg;
+                    PARSE_ENUM_EXT("operation", arg.operation, LogOperations);
+                    PARSE_DBL_EXT("factor", arg.factor);
+                    PARSE_BOOL_EXT("keep_low_up_otherwise", arg.keep_low_up_otherwise);
+                    this->operations.emplace_back(arg);
+                }
+            }
         }
     }
 

@@ -1,0 +1,19 @@
+input_file_format: Petri_PNML
+input_file: data/test.txt
+is_input_compressed: false
+ith_graph: 99
+trace_file_format: XESLog
+traces_file: ""
+are_traces_compressed: false
+separator_if_any: ";"
+add_traces_to_log: false
+max_length: 99
+min_prob: 0.23000000000000001
+use_estimator: false
+estimator_type: W_FREQ
+operations:
+    -   operation: LogFilterFrequency
+        factor: 0.22
+        keep_low_up_otherwise: true
+varepsilon: "."
+admissibleCharList: abc
