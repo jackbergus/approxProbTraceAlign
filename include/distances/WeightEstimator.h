@@ -32,10 +32,21 @@ namespace spd_we {
         std::unordered_map<std::string, double> qi,qf;
         std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> pq;
         const std::vector<Transaction<std::string>>* log;
+        double totalLog = 0;
+        std::string varepsilon;
 
         void prepareForkEstimator(const std::vector<Transaction<std::string>>& log) {
+            assert(!varepsilon.empty());
             if (this->log == &log) return; // It has already been prepared!
             else this->log = (&log);//const_cast<std::vector<Transaction<std::string>> *>
+            totalLog = 0;
+            pw.clear();
+            freq.clear();
+            qi.clear();
+            qf.clear();
+            pq.clear();
+            for (const auto& t : log) totalLog += t.size();
+
             auto start = graph->getStart();
             pw.clear();
             freq.clear();
@@ -54,7 +65,7 @@ namespace spd_we {
                             if (it != pq.end()) {
                                 S += it->second;
                             } else {
-                                double pqc = q_P(log, label_s, label_t);
+                                double pqc = q_P(log, label_s, label_t, varepsilon);
                                 pq.emplace(std::make_pair(label_s, label_t), pqc);
                                 S += pqc;
                             }
@@ -64,19 +75,19 @@ namespace spd_we {
                 }
                 std::string ulabel = graph->getNodeLabel(u);
                 labels.insert(ulabel);
-                freq.emplace(u, w_freq(log, ulabel));
+                freq.emplace(u, w_freq(log, ulabel, varepsilon));
             }
 
             std::pair<std::string, std::string> cp;
             for (const auto& label_s : labels) {
                 cp.first = label_s;
-                qi.emplace(label_s, q_I(log, label_s));
-                qf.emplace(label_s, q_F(log, label_s));
+                qi.emplace(label_s, q_I(log, label_s, varepsilon));
+                qf.emplace(label_s, q_F(log, label_s, varepsilon));
                 for (const auto& label_t : labels) {
                     cp.second = label_t;
                     auto it = pq.find(cp);
                     if (it == pq.end()) {
-                        pq.emplace(std::make_pair(label_s, label_t), q_P(log, label_s, label_t));
+                        pq.emplace(std::make_pair(label_s, label_t), q_P(log, label_s, label_t, varepsilon));
                     }
                 }
             }
@@ -90,6 +101,10 @@ namespace spd_we {
 
         void setLog(const std::vector<Transaction<std::string>>& log) {
             prepareForkEstimator(log);
+        }
+
+        void setVarEpsilon(const std::string& e) {
+            varepsilon = e;
         }
 
         double getNodeWeight(const id_type& id, WeightEstimatorCases casus) {
@@ -128,7 +143,7 @@ namespace spd_we {
 
                 case W_PAIRSCALE: {
                     double T = graph->nodes();
-                    double L = log->size();
+                    double L = totalLog;
                     double LT = L/T;
 
                     key_pair.first = label;

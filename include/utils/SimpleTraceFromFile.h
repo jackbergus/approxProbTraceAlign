@@ -24,6 +24,8 @@ size_t countFreq(const Transaction<T> &pat, const Transaction<T> &txt) {
     size_t N = txt.size();
     size_t res = 0;
 
+    if (pat.empty()) return txt.size();
+
     /* A loop to slide pat[] one by one */
     for (int i = 0; i <= N - M; i++)
     {
@@ -52,7 +54,7 @@ namespace spd_we {
              * @param label     Activity
              * @return
              */
-    double q_I(const std::vector<Transaction<std::string>>& L, const std::string& label);
+    double q_I(const std::vector<Transaction<std::string>>& L, const std::string& label, const std::string& varepsilon);
 
 
     /**
@@ -61,7 +63,7 @@ namespace spd_we {
      * @param label     Activity
      * @return
      */
-    double q_F(const std::vector<Transaction<std::string>>& L, const std::string& label);
+    double q_F(const std::vector<Transaction<std::string>>& L, const std::string& label, const std::string& varepsilon);
 
     /**
      * Counts the number of transactions in a log having a given subsequence (s,t)
@@ -70,9 +72,9 @@ namespace spd_we {
      * @param t
      * @return
      */
-    double q_P(const std::vector<Transaction<std::string>>& L, const std::string& s, const std::string& t);
+    double q_P(const std::vector<Transaction<std::string>>& L, const std::string& s, const std::string& t, const std::string& varepsilon);
 
-    double w_freq(const std::vector<Transaction<std::string>>& L, const std::string&t_label);
+    double w_freq(const std::vector<Transaction<std::string>>& L, const std::string&t_label, const std::string& varepsilon);
 
 }
 

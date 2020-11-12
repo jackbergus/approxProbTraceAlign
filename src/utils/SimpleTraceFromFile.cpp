@@ -31,16 +31,18 @@ std::vector<Transaction<std::string>> read_log(const std::string &file_path, con
 
 
 
-double spd_we::q_I(const std::vector<Transaction<std::string>> &L, const std::string &label) {
+double spd_we::q_I(const std::vector<Transaction<std::string>> &L, const std::string &label, const std::string& varepsilon) {
     double count = 0.0;
+    if (label == varepsilon) return (double)L.size();
     for (const auto& x : L) {
         if ((!x.empty()) && (*x.begin() == label)) count++;
     }
     return count;
 }
 
-double spd_we::q_F(const std::vector<Transaction<std::string>> &L, const std::string &label) {
+double spd_we::q_F(const std::vector<Transaction<std::string>> &L, const std::string &label, const std::string& varepsilon) {
     double count = 0.0;
+    if (label == varepsilon) return (double)L.size();
     for (const auto& x : L) {
         if ((!x.empty()) && (*x.rbegin() == label)) count++;
     }
@@ -50,12 +52,15 @@ double spd_we::q_F(const std::vector<Transaction<std::string>> &L, const std::st
 #include <functional>
 #include <numeric>
 
-double spd_we::q_P(const std::vector<Transaction<std::string>> &L, const std::string &s, const std::string &t) {
-    std::vector<std::string> varsigma{s, t};
+double spd_we::q_P(const std::vector<Transaction<std::string>> &L, const std::string &s, const std::string &t, const std::string& varepsilon) {
+    std::vector<std::string> varsigma;
+    if (s != varepsilon) varsigma.emplace_back(s);
+    if (t != varepsilon) varsigma.emplace_back(t);
     return std::accumulate(L.begin(), L.end(), 0.0, [&varsigma](double prev, const Transaction<std::string>& t) { return prev + countFreq(varsigma, t); });
 }
 
-double spd_we::w_freq(const std::vector<Transaction<std::string>> &L, const std::string &t_label) {
-    std::vector<std::string> varsigma{t_label};
+double spd_we::w_freq(const std::vector<Transaction<std::string>> &L, const std::string &t_label, const std::string& varepsilon) {
+    std::vector<std::string> varsigma;
+    if (t_label != varepsilon) varsigma.emplace_back(t_label);
     return std::max(1.0, std::accumulate(L.begin(), L.end(), 0.0, [&varsigma](double prev, const Transaction<std::string>& t) { return prev + countFreq(varsigma, t);} ));
 }

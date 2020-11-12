@@ -554,6 +554,7 @@ GenericGraph<size_t> parseREGEX(const std::string& filename, const std::string& 
 void ConfigurationFile::run() {
     GenericGraph<size_t> graph;
     spd_we::WeightEstimator<size_t> we;
+    we.setVarEpsilon({varepsilon});
     std::vector<Transaction<std::string>> log;
     admissibleCharList.erase(std::remove(admissibleCharList.begin(), admissibleCharList.end(), varepsilon), admissibleCharList.end());
     std::string epsilon{this->varepsilon};
@@ -640,6 +641,8 @@ void ConfigurationFile::run() {
         auto now = std::chrono::high_resolution_clock::now();
         std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
     }
+
+    graph.render();
 
     if (rememberToLog && useEstimator) {
         auto t1 = std::chrono::high_resolution_clock::now();
