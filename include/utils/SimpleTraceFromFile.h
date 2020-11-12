@@ -20,8 +20,8 @@ std::vector<Transaction<std::string>> read_log(const std::string& file_path, con
 
 template <typename T>
 size_t countFreq(const Transaction<T> &pat, const Transaction<T> &txt) {
-    size_t M = pat.length();
-    size_t N = txt.length();
+    size_t M = pat.size();
+    size_t N = txt.size();
     size_t res = 0;
 
     /* A loop to slide pat[] one by one */

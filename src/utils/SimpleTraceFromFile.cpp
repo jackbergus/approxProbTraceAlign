@@ -2,7 +2,7 @@
 // Created by giacomo on 11/11/20.
 //
 
-#include "SimpleTraceFromFile.h"
+#include "utils/SimpleTraceFromFile.h"
 #include <sstream>
 #include <fstream>
 

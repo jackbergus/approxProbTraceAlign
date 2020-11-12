@@ -228,7 +228,7 @@ void doAlter() {
 }
 
 void generatePaths() {
-    ReadGraph t{"matrix4.txt"};
+    ReadGraph t{"data/matrix4.txt"};
     for (const auto& x : t.iterateOverPaths(false, 20, 0.000001)) {
         std::cout << x << std::endl;
     }
@@ -427,6 +427,7 @@ struct algorithm_map {
 void
 doBenchmark(const std::string &matrix, const std::string &query, double tuning_factor, double lambda, double min_path,
             size_t max_path);
+
 
 void rectify(struct algorithm_map& x) {}
 void rectify2(struct algorithm_map& x) {
@@ -631,9 +632,20 @@ void benchmarking() {
 #endif
 }
 
+#include "ConfigurationFile.h"
+#include <utils/xml_utils.h>
+
+
+
 
 int main() {
+    //generatePaths();
+    ConfigurationFile conf;
+    conf.input_file_format = ProbRegex;
+    conf.input_file        = "data/test.txt";
 
+
+    conf.load();
 }
 
 void

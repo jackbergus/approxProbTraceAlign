@@ -177,6 +177,7 @@ void matrix_print(const Eigen::SparseMatrix<double, Eigen::RowMajor>& A, const s
 }
 
 void ReadGraph::printGraph() const {
+    std::cout << "start = " << source << " target = " << target << std::endl;
     matrix_print(A, inv_label_conversion);
 }
 
