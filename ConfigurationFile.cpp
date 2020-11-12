@@ -585,7 +585,6 @@ void ConfigurationFile::load() {
             break;
     }
 
-
     if (isFileFormatPetri(this->input_file_format)) {
         if (!this->use_estimator) {
             std::cout << "Using no estimator: no traces are going to be loaded!" << std::endl;
@@ -601,6 +600,7 @@ void ConfigurationFile::load() {
             } else {
                 std::cout << "Using an estimator: a log file will be loaded" << std::endl;
             }
+            we.setGraph(&graph);
 
             switch (this->trace_file_format) {
                 case XESLog:

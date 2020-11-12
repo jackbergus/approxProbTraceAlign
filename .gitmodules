@@ -16,3 +16,6 @@
 [submodule "submodules/fpgrowth"]
 	path = submodules/fpgrowth
 	url = https://github.com/jackbergus/FP-growth/
+[submodule "submodules/imtui"]
+	path = submodules/imtui
+	url = https://github.com/ggerganov/imtui

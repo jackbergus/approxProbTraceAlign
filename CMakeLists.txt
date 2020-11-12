@@ -43,6 +43,14 @@ include_directories(submodules/json/include)
 find_package(faiss)
 find_package(OpenMP)
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+if(CMAKE_VERSION VERSION_LESS "3.7.0")
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
+endif()
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 add_executable(fuzzyStringMatching2 ${antlr_sources} main.cpp src/distances/strings/LevensteinDistance.cpp src/benchmarking/Ranking.cpp include/embeddings/path_embedding/EmbedPahtsOverSingleGraphStrategy.h src/matrix_graph_path/PathIterator.cpp include/matrix_graph_path/PathIterator.h src/matrix_graph_path/ConditionalReadGraphIterable.cpp include/matrix_graph_path/ConditionalReadGraphIterable.h src/ReadGraph.cpp include/ReadGraph.h src/embeddings/labelled_paths/OnlyTransitiveEdgesCost.cpp include/embeddings/labelled_paths/OnlyTransitiveEdgesCost.h include/Regex.h src/matrix_graph_path/stack_info.cpp include/matrix_graph_path/stack_info.h src/matrix_graph_path/path_info.cpp include/matrix_graph_path/path_info.h src/embeddings/labelled_paths/LabelledPathVisitingStrategy.cpp include/embeddings/labelled_paths/LabelledPathVisitingStrategy.h src/embeddings/path_embedding/MultiplePathsEmbeddingStrategy.cpp include/embeddings/path_embedding/MultiplePathsEmbeddingStrategy.h src/benchmarking/rows/TimeBenchmarkRowEntry.cpp src/utils/hash_combine.cpp src/benchmarking/BenchmarkStrategy.cpp include/distances/path/GenericStringCostFunction.h src/benchmarking/rows/PrecisionBenchmarkRowEntry.cpp include/benchmarking/rows/PrecisionBenchmarkRowEntry.h src/benchmarking/RankPathCollectionPathInfo.cpp include/benchmarking/RankPathCollectionPathInfo.h src/distances/strings/LevensteinSimilarity.cpp include/distances/strings/LevensteinSimilarity.h src/benchmarking/ReadGraphRankingStruct.cpp include/benchmarking/ReadGraphRankingStruct.h src/points/PointClass.cpp include/points/PointClass.h src/points/PointClassVector.cpp include/points/PointClassVector.h src/points/PointTransformation.cpp include/points/PointTransformation.h RankingTest.cpp RankingTest.h src/utils/SimpleTraceFromFile.cpp include/utils/SimpleTraceFromFile.h ConfigurationFile.cpp src/utils/xml_utils.cpp)
-target_link_libraries(fuzzyStringMatching2 antlr4_static Eigen3::Eigen fort OpenMP::OpenMP_CXX faiss)
+target_link_libraries(fuzzyStringMatching2 antlr4_static Eigen3::Eigen fort OpenMP::OpenMP_CXX faiss Qt5::Core Qt5::Widgets)

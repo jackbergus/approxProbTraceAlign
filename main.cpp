@@ -637,15 +637,177 @@ void benchmarking() {
 
 
 
+#include <QApplication>
+#include <QPushButton>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QSpinBox>
 
-int main() {
+template <typename enumType> QComboBox *getDropdownMenuFromEnum()  {
+    QComboBox *echoComboBox = new QComboBox();
+    constexpr std::size_t color_count = magic_enum::enum_count<enumType>();
+    constexpr auto& color_names = magic_enum::enum_names<enumType>();
+    for (size_t i = 0; i<color_count; i++) {
+        echoComboBox->addItem(QString::fromStdString(color_names[i].data()));
+    }
+    return echoComboBox;
+}
+
+template <typename enumType> QComboBox* addDropdownMenuFromEnum(QGridLayout *echoGrid, size_t& rowid, const std::string &format) {
+    QLabel *echoLabel = new QLabel(QString::fromStdString(format));
+    QComboBox *echoComboBox = getDropdownMenuFromEnum<enumType>();
+    echoGrid->addWidget(echoLabel, rowid, 0);
+    echoGrid->addWidget(echoComboBox, rowid, 1);
+    rowid++;
+    return echoComboBox;
+}
+
+QLineEdit* addTextField(QGridLayout *echoGrid, size_t& rowid, const std::string &format, const std::string& defaultText) {
+    QLabel *echoLabel = new QLabel(QString::fromStdString(format));
+    QLineEdit* tb = new QLineEdit();
+    if (!defaultText.empty()) tb->setText(QString::fromStdString(defaultText));
+    echoGrid->addWidget(echoLabel, rowid, 0);
+    echoGrid->addWidget(tb, rowid, 1);
+    rowid++;
+    return tb;
+}
+
+QCheckBox* addCheckBox(QGridLayout *echoGrid, size_t& rowid, const std::string &format, bool checked) {
+    QCheckBox* tb = new QCheckBox(QString::fromStdString(format));
+    tb->setChecked(checked);
+    echoGrid->addWidget(tb, rowid, 0, 1, 2);
+    rowid++;
+    return tb;
+}
+
+QSpinBox* addNumericBox(QGridLayout *echoGrid, size_t& rowid, const std::string &format, size_t defaultValue) {
+    QLabel *echoLabel = new QLabel(QString::fromStdString(format));
+    QSpinBox *tb = new QSpinBox();
+    tb->setValue(defaultValue);
+    tb->setRange(0, std::numeric_limits<int>::max());
+    echoGrid->addWidget(echoLabel, rowid, 0);
+    echoGrid->addWidget(tb, rowid, 1);
+    rowid++;
+    return tb;
+}
+
+QDoubleSpinBox* addNumericBox(QGridLayout *echoGrid, size_t& rowid, const std::string &format, double defaultValue, double min, double max) {
+    QLabel *echoLabel = new QLabel(QString::fromStdString(format));
+    QDoubleSpinBox *tb = new QDoubleSpinBox();
+    tb->setValue(defaultValue);
+    tb->setRange(min, max);
+    tb->setSingleStep(0.001);
+    tb->setDecimals(10);
+    echoGrid->addWidget(echoLabel, rowid, 0);
+    echoGrid->addWidget(tb, rowid, 1);
+    rowid++;
+    return tb;
+}
+
+class Settings : public QWidget {
+    QGridLayout *grid;
+
+    QComboBox* input_file_format;
+    QLineEdit* input_file;
+    QCheckBox* is_input_compressed;
+    QSpinBox* ith_graph;
+
+
+    QComboBox* trace_file_format;
+    QLineEdit* traces_file, seprarator_if_any;
+    QCheckBox* are_traces_compressed;
+
+    QComboBox *estimator_type;
+    QCheckBox *use_estimator;
+
+
+    QCheckBox *add_traces_to_log;
+    QSpinBox *max_length;
+    QDoubleSpinBox *min_prob;
+
+public:
+    Settings(QWidget *parent = nullptr): QWidget(parent) {
+
+        grid = new QGridLayout();
+
+
+        {
+            QGridLayout * echoGrid = new QGridLayout();
+            QGroupBox *echoGroup = new QGroupBox(tr("Graph File"));
+            size_t rowid = 0;
+            input_file_format = addDropdownMenuFromEnum<FileFormat>(echoGrid, rowid, "Format:");
+            input_file = addTextField(echoGrid, rowid, "Filename:", "");
+            is_input_compressed = addCheckBox(echoGrid, rowid, "Decompress graph", false);
+            ith_graph = addNumericBox(echoGrid, rowid, "Get i-th graph from file (counting from 0):", 0);
+            echoGroup->setLayout(echoGrid);
+            grid->addWidget(echoGroup, 0, 0);
+        }
+
+        {
+            QGridLayout * echoGrid = new QGridLayout();
+            QGroupBox *echoGroup = new QGroupBox(tr("Traces File"));
+            size_t rowid = 0;
+            trace_file_format = addDropdownMenuFromEnum<TracesFormat>(echoGrid, rowid, "Format:");
+            traces_file = addTextField(echoGrid, rowid, "Filename:", "");
+            are_traces_compressed = addCheckBox(echoGrid, rowid, "Decompress traces", false);
+            traces_file = addTextField(echoGrid, rowid, "Action separator (if required):", ";");
+            echoGroup->setLayout(echoGrid);
+            grid->addWidget(echoGroup, 1, 0);
+        }
+
+        {
+            QGridLayout * echoGrid = new QGridLayout();
+            QGroupBox *echoGroup = new QGroupBox(tr("Weight estimator for Petri Nets"));
+            size_t rowid = 0;
+            estimator_type = addDropdownMenuFromEnum<spd_we::WeightEstimatorCases>(echoGrid, rowid, "Estimator:");
+            use_estimator = addCheckBox(echoGrid, rowid, "Use estimator", false);
+            echoGroup->setLayout(echoGrid);
+            grid->addWidget(echoGroup, 2, 0);
+        }
+
+        {
+            QGridLayout * echoGrid = new QGridLayout();
+            QGroupBox *echoGroup = new QGroupBox(tr("Traces to add to the log set (from the Thompson automaton)"));
+            size_t rowid = 0;
+            add_traces_to_log = addCheckBox(echoGrid, rowid, "Add traces directly from the Petri-Net", false);
+
+            max_length = addNumericBox(echoGrid, rowid, "Maximum complete trace length", std::numeric_limits<int>::max());
+            min_prob = addNumericBox(echoGrid, rowid, "Minimum trace probabilty:", 0.0, 0.0, 1.0);
+            echoGroup->setLayout(echoGrid);
+            grid->addWidget(echoGroup, 3, 0);
+        }
+
+        setLayout(grid);
+
+        setWindowTitle(tr("Configuration time!"));
+    }
+
+
+
+
+    ~Settings() {
+        delete grid;
+    }
+
+};
+
+int main(int argc, char* argv[]) {
+
+    QApplication app(argc, argv);
+    Settings window;
+    window.show();
+    return app.exec();
     //generatePaths();
-    ConfigurationFile conf;
+    /*ConfigurationFile conf;
     conf.input_file_format = ProbRegex;
     conf.input_file        = "data/test.txt";
 
 
-    conf.load();
+    conf.load();*/
 }
 
 void
