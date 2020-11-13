@@ -8,3 +8,4 @@ data/java-se-8u41-ri/*
 data/*.xes
 *.png
 *.pdf
+dist/
