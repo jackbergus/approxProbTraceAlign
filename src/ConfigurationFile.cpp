@@ -552,6 +552,17 @@ GenericGraph<size_t> parseREGEX(const std::string& filename, const std::string& 
     return graph;
 }
 void ConfigurationFile::run() {
+
+    {
+        std::ostringstream  oss;
+        std::time_t t = std::time(nullptr);
+        std::tm tm = *std::localtime(&t);
+        oss << std::put_time(&tm, "%F %T%z - %a %e %b, %Y") << std::endl;
+        this->results_folder = oss.str();
+        std::filesystem::create_directory(results_folder);
+        serialize((results_folder / "configuration.yaml").c_str());
+    }
+
     GenericGraph<size_t> graph;
     spd_we::WeightEstimator<size_t> we;
     we.setVarEpsilon({varepsilon});
@@ -585,6 +596,7 @@ void ConfigurationFile::run() {
             graph = parseREGEX(this->input_file, epsilon);
             break;
     }
+    graph.render((this->results_folder / "graph_01_input.pdf").c_str());
     bool rememberToLog = false;
     bool useEstimator = false;
 
@@ -631,6 +643,7 @@ void ConfigurationFile::run() {
             graph.transfer_weight_from_nodes_to_edges();
             auto now = std::chrono::high_resolution_clock::now();
             std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
+            graph.render((this->results_folder / "graph_02_weight_transfer.pdf").c_str());
         }
     }
 
@@ -640,9 +653,9 @@ void ConfigurationFile::run() {
         graph.doClosure(epsilon);
         auto now = std::chrono::high_resolution_clock::now();
         std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
+        graph.render((this->results_folder / "graph_03_e-closed.pdf").c_str());
     }
 
-    graph.render();
 
     if (rememberToLog && useEstimator) {
         auto t1 = std::chrono::high_resolution_clock::now();
@@ -652,7 +665,9 @@ void ConfigurationFile::run() {
         for (const auto& id : graph.getNodes()) {
             graph.updateNodeWeight(id, we.getNodeWeight(id, this->estimator_type));
         }
+        graph.render((this->results_folder / "graph_04_estimator.pdf").c_str());
         graph.transfer_weight_from_nodes_to_edges();
+        graph.render((this->results_folder / "graph_04_estimator_transfer.pdf").c_str());
         auto now = std::chrono::high_resolution_clock::now();
         std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
     }
@@ -690,7 +705,6 @@ void ConfigurationFile::run() {
         finalLog.emplace(stringBuilder);
     }
 
-    finalGraph.printGraph();
 
     if (this->add_traces_to_log) {
         std::cout << "Adding some further traces to the log from the generated paths. Settings: maxLength = " << this->max_length << " minProb = " << this->min_prob << std::endl;
@@ -712,7 +726,7 @@ void ConfigurationFile::run() {
 #define INT_SERIALIZE(arg)              SIMPLE_SERIALIZE(arg)
 #define DBL_SERIALIZE(arg)              SIMPLE_SERIALIZE(arg)
 
-void ConfigurationFile::serialize() {
+void ConfigurationFile::serialize(const std::string& filename) {
     YAML::Emitter out;
     out.SetIndent(4);
     out << YAML::BeginMap;
@@ -756,8 +770,14 @@ void ConfigurationFile::serialize() {
     out << YAML::EndMap;
 
     {
-        std::ofstream file(configuration_filename);
-        file << out.c_str();
+        if (filename.empty()) {
+            std::ofstream file(configuration_filename);
+            file << out.c_str();
+        } else {
+            std::ofstream file(filename);
+            file << out.c_str();
+        }
+
     }
 }
 

@@ -250,7 +250,7 @@ public:
     }
 
 
-    bool render() {
+    bool render(const std::string& filename = "rendertest.pdf") {
         std::string str;
         {
             std::ostringstream oss;
@@ -284,7 +284,7 @@ public:
         //gvAddLibrary(gvc, &gvplugin_quartz_LTX_library);
         gr = agmemread(str.c_str());
         gvLayout(gvc, gr, "dot");
-        gvRender(gvc, gr, "png", fopen("rendertest.png", "w"));
+        gvRender(gvc, gr, "pdf", fopen(filename.c_str(), "w"));
         gvFreeLayout(gvc, gr);
         agclose(gr);
         return (gvFreeContext(gvc));

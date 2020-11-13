@@ -47,6 +47,7 @@ struct LogOperationConfiguration {
 };
 
 #include <utils/fixed_bimap.h>
+#include <filesystem>
 
 struct ConfigurationFile {
     /**
@@ -57,6 +58,8 @@ struct ConfigurationFile {
 
     char  varepsilon = '.';
     std::string  admissibleCharList{"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
+
+    std::filesystem::path results_folder; // The folder where all the temporarily results are produced
 
     ReadGraph    finalGraph;
     FileFormat   input_file_format      = PetriMatrix;
@@ -81,7 +84,7 @@ struct ConfigurationFile {
     fixed_bimap<std::string, char>   action_to_single_char;
 
     void run();
-    void serialize();
+    void serialize(const std::string& file = "");
 
 private:
     std::string configuration_filename;

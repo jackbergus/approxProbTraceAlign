@@ -642,9 +642,6 @@ void benchmarking() {
 
 int main(int argc, char* argv[]) {
 
-    std::time_t t = std::time(nullptr);
-    std::tm tm = *std::localtime(&t);
-    std::cout << std::put_time(&tm, "%F %T%z - %a %e %b, %Y") << std::endl;
 
     args::ArgumentParser parser("FuzzyStringMatching (2) (c) 2020-2021 by Giacomo Bergami.", "This free and open software program implements the (Approximate) Probabilistic Trace Alignment. Youse at your own risk.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
@@ -675,7 +672,7 @@ int main(int argc, char* argv[]) {
     if (gui && run) {
         pid_t child = fork();
         if (child) {
-            wait(nullptr);
+            wait(nullptr); // Unfortunately, by quitting the window, the process will terminate. Therefore, I fork a child process for the gui, I wait for it, and then I run the benchmarks
         } else {
             QApplication app(argc, (char**)argv);
             WSettings window{yaml};
