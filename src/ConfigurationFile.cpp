@@ -128,6 +128,7 @@ std::vector<GenericGraph<size_t>> parsePNML(const std::string& filename = "/home
                     ///std::cout << label_to_id.at(src) << "-->" << label_to_id.at(dst) << std::endl; // TODO!
                 }
 
+                graph.removeSolitaryNodes();
                 graph.inferTerminalNode();
                 petri_nets.emplace_back(graph);
             }

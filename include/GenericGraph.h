@@ -225,16 +225,35 @@ public:
         return os;
     }
 
+    void removeSolitaryNodes() {
+        std::vector<id_type> toRemove;
+        for (const auto& cp : node_labelled_weighted) {
+            auto it = outgoingEdges.find(cp.first);
+            auto it2 = ingoingEdges.find(cp.first);
+            if (((it == outgoingEdges.end()) || (it->second.empty())) && ((it2 == ingoingEdges.end()) || (it2->second.empty()))) {
+                if (it != outgoingEdges.end()) outgoingEdges.erase(it);
+                if (it2 != ingoingEdges.end()) ingoingEdges.erase(it);
+                toRemove.emplace_back(cp.first);
+            }
+        }
+        for (const auto& u : toRemove) {
+            const auto it = node_labelled_weighted.find(u);
+            std::cerr << "Removing " << it->first << " with label " << it->second.first << " and weight " << it->second.second << std::endl;
+            node_labelled_weighted.erase(it);
+        }
+    }
+
     void inferTerminalNode() {
         bool found = false;
         for (const auto& cp : node_labelled_weighted) {
             auto it = outgoingEdges.find(cp.first);
             if ((it == outgoingEdges.end()) || (it->second.empty())) {
-                assert(!found);
+                assert(!found); // ERROR: there are multiple terminal nodes (something fishy:  a likely bad input representation)
                 end = cp.first;
                 found = true;
             }
         }
+        assert(found);// ERROR: no terminal node can be inferred (something fishy: it should exsist a node having no outgoing edges)
     }
 
     void generateBimapLabels(fixed_bimap<std::string, char>& bimap, const std::string& admissible_chars, const std::string& eps) {
@@ -258,13 +277,14 @@ public:
                 gvpp::Graph<> render{};
                 std::unordered_map<id_type, std::string> nodes;
                 for (const auto& n : node_labelled_weighted) {
-                    std::string label = n.second.first + " [w=" + std::to_string(n.second.second) +"]";
+                    std::string label = n.second.first + " [w=" + std::to_string(n.second.second) +", id=" + std::to_string(n.first) +"]";
                     std::string id = std::to_string(n.first);
                     render.addNode(id, label);
                     nodes.emplace(n.first, id);
                 }
                 for (const auto& n : node_labelled_weighted) {
                     for (const auto& out : outgoing(n.first)) {
+                        std::cerr << n.first << "[" << n.second.first << "," << n.second.second << "]" << "-->" << out.first << std::endl;
                         render.addEdge(render.getNode(nodes.at(n.first)), render.getNode(nodes.at(out.first)), std::to_string(out.second));
                     }
                 }

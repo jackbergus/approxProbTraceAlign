@@ -23,7 +23,7 @@ set(antlr_sources antlr4/cpp/antlr4/regexBaseListener.cpp
         antlr4/cpp/antlr4/regexParser.cpp
         antlr4/cpp/antlr4/regexVisitor.cpp src/RegexVisitor.cpp include/RegexVisitor.h )
 
-set(qtgui src/gui/WSettings.cpp src/gui/QTUtils.cpp include/gui/QTUtils.h src/gui/QTBuilder.cpp include/gui/QTBuilder.h QTSpinBoxDelegate.cpp QTDropdownDelegate.cpp QTDropdownDelegate.h)
+set(qtgui src/gui/WSettings.cpp src/gui/QTUtils.cpp include/gui/QTUtils.h src/gui/QTBuilder.cpp include/gui/QTBuilder.h QTSpinBoxDelegate.cpp QTDropdownDelegate.cpp QTDropdownDelegate.h benchmarks_old.cpp)
 
 add_library(rapidxml INTERFACE)
 target_include_directories(rapidxml INTERFACE rapidxml/ )
