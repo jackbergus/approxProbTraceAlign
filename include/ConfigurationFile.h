@@ -12,6 +12,7 @@
 #include <vector>
 #include <ReadGraph.h>
 #include <data_loading/load_data.h>
+#include <log/log_operations.h>
 
 
 #include <utils/fixed_bimap.h>

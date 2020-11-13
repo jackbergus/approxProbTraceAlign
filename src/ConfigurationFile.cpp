@@ -179,6 +179,7 @@ void ConfigurationFile::run() {
 
 #include <yaml-cpp/yaml.h>
 #include <magic_enum.hpp>
+#include <fstream>
 
 #define ENUM_SERIALIZE(arg)             YAML::Key << #arg << YAML::Value << (magic_enum::enum_name(arg).data())
 #define SIMPLE_SERIALIZE(arg)           YAML::Key << #arg << YAML::Value << arg
