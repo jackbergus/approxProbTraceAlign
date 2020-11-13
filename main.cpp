@@ -636,38 +636,64 @@ void benchmarking() {
 #include <utils/xml_utils.h>
 #include <QtWidgets/QApplication>
 #include <gui/WSettings.h>
-#include <utils/CmdOpts.h>
+#include <args.hxx>
+#include <sys/wait.h>
+#include <unistd.h>
 
-struct MyOpts
-{
-    std::string configuration = "configuration.yaml";
-    bool gui = false;
-    bool run = true;
-};
+int main(int argc, char* argv[]) {
 
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+    std::cout << std::put_time(&tm, "%F %T%z - %a %e %b, %Y") << std::endl;
 
+    args::ArgumentParser parser("FuzzyStringMatching (2) (c) 2020-2021 by Giacomo Bergami.", "This free and open software program implements the (Approximate) Probabilistic Trace Alignment. Youse at your own risk.");
+    args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
+    args::Group group(parser, "You can use the following parameters", args::Group::Validators::DontCare, args::Options::Global);
+    args::Flag gui(group, "gui", "Shows the GUI for setting the specified configuration file (when no parameter is specified, this is the default behaviour). The gui will store the resulting configuration file file once the window is closed.", {'g', "gui"});
+    args::Flag run(group, "run", "Runs the program accordingly to the configuration file. If both --gui and --run are set, first the GUI is displayed, and then the benchmark is run", {'r', "run"});
+    args::ValueFlag<std::string> con(group, "configuration.yaml", "Specifies the configuration file to edit (--gui) or to use to run the program (--run). If no configuration file is specified, the program will look for 'configuration.yaml'. If that file is not provided, a default configuration will be set-up. Run --gui to see the file", {'c', "conf"});
+    try {
+        parser.ParseCLI(argc, argv);
+    } catch (args::Help& ) {
+        std::cout << parser;
+        return 0;
+    } catch (args::ParseError& e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
+        return 1;
+    } catch (args::ValidationError& e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
+        return 1;
+    }
 
+    std::string yaml = "configuration.yaml";
+    if (con) {
+        yaml = args::get(con);
+    }
 
-int main(int argc, const char* argv[]) {
+    if (gui && run) {
+        pid_t child = fork();
+        if (child) {
+            wait(nullptr);
+        } else {
+            QApplication app(argc, (char**)argv);
+            WSettings window{yaml};
+            window.show();
+            return app.exec();
+        }
+    }
 
-
-    auto parser = CmdOpts<MyOpts>::Create({
-                                                  {"--conf", &MyOpts::configuration },
-                                                  {"--run", &MyOpts::run},
-                                                  {"--gui", &MyOpts::gui}});
-    auto myopts = parser->parse(argc, argv);
-
-    if (myopts.gui) {
+    if (run) {
+        ConfigurationFile conf{yaml};
+        conf.run();
+    } else if (gui) {
         QApplication app(argc, (char**)argv);
-        WSettings window{myopts.configuration};
+        WSettings window{yaml};
         window.show();
         return app.exec();
-    } else if (myopts.run) {
-        ConfigurationFile conf{myopts.configuration};
-        conf.run();
     } else {
-        std::cout << "TODO: HELP" << std::endl;
-        exit(1);
+        std::cout << parser;
     }
 
 }

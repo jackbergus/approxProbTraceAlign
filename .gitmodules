@@ -22,3 +22,6 @@
 [submodule "submodules/gvpp"]
 	path = submodules/gvpp
 	url = https://github.com/compilin/gvpp/
+[submodule "submodules/args"]
+	path = submodules/args
+	url = https://github.com/Taywee/args

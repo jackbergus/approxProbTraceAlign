@@ -13,6 +13,14 @@
 #include <unordered_set>
 #include <utils/fixed_bimap.h>
 #include <src/gvpp.hpp>
+#include <graphviz/gvc.h>
+#include <graphviz/cgraph.h>
+#include <sstream>
+
+/*extern gvplugin_library_t gvplugin_dot_layout_LTX_library;
+extern gvplugin_library_t gvplugin_neato_layout_LTX_library;
+extern gvplugin_library_t gvplugin_core_LTX_library;
+extern gvplugin_library_t gvplugin_quartz_LTX_library;*/
 
 template <typename id_type>
 class GenericGraph {
@@ -242,21 +250,44 @@ public:
     }
 
 
-    void render() {
-        gvpp::Graph<> render{};
-        std::unordered_map<id_type, std::string> nodes;
-        for (const auto& n : node_labelled_weighted) {
-            std::string label = n.second.first + " [w=" + std::to_string(n.second.second) +"]";
-            std::string id = std::to_string(n.first);
-            render.addNode(id, label);
-            nodes.emplace(n.first, id);
-        }
-        for (const auto& n : node_labelled_weighted) {
-            for (const auto& out : outgoing(n.first)) {
-                render.addEdge(render.getNode(nodes.at(n.first)), render.getNode(nodes.at(out.first)), std::to_string(out.second));
+    bool render() {
+        std::string str;
+        {
+            std::ostringstream oss;
+            {
+                gvpp::Graph<> render{};
+                std::unordered_map<id_type, std::string> nodes;
+                for (const auto& n : node_labelled_weighted) {
+                    std::string label = n.second.first + " [w=" + std::to_string(n.second.second) +"]";
+                    std::string id = std::to_string(n.first);
+                    render.addNode(id, label);
+                    nodes.emplace(n.first, id);
+                }
+                for (const auto& n : node_labelled_weighted) {
+                    for (const auto& out : outgoing(n.first)) {
+                        render.addEdge(render.getNode(nodes.at(n.first)), render.getNode(nodes.at(out.first)), std::to_string(out.second));
+                    }
+                }
+                oss << render;
+                ///renderToFile(render, "dot", "x11");
             }
+            str = oss.str();
         }
-        renderToFile(render, "dot", "x11");
+
+        GVC_t *gvc;
+        Agraph_t *gr;
+        gvc = gvContext();
+        //gvAddLibrary(gvc, &gvplugin_dot_layout_LTX_library);
+        //gvAddLibrary(gvc, &gvplugin_neato_layout_LTX_library);
+        //
+        //gvAddLibrary(gvc, &gvplugin_core_LTX_library);
+        //gvAddLibrary(gvc, &gvplugin_quartz_LTX_library);
+        gr = agmemread(str.c_str());
+        gvLayout(gvc, gr, "dot");
+        gvRender(gvc, gr, "png", fopen("rendertest.png", "w"));
+        gvFreeLayout(gvc, gr);
+        agclose(gr);
+        return (gvFreeContext(gvc));
     }
 
 };
