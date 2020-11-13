@@ -9,3 +9,4 @@ data/*.xes
 *.png
 *.pdf
 dist/
+dist/*
