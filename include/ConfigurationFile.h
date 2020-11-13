@@ -11,40 +11,8 @@
 #include <iostream>
 #include <vector>
 #include <ReadGraph.h>
+#include <data_loading/load_data.h>
 
-enum FileFormat {
-    Petri_PNML,
-    Petri_BPMN,
-    PetriMatrix,
-    StochasticMatrix,
-    ProbRegex
-};
-
-enum TracesFormat {
-    XESLog,
-    RawLog,
-    NoLog
-};
-
-enum LogOperations {
-    LogSample,
-    LogFilterFrequency,
-    LogFilterValues
-};
-
-struct LogOperationConfiguration {
-    LogOperations operation;
-    double        factor;                // sampling size
-    bool          keep_low_up_otherwise;
-
-    LogOperationConfiguration() {}
-    LogOperationConfiguration(const LogOperationConfiguration&) = default;
-    LogOperationConfiguration& operator=(const LogOperationConfiguration&) = default;
-    LogOperationConfiguration(LogOperations operation, double factor, bool keepLowUpOtherwise) : operation(operation),
-                                                                                                 factor(factor),
-                                                                                                 keep_low_up_otherwise(
-                                                                                                         keepLowUpOtherwise) {}
-};
 
 #include <utils/fixed_bimap.h>
 #include <filesystem>
