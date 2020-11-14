@@ -3,8 +3,8 @@
 //
 
 #include <json.h>
-#include "RegexVisitor.h"
-#include "Regex.h"
+#include "data_loading/regex/RegexVisitor.h"
+#include "data_loading/regex/Regex.h"
 
 antlrcpp::Any RegexVisitor::visitParen(regexParser::ParenContext *ctx)  {
     return visit(ctx->regex());

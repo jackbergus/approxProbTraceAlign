@@ -1,20 +1,21 @@
 
 
+#include <topk/Aussageform/ExpressionEvaluator.h>
+
 // Default main that is run at production
 int official_main(int argc, char* argv[]);
 
 
 
 
-
-
-
-class DatasetLoaderBridge {
-
-};
+#define DEBUG
 
 void sandbox() {
-
+    ExpressionEvaluator expr{"(fold \"x+y\" 0.0 v1)+(fold \"x+y\" 0.0 v0)"};
+    std::cout << expr({1,2,3},{4,5,6}) << std::endl;
+    std::cout << expr({1,2,3},{7,5,6}) << std::endl;
+    std::cout << expr({1,4,3},{4,5,6}) << std::endl;
+    std::cout << expr({1,2,3},{4,5,8}) << std::endl;
 }
 
 int main(int argc, char* argv[]) {

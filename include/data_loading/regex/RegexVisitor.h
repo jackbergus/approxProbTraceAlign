@@ -8,13 +8,11 @@
 #include <regexBaseVisitor.h>
 
 class RegexVisitor : public regexBaseVisitor {
-
 public:
-    ~RegexVisitor() {}
+    ~RegexVisitor()  {}
+
     antlrcpp::Any visitParen(regexParser::ParenContext *ctx) override;
-
     antlrcpp::Any visitString(regexParser::StringContext *ctx) override;
-
     antlrcpp::Any visitStar(regexParser::StarContext *ctx) override;
     antlrcpp::Any visitBinaryAlternative(regexParser::BinaryAlternativeContext *ctx) override;
     antlrcpp::Any visitConsequent(regexParser::ConsequentContext *ctx) override;

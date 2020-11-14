@@ -6,7 +6,7 @@
 #define FUZZYSTRINGMATCHING2_THOMSONNFA_H
 
 #include <lemon/list_graph.h>
-#include "Regex.h"
+#include "data_loading/regex/Regex.h"
 #include "ReadGraph.h"
 #define         EPSILON     (".")
 

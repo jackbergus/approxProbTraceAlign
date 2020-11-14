@@ -11,7 +11,7 @@
 #include <regexLexer.h>
 #include <regexParser.h>
 #include <ThomsonNFA.h>
-#include <RegexVisitor.h>
+#include <data_loading/regex/RegexVisitor.h>
 
 enum input_format {
     REGEX,

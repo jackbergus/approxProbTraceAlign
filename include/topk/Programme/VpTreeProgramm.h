@@ -27,18 +27,20 @@ class VpTreeProgramm : public Ladenprogramm {
     }, TransformedSpace};
 
     vpt::Metric EuclideanMetric{[](const vpt::Vector& v1, const vpt::Vector& v2)  {
-        vpt::Vector diffSquares(v1.size());
+        /*vpt::Vector diffSquares(v1.size());
         std::transform(v1.begin(), v1.end(), v2.begin(), diffSquares.begin(), [] (double lhs, double rhs) {
             return (lhs - rhs) * (lhs - rhs);
         });
+
         auto sum = vpt::sum(diffSquares.begin(), diffSquares.end());
-        return /*std::sqrt*/(sum);
+        return std::sqrt(sum);*/
+        return std::inner_product(v1.begin(), v1.end(), v2.begin(), 0.0, std::plus<>(), std::minus<>());
     }, EuclideanSpace};
 
-    UntersuetzenStrategie us;
+    UnterstuetzenStrategie us;
 
 public:
-    VpTreeProgramm(UntersuetzenStrategie us) : Ladenprogramm{}, us{us} {}
+    VpTreeProgramm(UnterstuetzenStrategie us) : Ladenprogramm{}, us{us} {}
     ~VpTreeProgramm() override {}
 
     void clear() override;

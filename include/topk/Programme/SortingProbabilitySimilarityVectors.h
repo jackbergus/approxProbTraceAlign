@@ -25,7 +25,7 @@ public:
     Ladenprogramm *setSpaceDimensionWithMove(size_t dimension) override;
     size_t pushNovelBulkInsertedData() override;
     TopKRanking topK(const std::vector<double> &query, size_t k) override;
-    int supportedStrategy() override { return UntersuetzenStrategie::ProbabilitySimilarity; }
+    int supportedStrategy() override { return UnterstuetzenStrategie::ProbabilitySimilarity; }
 
 protected:
     void

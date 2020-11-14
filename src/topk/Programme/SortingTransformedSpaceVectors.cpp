@@ -14,7 +14,7 @@ size_t SortingTransformedSpaceVectors::pushNovelBulkInsertedData() {
     std::sort(trivial_storage.begin(), trivial_storage.end(), [this](const auto& x, const auto& y){
         return std::accumulate(x.vector.begin(), x.vector.end(), 0, pow2Norm) <
                 std::accumulate(y.vector.begin(), y.vector.end(), 0, pow2Norm);
-    })
+    });
 }
 
 TopKRanking SortingTransformedSpaceVectors::topK(const std::vector<double> &query, size_t k) {

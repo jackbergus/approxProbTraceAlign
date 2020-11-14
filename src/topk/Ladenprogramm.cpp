@@ -7,8 +7,6 @@
 
 Ladenprogramm::Ladenprogramm() {}
 
-~Ladenprogramm::Ladenprogramm() {}
-
 void Ladenprogramm::setDatasetSize(size_t totalGraphs, size_t totalTraces, size_t vectorsToLoad) {
     this->totalGraphs = totalGraphs;
     this->totalTraces = totalTraces;

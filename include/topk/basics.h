@@ -23,7 +23,7 @@ struct trivial_vector_record {
     trivial_vector_record(const std::pair<size_t, size_t> &graphAndTraceId, const std::vector<double> &vector);
 };
 
-enum UntersuetzenStrategie {
+enum UnterstuetzenStrategie {
     ProbabilitySimilarity = 1,
     TransformedSpace = 2,
     EuclideanSpace = 4

@@ -4,10 +4,10 @@
 
 #include <topk/Programme/FaissLP.h>
 
-FaissLP::FaissLP(size_t nlist, size_t tentativeDimension, size_t nprobe, UntersuetzenStrategie strategy) :
+FaissLP::FaissLP(size_t nlist, size_t tentativeDimension, size_t nprobe, UnterstuetzenStrategie strategy) :
     Ladenprogramm{}, nlist{nlist}, nprobe{nprobe}, xb{nullptr}, xq{nullptr}, d{tentativeDimension},
     quantizer{static_cast<long>(tentativeDimension)}, index{&quantizer, d, nlist}, exitStrategy{strategy} {
-    assert(exitStrategy != UntersuetzenStrategie::ProbabilitySimilarity);
+    assert(exitStrategy != UnterstuetzenStrategie::ProbabilitySimilarity);
 }
 
 FaissLP::~FaissLP() {
@@ -38,6 +38,7 @@ size_t FaissLP::pushNovelBulkInsertedData() {
     index.reset();
     index.train(N, xb);
     index.add(N, xb);
+    return N;
 }
 
 void FaissLP::storeInMatrix(size_t i, const std::vector<double> &cps, const std::pair<size_t, size_t> &graph_trace_id) {
@@ -49,8 +50,8 @@ void FaissLP::storeInMatrix(size_t i, const std::vector<double> &cps, const std:
 }
 
 TopKRanking FaissLP::topK(const std::vector<double> &query, size_t k) {
-    if (exitStrategy != UntersuetzenStrategie::EuclideanSpace) {
-        for (const auto& arg : query) if (exitStrategy == UntersuetzenStrategie::TransformedSpace) assert(arg == 0.0); else assert(arg == 1.0);
+    if (exitStrategy != UnterstuetzenStrategie::EuclideanSpace) {
+        for (const auto& arg : query) if (exitStrategy == UnterstuetzenStrategie::TransformedSpace) assert(arg == 0.0); else assert(arg == 1.0);
     }
     TopKRanking toInstruct;
     delete xq; xq = nullptr; xq = new float[d];

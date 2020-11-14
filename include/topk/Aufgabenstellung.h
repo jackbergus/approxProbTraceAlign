@@ -11,19 +11,19 @@
 
 class Aufgabenstellung {
 protected:
-    EinbettungRaum* embeddingSpace;
+    EinbettungRaum raum;
 
 public:
-    Aufgabenstellung();
-    virtual ~Aufgabenstellung();
+    virtual ~Aufgabenstellung(){};
 
-    virtual size_t getEmbeddingSpace(EinbettungRaum* es, TopKBenchmarkDataset* data) = 0;
+    virtual size_t getEmbeddingSpace(EinbettungRaum& es, TopKBenchmarkDataset* data) = 0;
     virtual void clear();
     virtual std::vector<double> graphSelfEmbedding(ReadGraph &graph, const struct path_info &query) = 0;
     virtual std::vector<double>
     traceEmbedding(const struct path_info &pathInGraph, ReadGraph &graph, const struct path_info &query) = 0;
     virtual std::vector<double> queryEmbedding(const struct path_info& query) = 0;
-    virtual bool requireDataReloadingAtEachQuery() { return true; }
+    virtual bool requireDataReloadingAtEachQuery() const { return true; }
+    virtual UnterstuetzenStrategie getStrategy() const = 0;
 };
 
 

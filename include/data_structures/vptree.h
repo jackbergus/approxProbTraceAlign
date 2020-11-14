@@ -18,10 +18,10 @@ namespace vpt {
     //typedef std::function<double(const Vector& v1, const Vector& v2)> Metric;
     struct Metric {
         std::function<double(const Vector& v1, const Vector& v2)> actualMetric;
-        UntersuetzenStrategie                                     strategy;
+        UnterstuetzenStrategie                                     strategy;
 
         Metric() {}
-        Metric(std::function<double(const Vector& v1, const Vector& v2)> m, UntersuetzenStrategie s) : actualMetric{m}, strategy{s} {}
+        Metric(std::function<double(const Vector& v1, const Vector& v2)> m, UnterstuetzenStrategie s) : actualMetric{m}, strategy{s} {}
         Metric(const Metric&) = default;
         Metric& operator=(const Metric&) = default;
     };

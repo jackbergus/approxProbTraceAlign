@@ -29,7 +29,7 @@ struct EmbedPathsOverSingleGraphStrategy : public MultiplePathsEmbeddingStrategy
         ReadGraph pathGraph;
         double pathCost = ReadGraph::generateGraphFromPath(path.actualPath, pathGraph, g.inv_label_conversion, g.A);
         pathGraph.finalizeEdgesMatrix(g.weight * pathCost);
-        return strategy(pathGraph);
+        return strategy(pathGraph); //testStrategy
     }
 };
 

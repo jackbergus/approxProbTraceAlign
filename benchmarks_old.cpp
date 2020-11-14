@@ -10,7 +10,7 @@
 #include <embeddings/graph_embedding/GraphEmbeddingStrategy.h>
 #include <z3.h>
 #include "ReadGraph.h"
-#include "RegexVisitor.h"
+#include "data_loading/regex/RegexVisitor.h"
 
 double score(const Eigen::VectorXd& left, const Eigen::VectorXd& right) {
     return left.dot(right);
@@ -191,7 +191,7 @@ void testsDemultiplexed() {
 #include <regexLexer.h>
 #include <regexParser.h>
 #include <benchmarking/Ranking.h>
-#include "Regex.h"
+#include "data_loading/regex/Regex.h"
 #include "ThomsonNFA.h"
 #include "utils/AlterString.h"
 #include "distances/path/GenericStringCostFunction.h"

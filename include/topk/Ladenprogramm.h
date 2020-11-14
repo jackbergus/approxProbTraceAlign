@@ -31,7 +31,7 @@ struct Ladenprogramm {
     std::unordered_map<std::pair<size_t, size_t>, std::vector<double>, pair_hash> datasetTrace;
 
     Ladenprogramm();
-    virtual ~Ladenprogramm();
+    virtual ~Ladenprogramm() {};
     virtual void setDatasetSize(size_t totalGraphs, size_t totalTraces, size_t vectorsToLoad);
     virtual void clear();
     virtual Ladenprogramm* setSpaceDimensionWithMove(size_t dimension) = 0;

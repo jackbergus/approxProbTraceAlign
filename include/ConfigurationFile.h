@@ -41,7 +41,7 @@ struct ConfigurationFile {
     bool         are_traces_compressed          = false;
     char         separator_if_any               = ';';
     std::vector<LogOperationConfiguration> operations;
-    std::unordered_set<std::string>               finalLog;
+    std::vector<struct path_info>                 finalLog;
 
     bool         add_traces_to_log              = true;
     size_t       max_length                     = std::numeric_limits<size_t>::max();

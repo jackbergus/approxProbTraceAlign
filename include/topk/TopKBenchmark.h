@@ -29,7 +29,6 @@ public:
     TopKBenchmark(Ladenprogramm *laden, Aufgabenstellung *auf, bool singleGraphEmbedding = false);
 
     void clearAndReload(TopKBenchmarkDataset* dataset, const path_info &new_query);
-
     TopKRanking topK(const path_info& new_query, size_t k);
 };
 

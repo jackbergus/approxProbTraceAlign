@@ -3,10 +3,4 @@
 //
 
 #include "topk/Aufgabenstellung.h"
-
-Aufgabenstellung::Aufgabenstellung() {}
-
-Aufgabenstellung::~Aufgabenstellung() {}
-
-
-void Aufgabenstellung::clear() { embeddingSpace = nullptr; }
+void Aufgabenstellung::clear() { raum.clear(); }

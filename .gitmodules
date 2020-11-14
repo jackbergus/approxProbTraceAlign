@@ -25,3 +25,6 @@
 [submodule "submodules/args"]
 	path = submodules/args
 	url = https://github.com/Taywee/args
+[submodule "submodules/knn-cpp"]
+	path = submodules/knn-cpp
+	url = https://github.com/Rookfighter/knn-cpp

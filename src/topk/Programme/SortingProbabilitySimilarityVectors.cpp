@@ -16,7 +16,7 @@ size_t SortingProbabilitySimilarityVectors::pushNovelBulkInsertedData() {
 
     std::sort(trivial_storage.begin(), trivial_storage.end(), [](const auto& x, const auto& y){ return
             std::accumulate(y.vector.begin(), y.vector.end(), 1, std::multiplies<>()) >
-            std::accumulate(x.vector.begin(), x.vector.end(), 1, std::multiplies<>()); })
+            std::accumulate(x.vector.begin(), x.vector.end(), 1, std::multiplies<>()); });
 }
 
 TopKRanking SortingProbabilitySimilarityVectors::topK(const std::vector<double> &query, size_t k) {

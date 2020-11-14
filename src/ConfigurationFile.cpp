@@ -27,7 +27,7 @@ void ConfigurationFile::run() {
     GenericGraph<size_t> graph;
     spd_we::WeightEstimator<size_t> we;
     we.setVarEpsilon({varepsilon});
-    std::vector<Transaction<std::string>> log;
+    std::vector<Transaction<std::string>> logFromFile;
     admissibleCharList.erase(std::remove(admissibleCharList.begin(), admissibleCharList.end(), varepsilon), admissibleCharList.end());
     std::string epsilon{this->varepsilon};
 
@@ -81,13 +81,13 @@ void ConfigurationFile::run() {
 
             switch (this->trace_file_format) {
                 case XESLog:
-                    log = load_xes(this->traces_file);
-                    performLogOperation(this->operations, log);
+                    logFromFile = load_xes(this->traces_file);
+                    performLogOperation(this->operations, logFromFile);
                     rememberToLog = true;
                     break;
                 case RawLog:
-                    log = read_log(this->traces_file, this->separator_if_any);
-                    performLogOperation(this->operations, log);
+                    logFromFile = read_log(this->traces_file, this->separator_if_any);
+                    performLogOperation(this->operations, logFromFile);
                     rememberToLog = true;
                     break;
 
@@ -122,7 +122,7 @@ void ConfigurationFile::run() {
         auto t1 = std::chrono::high_resolution_clock::now();
         std::cout << "Retrieving the estimator phase after the varepsilon closure... " << std::flush;
         we.setGraph(&graph);
-        we.setLog(log);
+        we.setLog(logFromFile);
         for (const auto& id : graph.getNodes()) {
             graph.updateNodeWeight(id, we.getNodeWeight(id, this->estimator_type));
         }
@@ -158,12 +158,12 @@ void ConfigurationFile::run() {
     finalGraph.finalizeEdgesMatrix(graph.getCost());
 
     std::cout << " 4) Converting the traces to single strings via correspondence" << std::endl;
-    for (const auto& trace : log) {
+    for (const auto& trace : logFromFile) {
         std::string stringBuilder;
         for (const auto& str : trace) {
             stringBuilder += action_to_single_char.getValue(str);
         }
-        finalLog.emplace(stringBuilder);
+        finalLog.emplace_back(1.0, stringBuilder, std::vector<size_t>{});
     }
 
 
@@ -171,7 +171,7 @@ void ConfigurationFile::run() {
         std::cout << "Adding some further traces to the log from the generated paths. Settings: maxLength = " << this->max_length << " minProb = " << this->min_prob << std::endl;
         for (const auto& path : finalGraph.iterateOverPaths(false, max_length, min_prob)) {
             std::cout << " New trace = '" << path.path << "' with probability = " << path.cost << std::endl;
-            finalLog.emplace(path.path);
+            finalLog.emplace_back(path);
         }
     }
 

@@ -3,7 +3,7 @@
 //
 
 #include "data_loading/load_pregex.h"
-#include "Regex.h"
+#include "data_loading/regex/Regex.h"
 
 std::pair<size_t, size_t>
 generateForLoops(GenericGraph<size_t>& graph, const std::pair<size_t, size_t> &result, bool doSkip,
@@ -93,7 +93,7 @@ std::pair<size_t, size_t> generate(GenericGraph<size_t>& graph, Regex<std::strin
 #include <fstream>
 #include <regexLexer.h>
 #include <regexParser.h>
-#include <RegexVisitor.h>
+#include <data_loading/regex/RegexVisitor.h>
 
 GenericGraph<size_t> load_pregex(const std::string &filename, const std::string &epsilon) {
 

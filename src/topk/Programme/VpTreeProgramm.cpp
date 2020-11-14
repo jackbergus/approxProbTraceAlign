@@ -22,8 +22,8 @@ size_t VpTreeProgramm::pushNovelBulkInsertedData() {
 }
 
 TopKRanking VpTreeProgramm::topK(const std::vector<double> &query, size_t k) {
-    if (us != UntersuetzenStrategie::EuclideanSpace) {
-        for (const auto& arg : query) if (us == UntersuetzenStrategie::TransformedSpace) assert(arg == 0.0); else assert(arg == 1.0);
+    if (us != UnterstuetzenStrategie::EuclideanSpace) {
+        for (const auto& arg : query) if (us == UnterstuetzenStrategie::TransformedSpace) assert(arg == 0.0); else assert(arg == 1.0);
     }
     vpt::DistancesIndices results;
     std::vector<std::vector<double>> V{trivial_storage.size()};

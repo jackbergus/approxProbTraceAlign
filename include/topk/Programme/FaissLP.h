@@ -21,10 +21,10 @@ class FaissLP : public Ladenprogramm {
     std::vector<std::pair<size_t, size_t>> convertCoordinates;
     faiss::IndexFlatL2 quantizer;
     faiss::IndexIVFFlat index;
-    UntersuetzenStrategie exitStrategy;
+    UnterstuetzenStrategie exitStrategy;
 
 public:
-    FaissLP(size_t nlist, size_t tentativeDimension, size_t nprobe, UntersuetzenStrategie strategy);
+    FaissLP(size_t nlist, size_t tentativeDimension, size_t nprobe, UnterstuetzenStrategie strategy);
 
     ~FaissLP() override;
 

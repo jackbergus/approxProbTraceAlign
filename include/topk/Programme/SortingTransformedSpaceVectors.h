@@ -26,7 +26,7 @@ public:
     virtual Ladenprogramm *setSpaceDimensionWithMove(size_t dimension) override;
     virtual size_t pushNovelBulkInsertedData() override;
     virtual TopKRanking topK(const std::vector<double> &query, size_t k) override;
-    int supportedStrategy() override { return UntersuetzenStrategie::TransformedSpace; }
+    int supportedStrategy() override { return UnterstuetzenStrategie::TransformedSpace; }
 
 protected:
     virtual void
