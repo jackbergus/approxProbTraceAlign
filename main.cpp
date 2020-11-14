@@ -1,3 +1,32 @@
+
+
+// Default main that is run at production
+int official_main(int argc, char* argv[]);
+
+
+
+
+
+
+
+class DatasetLoaderBridge {
+
+};
+
+void sandbox() {
+
+}
+
+int main(int argc, char* argv[]) {
+    #ifdef DEBUG
+        // Leaving out some sandbox space
+        sandbox();
+    #else
+        return official_main(argc, argv);
+
+    #endif
+}
+
 #include "ConfigurationFile.h"
 #include <utils/xml_utils.h>
 #include <QtWidgets/QApplication>
@@ -6,8 +35,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-int main(int argc, char* argv[]) {
 
+int official_main(int argc, char* argv[]) {
 
     args::ArgumentParser parser("FuzzyStringMatching (2) (c) 2020-2021 by Giacomo Bergami.", "This free and open software program implements the (Approximate) Probabilistic Trace Alignment. Youse at your own risk.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
@@ -58,5 +87,4 @@ int main(int argc, char* argv[]) {
     } else {
         std::cout << parser;
     }
-
 }

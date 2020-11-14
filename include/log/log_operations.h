@@ -8,6 +8,8 @@
 #include <log/LogOperationConfiguration.h>
 #include <fptree.hpp>
 
+using LogType = Transaction<std::string>;
+
 void performLogOperation(const std::vector<LogOperationConfiguration> &vconf,
                          std::vector<Transaction<std::string>> &log);
 
