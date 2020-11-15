@@ -27,14 +27,7 @@ class VpTreeProgramm : public Ladenprogramm {
     }, TransformedSpace};
 
     vpt::Metric EuclideanMetric{[](const vpt::Vector& v1, const vpt::Vector& v2)  {
-        /*vpt::Vector diffSquares(v1.size());
-        std::transform(v1.begin(), v1.end(), v2.begin(), diffSquares.begin(), [] (double lhs, double rhs) {
-            return (lhs - rhs) * (lhs - rhs);
-        });
-
-        auto sum = vpt::sum(diffSquares.begin(), diffSquares.end());
-        return std::sqrt(sum);*/
-        return std::inner_product(v1.begin(), v1.end(), v2.begin(), 0.0, std::plus<>(), std::minus<>());
+        return std::inner_product(v1.begin(), v1.end(), v2.begin(), 0.0, std::plus<>(), [](double x, double y) {return (x-y)*(x-y); });
     }, EuclideanSpace};
 
     UnterstuetzenStrategie us;

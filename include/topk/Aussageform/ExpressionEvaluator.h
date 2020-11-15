@@ -42,10 +42,9 @@ public:
     }
 
     ~ExpressionEvaluator() {
-        delete expr;
-        delete parser;
-        delete tokens;
         delete lexer;
+        delete tokens;
+        delete parser;
     }
 
     void addArgument(const std::vector<double>& d) { arguments.emplace_back(d); }

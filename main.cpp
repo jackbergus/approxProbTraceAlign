@@ -8,10 +8,10 @@ int official_main(int argc, char* argv[]);
 
 
 
-#define DEBUG
+//#define DEBUG
 
 void sandbox() {
-    ExpressionEvaluator expr{"(fold \"x+y\" 0.0 v1)+(fold \"x+y\" 0.0 v0)"};
+    ExpressionEvaluator expr{"zip \"x+y\" \"(x-y)*(x-y)\" 0.0 v0 v1"};
     std::cout << expr({1,2,3},{4,5,6}) << std::endl;
     std::cout << expr({1,2,3},{7,5,6}) << std::endl;
     std::cout << expr({1,4,3},{4,5,6}) << std::endl;

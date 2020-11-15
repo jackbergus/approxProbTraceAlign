@@ -42,26 +42,14 @@ class WSettings : public QWidget {
     QTableView* view;
     QStandardItemModel* viewModel;
 
+    std::vector<QLineEdit*> fileStrategyMap;
             ConfigurationFile conf;
 
 public:
-    WSettings(const std::string& conf, QWidget *parent = nullptr);
-
-
-    void closeEvent (QCloseEvent *event) override;
-
-
-
+    WSettings(const std::string& conf, QWidget *parent = nullptr);      // Reading the configuration file
+    void closeEvent (QCloseEvent *event) override;                      // Window close: saving the configuration file
     ~WSettings();
 
-public slots:
-    void clickedSlot()
-    {
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("MessageBox Title");
-        msgBox.setText("You Clicked "+ ((QPushButton*)sender())->text());
-        msgBox.exec();
-    }
 };
 
 

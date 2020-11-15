@@ -17,6 +17,8 @@
 
 #include <utils/fixed_bimap.h>
 #include <filesystem>
+#include <topk/topk.h>
+//#include <topk/Aussageform/ExpressionEvaluator.h> --> DO NOT INCLUDE!
 
 struct ConfigurationFile {
     /**
@@ -35,6 +37,9 @@ struct ConfigurationFile {
     std::string  input_file             = "data/petri_matrix.txt";
     bool         is_input_compressed    = false;
     size_t       ith_graph              = 0;
+
+    std::unordered_map<UnterstuetzenStrategie, std::string> fileStrategyMap;
+    //std::unordered_map<UnterstuetzenStrategie, ExpressionEvaluator> fileStrategyMap_loaded;
 
     TracesFormat trace_file_format              = TracesFormat::NoLog;
     std::string  traces_file;

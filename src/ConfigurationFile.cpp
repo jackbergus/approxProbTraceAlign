@@ -225,6 +225,14 @@ void ConfigurationFile::serialize(const std::string& filename) {
         }
         out << YAML::EndSeq;
     }
+    if (!fileStrategyMap.empty()) {
+        out << YAML::Key << "fileStrategyMap" << YAML::Value;
+        out << YAML::BeginMap;
+        for (const auto& cp : fileStrategyMap) {
+            out << YAML::Key << (magic_enum::enum_name(cp.first).data()) << YAML::Value << cp.second;
+        }
+        out << YAML::EndMap;
+    }
 
     out << STRING_SERIALIZE(varepsilon);
     out << STRING_SERIALIZE(admissibleCharList);
@@ -354,6 +362,21 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
                     PARSE_DBL_EXT("factor", arg.factor);
                     PARSE_BOOL_EXT("keep_low_up_otherwise", arg.keep_low_up_otherwise);
                     this->operations.emplace_back(arg);
+                }
+            }
+        }
+
+        {
+            const auto strategy = config["fileStrategyMap"];
+            if ((strategy) && (strategy.IsMap())) {
+                for (auto& kv : strategy) {
+                    assert(kv.first.IsScalar() && kv.second.IsScalar());
+                    UnterstuetzenStrategie arg;
+                    auto tentativeEnum = magic_enum::enum_cast<UnterstuetzenStrategie>(kv.first.as<std::string>());
+                    if (tentativeEnum.has_value()) {
+                        arg = tentativeEnum.value();
+                        fileStrategyMap.emplace(arg, kv.second.as<std::string>());
+                    }
                 }
             }
         }

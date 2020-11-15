@@ -203,6 +203,22 @@ WSettings::WSettings(const std::string& conf, QWidget *parent) : QWidget(parent)
         grid->addWidget(echoGroup, 0, 2);
     }
 
+    {
+        QGridLayout * echoGrid = new QGridLayout();
+        QGroupBox *echoGroup = new QGroupBox(tr("Traces to add to the log set (from the Thompson automaton)"));
+        size_t rowid = 0;
+
+        constexpr auto& color_entries = magic_enum::enum_entries<UnterstuetzenStrategie>();
+        constexpr std::size_t color_count = magic_enum::enum_count<UnterstuetzenStrategie>();
+        for (size_t i = 0; i<color_count; i++) {
+            std::string label = this->conf.fileStrategyMap[color_entries[i].first];
+            fileStrategyMap.emplace_back(addTextField(echoGrid, rowid, color_entries[i].second.data(), label, 0));
+            rowid++;
+        }
+        echoGroup->setLayout(echoGrid);
+        grid->addWidget(echoGroup, 1, 1, 1, 2);
+
+    }
 
     setLayout(grid);
     setWindowTitle(tr("Configuration time!"));
@@ -237,6 +253,13 @@ void WSettings::closeEvent(QCloseEvent *event) {
         conf.operations.emplace_back(TO_ENUM_ITEM(viewModel->item(i, 1), LogOperations),
                                      TO_DBL_ITEM(viewModel->item(i,2)),
                                      TO_BOOLEAN_ITEM(viewModel->item(i,0)));
+    }
+
+    constexpr auto& color_entries = magic_enum::enum_entries<UnterstuetzenStrategie>();
+    constexpr std::size_t color_count = magic_enum::enum_count<UnterstuetzenStrategie>();
+    for (size_t i = 0; i<color_count; i++) {
+        this->conf.fileStrategyMap[color_entries[i].first] =
+                TO_STRING(fileStrategyMap[i]);
     }
 
     conf.serialize();
