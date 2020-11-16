@@ -5,10 +5,14 @@
 #ifndef FUZZYSTRINGMATCHING2_READGRAPHRANKINGSTRUCT_H
 #define FUZZYSTRINGMATCHING2_READGRAPHRANKINGSTRUCT_H
 
+#include <utils/language.h>
 #include <string>
 #include <ReadGraph.h>
 
-struct ReadGraphRankingStruct {
+/**
+ * Defines an association between the string representing the graph (its storage path) and the graph as a pointer.
+ */
+struct DEPRECATED ReadGraphRankingStruct {
     std::string readGraphPath;
     ReadGraph*  graph;
 

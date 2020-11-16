@@ -5,6 +5,9 @@
 #ifndef FUZZYSTRINGMATCHING2_PRECISIONBENCHMARKROWENTRY_H
 #define FUZZYSTRINGMATCHING2_PRECISIONBENCHMARKROWENTRY_H
 
+/**
+ * Defines all the parts that we are considering for performing the benchmark
+ */
 enum case_precision_type {
     SCORE_EXPECTED_FROM_QUERY_SET,
     RANK_EXPECTED_FROM_QUERY_SET,
@@ -19,6 +22,9 @@ enum case_precision_type {
 #include <string>
 #include <fort.hpp>
 
+/**
+ * Defines an entry row for the benchmark output (Precision analysis)
+ */
 struct PrecisionBenchmarkRowEntry {
     std::string dataset_name, configuration;
     size_t query_size, distinct_query_chars;

@@ -21,6 +21,9 @@ std::ostream& operator <<(std::ostream &o, const enum case_time_benchmark& p);
 #include <string>
 #include <fort.hpp>
 
+/**
+ * Defines an entry row for the benchmark output (Time analysis)
+ */
 struct TimeBenchmarkRowEntry {
     std::string          dataset;
     std::string          experiment_type;

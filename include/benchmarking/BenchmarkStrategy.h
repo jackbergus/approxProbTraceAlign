@@ -56,12 +56,8 @@ struct BenchmarkStrategy {
 
 private:
     template <typename T>
-    void finalizeTest(const BenchmarkSeed &test,
-                      Ranking<T>& rankQuery,
-                      Ranking<T>& expeQuery,
-                      const std::function<double(const T&, const T&)>&  f,
-                      double expected_score
-                     );
+    void finalizeTest(const BenchmarkSeed &test, Ranking<T> &rankQuery, Ranking<T> &expeQuery,
+                      const std::function<double(const T &, const T &)> &f);
 
     PathRanking rankGraphPaths(const std::string& query,
                                ReadGraph& rg,

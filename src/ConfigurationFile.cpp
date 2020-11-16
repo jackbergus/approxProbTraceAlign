@@ -169,7 +169,7 @@ void ConfigurationFile::run() {
 
 
     if (this->add_traces_to_log) {
-        std::cout << "Adding some further traces to the log from the generated paths. Settings: maxLength = " << this->max_length << " minProb = " << this->min_prob << std::endl;
+        std::cout << "5) Adding some further traces to the log from the generated paths. Settings: maxLength = " << this->max_length << " minProb = " << this->min_prob << std::endl;
         for (const auto& path : finalGraph.iterateOverPaths(false, max_length, min_prob)) {
             std::cout << " New trace = '" << path.path << "' with probability = " << path.cost << std::endl;
             finalLog.emplace_back(path);

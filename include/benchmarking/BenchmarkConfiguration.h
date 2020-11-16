@@ -11,6 +11,9 @@
 #include <ostream>
 #include "../../GraphCartridge.h"
 
+/**
+ * Old benchmarking class
+ */
 class BenchmarkConfiguration {
     GraphCartridge graphCartridge;
     BenchmarkStrategy* benchmark;

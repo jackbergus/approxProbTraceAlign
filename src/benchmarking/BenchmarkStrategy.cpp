@@ -28,7 +28,7 @@ void BenchmarkStrategy::singleQueryBenchmark(const BenchmarkSeed &test, ReadGrap
     PathRanking  expeQuery = doPartialRank(rg, test.expected_result, test.expected_result.path, "single_query" + this->configuration +" with_expected " + test.expected_result.path, SCORE_EXPECTED_FROM_EXPECTED_SET, RANK_EXPECTED_FROM_EXPECTED_SET, RANK_PRECISION_EXPECTED_FROM_EXPECTED_SET);
 
 
-    finalizeTest(test, rankQuery, expeQuery, path_string_similarity,  test.expected_result.cost);
+    finalizeTest(test, rankQuery, expeQuery, path_string_similarity);
 
     /**double setDistance = rankQuery.normalizedRank(expeQuery, f, f);
     double distanceFromExpectedCost = std::abs(setDistance - expected_score);
@@ -202,13 +202,13 @@ std::ostream &operator<<(std::ostream &os, const BenchmarkStrategy &strategy) {
 
 template<typename T>
 void BenchmarkStrategy::finalizeTest(const BenchmarkSeed &test, Ranking<T> &rankQuery, Ranking<T> &expeQuery,
-                                     const std::function<double(const T&, const T&)> &f, double expected_score) {
+                                     const std::function<double(const T &, const T &)> &f) {
     if (test.expected_result.path != test.query) { // Performing the test only if the query is different from the expected result
         double setDistance = rankQuery.normalizedRank(expeQuery, f);
-        double distanceFromExpectedCost = std::abs(setDistance - expected_score);
+        //double distanceFromExpectedCost = std::abs(setDistance - expected_score);
 
         table_precision_benchmarks.emplace_back(dataset_name, configuration, test.query.size(), distinct_chars(test.query), SET_DISTANCE, setDistance);
-        table_precision_benchmarks.emplace_back(dataset_name, configuration, test.query.size(), distinct_chars(test.query),SET_DIFFERENCE, distanceFromExpectedCost);
+        //table_precision_benchmarks.emplace_back(dataset_name, configuration, test.query.size(), distinct_chars(test.query),SET_DIFFERENCE, distanceFromExpectedCost);
     }
 }
 
