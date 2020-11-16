@@ -12,13 +12,14 @@
 #include <regexParser.h>
 #include <ThomsonNFA.h>
 #include <data_loading/regex/RegexVisitor.h>
+#include <utils/language.h>
 
-enum input_format {
+enum DEPRECATED input_format {
     REGEX,
     READGRAPH
 };
 
-struct ReadGraphConfiguration {
+struct DEPRECATED ReadGraphConfiguration {
     std::string str;
     bool isFile;
     double hasCost;

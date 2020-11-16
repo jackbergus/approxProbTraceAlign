@@ -113,7 +113,7 @@ void BenchmarkStrategy::singleQueryMultipleGraphsBenchmark(const BenchmarkSeed &
     table_precision_benchmarks.emplace_back(dataset_name, configuration, query_length, query_distinct_nodes, RANK_PRECISION_EXPECTED_FROM_EXPECTED_SET, avgExpectedPrecision);
 
     double setDistance = rankQuery.normalizedRank(expeQuery, graph_sim_function);
-    double distanceFromExpectedCost = std::abs(setDistance - test.expected_result.cost);
+    double distanceFromExpectedCost = std::abs(setDistance - test.expected_result.probability);
 
     table_precision_benchmarks.emplace_back(dataset_name, configuration, test.query.size(), distinct_chars(test.query), SET_DISTANCE, setDistance);
     table_precision_benchmarks.emplace_back(dataset_name, configuration, test.query.size(), distinct_chars(test.query),SET_DIFFERENCE, distanceFromExpectedCost);

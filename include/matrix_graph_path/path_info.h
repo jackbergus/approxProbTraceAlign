@@ -11,7 +11,7 @@
 #include <utils/hash_combine.h>
 
 struct path_info {
-    double      cost;
+    double      probability;
     std::string path;
     std::vector<size_t> actualPath;
 

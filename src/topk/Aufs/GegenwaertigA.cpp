@@ -59,7 +59,7 @@ GegenwaertigA::traceEmbedding(const struct path_info &pathInGraph, ReadGraph &gr
             return psVector(pathInGraph, query);
 
         case TransformedSpace: {
-            return vectorTransformation(pathInGraph.cost * query.cost,
+            return vectorTransformation(pathInGraph.probability * query.probability,
                                         stringSimilarity->similarity(pathInGraph.path, query.path));
         }
 
@@ -104,7 +104,7 @@ std::vector<double> GegenwaertigA::queryEmbedding(const struct path_info &query)
             return {0.0, 0.0};
 
         case EuclideanSpace: {
-            ReadGraph g = ReadGraph::fromString(query.path, query.cost);
+            ReadGraph g = ReadGraph::fromString(query.path, query.probability);
             auto tmp = (*testStrategy)(g);
             auto x = ReadGraph::generateStructuredEmbedding(raum, tmp);
             return {x.data(), x.data() + x.rows() * x.cols()};
@@ -138,7 +138,7 @@ GegenwaertigA::genericGenerationFunction(ReadGraph &graph, const struct path_inf
     std::vector<double> approx;
     double score = mProb, newScore = mProb;
     for (const auto &path : graph.iterateOverPaths(false, Mpath, mProb)) {
-        newScore = path.cost * query.cost * stringSimilarity->similarity(path.path, query.path);
+        newScore = path.probability * query.probability * stringSimilarity->similarity(path.path, query.path);
         if (newScore > score) {
             approx = rec(path, graph, query);
             score = newScore;

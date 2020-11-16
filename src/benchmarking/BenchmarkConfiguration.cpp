@@ -23,7 +23,7 @@ void BenchmarkConfiguration::benchmarkMultiplePathsFromSameGraphWithNoise(const 
     AlterString as{seed, maxNoise};
     for (struct path_info pathCopy : g.iterateOverPaths(benchmark->doNotVisitLoopsTwice, benchmark->maxPathLength, benchmark->minimumPathCost)) {
         std::string query = as.alter(pathCopy.path);
-        pathCopy.cost = 1.0/(GeneralizedLevensteinDistance(query, pathCopy.path)/5.0+1.0);
+        pathCopy.probability = 1.0 / (GeneralizedLevensteinDistance(query, pathCopy.path) / 5.0 + 1.0);
         benchmark->singleQueryBenchmark({query, pathCopy}, g);
     }
 }
@@ -46,7 +46,7 @@ void BenchmarkConfiguration::benchmarkSinglePathAgainstGraphWithNoise(const Benc
     for (size_t i = 0; i<iterations; i++) {
         BenchmarkSeed newSeed = seed;
         newSeed.query = as.alter(seed.query);
-        newSeed.expected_result.cost = seed.expected_result.cost * (1.0/(1.0+GeneralizedLevensteinDistance(newSeed.query , seed.query)/5.0));
+        newSeed.expected_result.probability = seed.expected_result.probability * (1.0 / (1.0 + GeneralizedLevensteinDistance(newSeed.query , seed.query) / 5.0));
         benchmark->singleQueryBenchmark(newSeed, g);
     }
 }
@@ -64,7 +64,7 @@ void BenchmarkConfiguration::benchmarkMultiplePathsFromSameGraph(const std::stri
     benchmark->configuration = "benchmarkGraphsPathsAgainstGraph";
     benchmark->dataset_name = graphname;
     for (struct path_info pathCopy : g.iterateOverPaths(benchmark->doNotVisitLoopsTwice, benchmark->maxPathLength, benchmark->minimumPathCost)) {
-        pathCopy.cost = 1.0;
+        pathCopy.probability = 1.0;
         benchmark->singleQueryBenchmark({pathCopy.path, pathCopy}, g);
     }
 }

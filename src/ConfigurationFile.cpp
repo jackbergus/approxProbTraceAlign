@@ -171,7 +171,7 @@ void ConfigurationFile::run() {
     if (this->add_traces_to_log) {
         std::cout << "5) Adding some further traces to the log from the generated paths. Settings: maxLength = " << this->max_length << " minProb = " << this->min_prob << std::endl;
         for (const auto& path : finalGraph.iterateOverPaths(false, max_length, min_prob)) {
-            std::cout << " New trace = '" << path.path << "' with probability = " << path.cost << std::endl;
+            std::cout << " New trace = '" << path.path << "' with probability = " << path.probability << std::endl;
             finalLog.emplace_back(path);
         }
     }
@@ -237,6 +237,8 @@ void ConfigurationFile::serialize(const std::string& filename) {
 
     out << STRING_SERIALIZE(varepsilon);
     out << STRING_SERIALIZE(admissibleCharList);
+    out << DBL_SERIALIZE(noiseThreshold);
+    out << INT_SERIALIZE(seedError);
 
     out << YAML::EndMap;
 
@@ -350,7 +352,11 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
         PARSE_ENUM(estimator_type, spd_we::WeightEstimatorCases);
 
         PARSE_STRING(admissibleCharList);
+        PARSE_DBL(noiseThreshold);
         PARSE_CHAR(varepsilon);
+        PARSE_INT(seedError);
+
+        traceNoiser = AlterString{admissibleCharList, noiseThreshold, seedError}; // Setting the trace noiser from the default arguments
 
         {
             const auto operationList = config["operations"];
@@ -377,7 +383,9 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
                     if (tentativeEnum.has_value()) {
                         arg = tentativeEnum.value();
                         fileStrategyMap.emplace(arg, kv.second.as<std::string>());
-                        fileStrategyMap_loaded.emplace(arg, new ExpressionEvaluator(kv.second.as<std::string>()));
+                        auto ptr = new ExpressionEvaluator(kv.second.as<std::string>());
+                        ptr->setStrategy(arg);
+                        fileStrategyMap_loaded.emplace(arg, ptr);
                     }
                 }
             }
@@ -387,5 +395,5 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
 }
 
 ConfigurationFile::~ConfigurationFile() {
-    if (!fileStrategyMap_loaded.empty()) for (auto &cp : fileStrategyMap_loaded) delete cp.second;
+    if (!fileStrategyMap_loaded.empty()) for (auto &cp : fileStrategyMap_loaded) delete cp.second; // deallocating all the pointers
 }

@@ -18,7 +18,7 @@ public:
     }
     double distance(const std::string &left, const struct path_info &right) override {
             const double cost = string_distance->distance(left, right.path);
-            return ((1.0/(cost/5.0+1.0))) * right.cost;
+            return ((1.0/(cost/5.0+1.0))) * right.probability;
     }
 
 };

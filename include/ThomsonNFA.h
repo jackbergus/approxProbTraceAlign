@@ -9,8 +9,9 @@
 #include "data_loading/regex/Regex.h"
 #include "ReadGraph.h"
 #define         EPSILON     (".")
+#include <utils/language.h>
 
-class ThomsonNFA {
+class DEPRECATED ThomsonNFA {
     using Node = lemon::ListDigraph::Node;
     lemon::ListDigraph g;
     lemon::ListDigraph::NodeMap<std::string> nodeLabels;

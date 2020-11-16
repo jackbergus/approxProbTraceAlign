@@ -5,12 +5,12 @@
 #include <matrix_graph_path/path_info.h>
 #include <tuple>
 
-path_info::path_info(double cost, const std::string &path, const std::vector<size_t>& v) : cost(cost), path(path), actualPath(v) {}
+path_info::path_info(double probability, const std::string &path, const std::vector<size_t>& v) : probability(probability), path(path), actualPath(v) {}
 
-path_info::path_info() : cost{0.0}, path{""} {}
+path_info::path_info() : probability{0.0}, path{""} {}
 
 std::ostream &operator<<(std::ostream &os, const path_info &info) {
-    os << "cost: " << info.cost << " path: " << info.path;
+    os << "cost: " << info.probability << " path: " << info.path;
     return os;
 }
 

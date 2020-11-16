@@ -71,7 +71,7 @@ private:
 
     std::vector<double>
     psVector(const path_info &pathInGraph, const path_info &query) const {
-        return {pathInGraph.cost * query.cost, stringSimilarity->similarity(pathInGraph.path, query.path)};
+        return {pathInGraph.probability * query.probability, stringSimilarity->similarity(pathInGraph.path, query.path)};
     }
 
     std::vector<double> getVectorFromPathAndStrategy(const path_info &pathInGraph, ReadGraph &graph);

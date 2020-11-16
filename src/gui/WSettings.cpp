@@ -112,7 +112,9 @@ WSettings::WSettings(const std::string& conf, QWidget *parent) : QWidget(parent)
         QGroupBox *echoGroup = new QGroupBox(tr("Traces to add to the log set (from the Thompson automaton)"));
         size_t rowid = 0;
         varepsilon = addTextField(echoGrid, rowid, "Varepsilon character", {this->conf.varepsilon}, 1);
-        admissibleCharList = addTextField(echoGrid, rowid, "Filename:", this->conf.admissibleCharList, 0);
+        admissibleCharList = addTextField(echoGrid, rowid, "chars to biject the labels from the petri nets", this->conf.admissibleCharList, 0);
+        seedError = addNumericBox(echoGrid, rowid, "Seed for error generator", this->conf.seedError);
+        noiseThreshold = addNumericBox(echoGrid, rowid, "Maximum noise threshold", this->conf.noiseThreshold, 0.0, 1.0);
         echoGroup->setLayout(echoGrid);
         grid->addWidget(echoGroup, 0, 1);
     }
@@ -205,7 +207,7 @@ WSettings::WSettings(const std::string& conf, QWidget *parent) : QWidget(parent)
 
     {
         QGridLayout * echoGrid = new QGridLayout();
-        QGroupBox *echoGroup = new QGroupBox(tr("Traces to add to the log set (from the Thompson automaton)"));
+        QGroupBox *echoGroup = new QGroupBox(tr("Metrics for the different experiment settings"));
         size_t rowid = 0;
 
         constexpr auto& color_entries = magic_enum::enum_entries<UnterstuetzenStrategie>();
@@ -247,6 +249,9 @@ void WSettings::closeEvent(QCloseEvent *event) {
 
     conf.varepsilon = TO_STRING(varepsilon)[0];
     conf.admissibleCharList = TO_STRING(admissibleCharList);
+    conf.noiseThreshold = TO_DBL(noiseThreshold);
+    conf.seedError = TO_INT(seedError);
+
 
     conf.operations.clear();
     for (size_t i = 0, N = viewModel->rowCount(); i<N; i++) {

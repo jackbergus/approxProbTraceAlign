@@ -17,6 +17,8 @@
 #include <utils/fixed_bimap.h>
 #include <filesystem>
 #include <topk/topk.h>
+#include <utils/AlterString.h>
+
 class ExpressionEvaluator;
 
 struct ConfigurationFile {
@@ -28,6 +30,8 @@ struct ConfigurationFile {
 
     char  varepsilon = '.';
     std::string  admissibleCharList{"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
+    double noiseThreshold        = 0.3;
+    size_t seedError             = 0;
 
     std::filesystem::path results_folder; // The folder where all the temporarily results are produced
 
@@ -56,6 +60,7 @@ struct ConfigurationFile {
 
     fixed_bimap<std::string, char>   action_to_single_char;
 
+    AlterString traceNoiser;
     void run();
     void serialize(const std::string& file = "");
 

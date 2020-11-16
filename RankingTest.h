@@ -29,7 +29,7 @@ public:
     virtual void indexingEmbedding()  = 0;
     virtual Ranking<size_t> generateRank(const std::string& query, size_t topK) = 0;
     double calculateCompetitorAlignmentCost(const struct path_info& path, size_t pathId, ReadGraph& sourceGraph, const std::string& query) {
-        double cost = path.cost/(GeneralizedLevensteinDistance(path.path, query)/5.0+1.0);
+        double cost = path.probability / (GeneralizedLevensteinDistance(path.path, query) / 5.0 + 1.0);
         return cost;
     }
 

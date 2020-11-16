@@ -114,3 +114,20 @@ UnterstuetzenStrategie ExpressionEvaluator::getStrategy() const {
 void ExpressionEvaluator::setStrategy(UnterstuetzenStrategie strategy) {
     ExpressionEvaluator::strategy = strategy;
 }
+
+double ExpressionEvaluator::operator()(const std::vector<double> &lhs) {
+    static std::vector<double> probsim{1.0, 1.0};
+    static std::vector<double> transform{0.0, 0.0};
+    assert(strategy != EuclideanSpace);
+    assert(lhs.size() == 2);
+    switch (strategy) {
+        case ProbabilitySimilarity:
+            return std::abs(operator()(lhs, probsim));
+
+        case TransformedSpace:
+            return operator()(lhs, transform);
+
+        case EuclideanSpace:
+            return 0.0; // should never reach this part
+    }
+}

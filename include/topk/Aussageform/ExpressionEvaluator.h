@@ -38,6 +38,8 @@ public:
     ExpressionEvaluator(const ExpressionEvaluator& x);
     ExpressionEvaluator& operator=(const ExpressionEvaluator& x);
     double operator()(const std::vector<double>& lhs, const std::vector<double>& rhs);
+    double operator()(const std::vector<double>& lhs);
+
 
     ~ExpressionEvaluator();
 

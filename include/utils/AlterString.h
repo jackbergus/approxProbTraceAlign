@@ -17,19 +17,21 @@ struct AlterString {
     std::uniform_int_distribution<size_t>  valueType;
     std::mt19937 mersenneError, mersenneValue, mersennePosition;
     std::uniform_int_distribution<size_t> pick;
-    const std::string& chrs;
+    std::string chrs;
     double noiseThreshold;
+    size_t seedError = 0;
 
+    AlterString() : AlterString("abcdefghijklmnopqrtsuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 0.3) {}
+    AlterString(const AlterString& ) = default;
+    AlterString& operator=(const AlterString& ) = default;
 
     /**
      * Initialization
      * @param chrs                  Strings to insert
      * @param noiseThreshold        Threshold under which perform the changes
      * @param seedError             Seed for generating the error distribution (no change, insertion, deletion, swap)
-     * @param seedValue             Seed for replacing the value to substitute
-     * @param randomPosition        Seed for generating the random swap position
      */
-    AlterString(const std::string& chrs, double noiseThreshold, size_t seedError = 0, size_t seedValue = 1, size_t randomPosition = 2);
+    AlterString(const std::string& chrs, double noiseThreshold, size_t seedError = 0);
 
     /**
      * Alters a string
@@ -40,7 +42,9 @@ struct AlterString {
 
 private:
     int doNoise() {
-        return errorType(mersenneError) <= noiseThreshold;
+        double randomNumber =  errorType(mersenneError);
+        return randomNumber <= noiseThreshold ? std::min(3, (int) std::trunc(randomNumber / (noiseThreshold) * 3.0) + 1)
+                                              : 0;
     }
 
 };

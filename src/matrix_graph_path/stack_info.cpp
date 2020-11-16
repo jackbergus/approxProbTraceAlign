@@ -25,6 +25,6 @@ path_info stack_info::asPathInfo(const std::unordered_map<size_t, std::string> *
         p.path = s.str();
     }
     p.actualPath = path;
-    p.cost = probabilisticPath;
+    p.probability = probabilisticPath;
     return p;
 }
