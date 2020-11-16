@@ -33,13 +33,13 @@ class WSettings : public QWidget {
     QCheckBox *use_estimator;
 
 
-    QCheckBox *add_traces_to_log;
+    QCheckBox *add_traces_to_log, *use_tuning_factor, *use_path_lambda_factor;
     QSpinBox *max_length;
-    QDoubleSpinBox *min_prob;
+    QDoubleSpinBox *min_prob, *lambda, *tuning_factor;
 
     QLineEdit *varepsilon, *admissibleCharList;
     QSpinBox *seedError;
-    QDoubleSpinBox *noiseThreshold;
+    QLineEdit *noiseThreshold;
 
     QTableView* view;
     QStandardItemModel* viewModel;

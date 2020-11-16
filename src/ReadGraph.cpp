@@ -131,6 +131,7 @@ double ReadGraph::generateGraphFromPath(const std::vector<size_t> &path, ReadGra
     rg.init(*std::max_element(path.begin(), path.end())+1, max+1, source, target);
     rg.addNode(target, nodeLabelling.at(target));
     rg.weight = graphCost;
+    rg.max_length = rg.nodes;
     return pathCost;
 }
 

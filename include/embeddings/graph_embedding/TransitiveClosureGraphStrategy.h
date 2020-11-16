@@ -18,13 +18,22 @@ struct TransitiveClosureGraphStrategy : public GraphEmbeddingStrategy {
             std::is_base_of<LabelledPathVisitingStrategy, T>::value,
             "T must be a descendant of LabelledPathVisitingStrategy"
     );
+    std::string varepsilon;
+    bool set_lambda_to_one;
 
-    TransitiveClosureGraphStrategy(double tuning_factor, double lambda, size_t maxPath) : tuning(tuning_factor), lambda(lambda), maxPath(maxPath) {}
+    TransitiveClosureGraphStrategy(bool set_lambda_to_one, const std::string& varepsilon, double tuning_factor, double lambda, size_t maxPath) : tuning(tuning_factor), lambda(lambda), maxPath(maxPath), varepsilon(varepsilon), set_lambda_to_one(set_lambda_to_one) {}
 
     ReadGraph::unstructured_embedding operator()(ReadGraph &rg) override {
         Eigen::SparseMatrix<double, Eigen::RowMajor> current = rg.A;
         ReadGraph::unstructured_embedding embedding;
-        T it{embedding, tuning, lambda};
+        int max_length = rg.max_length;
+        if (set_lambda_to_one) {
+            max_length = 1;
+        } else if (max_length < 0) {
+            max_length = maxPath;
+        }
+        assert(max_length >= 0);
+        T it{varepsilon, embedding, tuning, lambda, max_length};
         ///double tmp = 1.0;
         ///std::swap(tmp, rg.weight);
         for (const auto& path : rg.iterateOverPaths(false, maxPath, std::numeric_limits<double>::epsilon()*2)) {

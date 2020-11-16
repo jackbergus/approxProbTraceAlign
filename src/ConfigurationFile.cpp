@@ -207,6 +207,12 @@ void ConfigurationFile::serialize(const std::string& filename) {
     out << BOOL_SERIALIZE(add_traces_to_log);
     out << INT_SERIALIZE(max_length);
     out << DBL_SERIALIZE(min_prob);
+    out << DBL_SERIALIZE(lambda);
+    out << DBL_SERIALIZE(tuning_factor);
+    use_tuning_factor = (tuning_factor >= 0.0) && use_tuning_factor;
+    out << BOOL_SERIALIZE(use_tuning_factor);
+    out << BOOL_SERIALIZE(use_path_lambda_factor);
+
 
     out << BOOL_SERIALIZE(use_estimator);
     out << ENUM_SERIALIZE(estimator_type);
@@ -237,7 +243,14 @@ void ConfigurationFile::serialize(const std::string& filename) {
 
     out << STRING_SERIALIZE(varepsilon);
     out << STRING_SERIALIZE(admissibleCharList);
-    out << DBL_SERIALIZE(noiseThreshold);
+    if (!noiseThreshold.empty()) {
+        out << YAML::Key << "noiseThreshold" << YAML::Value << YAML::BeginSeq;
+        for (const auto& x: noiseThreshold) {
+            out << x;
+        }
+        out << YAML::EndSeq;
+    }
+    //out << DBL_SERIALIZE(noiseThreshold);
     out << INT_SERIALIZE(seedError);
 
     out << YAML::EndMap;
@@ -255,6 +268,8 @@ void ConfigurationFile::serialize(const std::string& filename) {
 }
 
 #include <sys/stat.h>
+#include <embeddings/labelled_paths/NodesWithTransitiveEdgeCost.h>
+
 inline bool exists_test3 (const std::string& name) {
     struct stat buffer;
     return (stat (name.c_str(), &buffer) == 0);
@@ -347,16 +362,30 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
         PARSE_BOOL(add_traces_to_log);
         PARSE_INT(max_length);
         PARSE_DBL(min_prob);
+        PARSE_DBL(lambda);
+        PARSE_DBL(tuning_factor);
+        PARSE_BOOL(use_tuning_factor);
+        PARSE_BOOL(use_path_lambda_factor);
+        if (!use_tuning_factor) tuning_factor = -1.0;
 
         PARSE_BOOL(use_estimator);
         PARSE_ENUM(estimator_type, spd_we::WeightEstimatorCases);
 
         PARSE_STRING(admissibleCharList);
-        PARSE_DBL(noiseThreshold);
+        {
+            auto it = config["noiseThreshold"];
+            noiseThreshold.clear();
+            if ((it) && (it.IsSequence())) {
+                for (const auto& x : it) {
+                    noiseThreshold.emplace_back(x.as<double>());
+                    traceNoiser.emplace_back(admissibleCharList, *noiseThreshold.rbegin(), seedError);
+                }
+            }
+        }
+        ///PARSE_DBL("noiseThreshold");
         PARSE_CHAR(varepsilon);
         PARSE_INT(seedError);
-
-        traceNoiser = AlterString{admissibleCharList, noiseThreshold, seedError}; // Setting the trace noiser from the default arguments
+        ///traceNoiser = AlterString{admissibleCharList, noiseThreshold, seedError}; // Setting the trace noiser from the default arguments
 
         {
             const auto operationList = config["operations"];
@@ -396,4 +425,37 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
 
 ConfigurationFile::~ConfigurationFile() {
     if (!fileStrategyMap_loaded.empty()) for (auto &cp : fileStrategyMap_loaded) delete cp.second; // deallocating all the pointers
+}
+
+#include <embeddings/path_embedding/EmbedPahtsOverSingleGraphStrategy.h>
+#include <embeddings/graph_embedding/TransitiveClosureGraphStrategy.h>
+
+MultiplePathsEmbeddingStrategy *
+ConfigurationFile::generatePathEmbeddingStrategyFromParameters(enum PathEmbeddingStrategy casus) const {
+    std::string epsilon{varepsilon};
+    switch (casus) {
+        case ONLY_EDGE_INFORMATION_PROPOSED:
+            return new EmbedPathsOverSingleGraphStrategy<OnlyTransitiveEdgesCost<true>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, false, max_length, min_prob);
+        case EDGE_WITH_NODE_INFORMATION_PROPOSED:
+            return new EmbedPathsOverSingleGraphStrategy<NodesWithTransitiveEdgeCost<true>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, false, max_length, min_prob);
+        case ONLY_EDGE_INFORMATION_PREVIOUS:
+            return new EmbedPathsOverSingleGraphStrategy<OnlyTransitiveEdgesCost<false>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, false, max_length, min_prob);
+        case EDGE_WITH_NODE_INFORMATION_PREVIOUS:
+            return new EmbedPathsOverSingleGraphStrategy<NodesWithTransitiveEdgeCost<false>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, false, max_length, min_prob);
+    }
+}
+
+GraphEmbeddingStrategy *
+ConfigurationFile::generateGraphEmbeddingStrategyFromParameters(enum PathEmbeddingStrategy casus) const {
+    std::string epsilon{varepsilon};
+    switch (casus) {
+        case ONLY_EDGE_INFORMATION_PROPOSED:
+            return new TransitiveClosureGraphStrategy<OnlyTransitiveEdgesCost<true>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, max_length);
+        case EDGE_WITH_NODE_INFORMATION_PROPOSED:
+            return new TransitiveClosureGraphStrategy<NodesWithTransitiveEdgeCost<true>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, max_length);
+        case ONLY_EDGE_INFORMATION_PREVIOUS:
+            return new TransitiveClosureGraphStrategy<OnlyTransitiveEdgesCost<false>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda,  max_length);
+        case EDGE_WITH_NODE_INFORMATION_PREVIOUS:
+            return new TransitiveClosureGraphStrategy<NodesWithTransitiveEdgeCost<false>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, max_length);
+    }
 }

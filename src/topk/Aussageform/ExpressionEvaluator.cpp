@@ -89,6 +89,7 @@ ExpressionEvaluator::~ExpressionEvaluator() {
 
 ExpressionEvaluator &ExpressionEvaluator::operator=(const ExpressionEvaluator &x) {
     setCopy(x);
+    return *this;
 }
 
 void ExpressionEvaluator::setCopy(const ExpressionEvaluator &x) {

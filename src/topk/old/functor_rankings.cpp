@@ -6,7 +6,7 @@
 #include <topk/Aussageform/ExpressionEvaluator.h>>
 
 TopKRanking generateExampleExpectedRanking(size_t graph_i, std::unordered_map<std::pair<size_t, size_t>, struct path_info, pair_hash> &pathsInGraph,
-                                           const std::string &caba, double dulcior, ExpressionEvaluator *probSimMetric) {
+                                           const std::string &caba, bool dulcior, ExpressionEvaluator *probSimMetric) {
     std::map<double, std::vector<std::pair<size_t, size_t>>> rankingMap;
     assert(probSimMetric && (probSimMetric->getStrategy() == UnterstuetzenStrategie::ProbabilitySimilarity));
     TopKRanking expectedRanking;
@@ -27,7 +27,7 @@ TopKRanking generateExampleExpectedRanking(size_t graph_i, std::unordered_map<st
         }
         return finalRanking;
     }
-    size_t maxRank = rankingMap.size();
+    //size_t maxRank = rankingMap.size();
     /* maxRank = 1; for (auto it = rankingMap.rbegin(); it != rankingMap.rend(); it++) {
         std::cout << maxRank << " [" << it->first << "]" << std::endl;
         for (const auto & y : it->second) {

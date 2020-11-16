@@ -36,6 +36,7 @@ struct ReadGraph {
     ///std::vector<std::string> pathNameList;
     std::vector<T> tripletList;
     std::string name;
+    int max_length = -1; // if this is an actual graph, then the max_length value will be set by the maxPath parameter at run time when running TransitiveClosureGraphStrategy
 
     ReadGraph() = default;
     ReadGraph(const ReadGraph&) = default;

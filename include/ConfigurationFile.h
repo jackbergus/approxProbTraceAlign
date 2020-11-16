@@ -18,6 +18,9 @@
 #include <filesystem>
 #include <topk/topk.h>
 #include <utils/AlterString.h>
+#include <memory>
+#include <embeddings/path_embedding/MultiplePathsEmbeddingStrategy.h>
+#include <embeddings/graph_embedding/GraphEmbeddingStrategy.h>
 
 class ExpressionEvaluator;
 
@@ -30,7 +33,7 @@ struct ConfigurationFile {
 
     char  varepsilon = '.';
     std::string  admissibleCharList{"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
-    double noiseThreshold        = 0.3;
+    std::vector<double> noiseThreshold        = {0.3};
     size_t seedError             = 0;
 
     std::filesystem::path results_folder; // The folder where all the temporarily results are produced
@@ -54,13 +57,26 @@ struct ConfigurationFile {
     bool         add_traces_to_log              = true;
     size_t       max_length                     = std::numeric_limits<size_t>::max();
     double       min_prob                       = std::numeric_limits<double>::epsilon()*2;
+    double       lambda                         = 0.7;
+    bool use_tuning_factor                      = false;
+    bool use_path_lambda_factor                 = false;
+    double       tuning_factor                  = -1.0;
 
     bool                         use_estimator;
     spd_we::WeightEstimatorCases estimator_type = spd_we::W_CONSTANT;
 
     fixed_bimap<std::string, char>   action_to_single_char;
 
-    AlterString traceNoiser;
+    std::vector<AlterString> traceNoiser;
+
+    /**
+     * Generate edge embedding strategy from the defined PathEmbeddingStrategy
+     * @param casus
+     * @return              allocated strategy
+     */
+    MultiplePathsEmbeddingStrategy* generatePathEmbeddingStrategyFromParameters(enum PathEmbeddingStrategy casus) const ;
+
+    GraphEmbeddingStrategy*         generateGraphEmbeddingStrategyFromParameters(enum PathEmbeddingStrategy casus) const;
     void run();
     void serialize(const std::string& file = "");
 

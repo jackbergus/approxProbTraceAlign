@@ -45,6 +45,8 @@ addNumericBox(QGridLayout *echoGrid, size_t &rowid, const std::string &format, d
     QDoubleSpinBox *tb = new QDoubleSpinBox();
     tb->setValue(defaultValue);
     tb->setRange(min, max);
+    tb->setMinimum(min);
+    tb->setMaximum(max);
     tb->setSingleStep(0.001);
     tb->setDecimals(10);
     echoGrid->addWidget(echoLabel, rowid, 0);

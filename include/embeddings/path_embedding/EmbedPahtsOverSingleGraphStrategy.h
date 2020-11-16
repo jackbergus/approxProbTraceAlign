@@ -18,11 +18,12 @@ struct EmbedPathsOverSingleGraphStrategy : public MultiplePathsEmbeddingStrategy
             std::is_base_of<LabelledPathVisitingStrategy, T>::value,
             "T must be a descendant of LabelledPathVisitingStrategy"
     );
+    bool set_lambda_to_one;
 
     TransitiveClosureGraphStrategy<T> strategy;
 
-    EmbedPathsOverSingleGraphStrategy(double tuning_factor, double lambda, bool doNotVisitLoopsTwice, size_t maxPathLength, const double minimumPathCost)
-            : MultiplePathsEmbeddingStrategy(doNotVisitLoopsTwice, maxPathLength, minimumPathCost), strategy{tuning_factor, lambda, maxPathLength} {
+    EmbedPathsOverSingleGraphStrategy(bool set_lambda_to_one, const std::string& varepsilon, double tuning_factor, double lambda, bool doNotVisitLoopsTwice, size_t maxPathLength, const double minimumPathCost)
+            : MultiplePathsEmbeddingStrategy(varepsilon, doNotVisitLoopsTwice, maxPathLength, minimumPathCost), strategy{set_lambda_to_one, varepsilon, tuning_factor, lambda, maxPathLength}, set_lambda_to_one(set_lambda_to_one) {
     }
 
     ReadGraph::unstructured_embedding generatePathEmbedding(ReadGraph &g, const path_info &path) override {

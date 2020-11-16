@@ -88,4 +88,5 @@ int official_main(int argc, char* argv[]) {
     } else {
         std::cout << parser;
     }
+    return 0;
 }

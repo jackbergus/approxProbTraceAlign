@@ -15,9 +15,10 @@ struct MultiplePathsEmbeddingStrategy {
     bool doNotVisitLoopsTwice;
     size_t maxPathLength;
     const double minimumPathCost;
+    std::string varepsilon;
 
-    MultiplePathsEmbeddingStrategy(bool doNotVisitLoopsTwice = true, size_t maxPathLength = std::numeric_limits<size_t>::max(),
-                                       const double minimumPathCost = 2.0 * std::numeric_limits<double>::epsilon()) : doNotVisitLoopsTwice{doNotVisitLoopsTwice}, maxPathLength{maxPathLength}, minimumPathCost{minimumPathCost} {}
+    MultiplePathsEmbeddingStrategy(const std::string& varepsilon, bool doNotVisitLoopsTwice = true, size_t maxPathLength = std::numeric_limits<size_t>::max(),
+                                       const double minimumPathCost = 2.0 * std::numeric_limits<double>::epsilon()) : doNotVisitLoopsTwice{doNotVisitLoopsTwice}, maxPathLength{maxPathLength}, minimumPathCost{minimumPathCost}, varepsilon{varepsilon} {}
 
     virtual ReadGraph::unstructured_embedding generatePathEmbedding(ReadGraph& rg, const path_info& path) = 0;
 

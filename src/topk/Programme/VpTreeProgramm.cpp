@@ -19,6 +19,7 @@ size_t VpTreeProgramm::pushNovelBulkInsertedData() {
     trivial_storage.clear();
     size_t N = Ladenprogramm::pushNovelBulkInsertedData(); // assertion
     assert(bulkLoad() == N);
+    return N;
 }
 
 TopKRanking VpTreeProgramm::topK(const std::vector<double> &query, size_t k) {

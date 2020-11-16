@@ -9,6 +9,13 @@
 #include <unordered_map>
 #include <cmath>
 
+enum PathEmbeddingStrategy {
+    ONLY_EDGE_INFORMATION_PROPOSED,
+    EDGE_WITH_NODE_INFORMATION_PROPOSED,
+    ONLY_EDGE_INFORMATION_PREVIOUS,
+    EDGE_WITH_NODE_INFORMATION_PREVIOUS
+};
+
 struct LabelledPathVisitingStrategy {
     std::unordered_map<std::pair<std::string, std::string>, double, pair_hash>& pair_embedding;
     size_t len;
@@ -30,7 +37,6 @@ struct LabelledPathVisitingStrategy {
      * @param value     Value associated to the path
      */
     virtual void acceptMultiedge(const std::string& left, const std::string& right, double value) = 0;
-
     virtual void acceptNode(const std::string& node, double value) = 0;
 
 

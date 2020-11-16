@@ -103,18 +103,28 @@ WSettings::WSettings(const std::string& conf, QWidget *parent) : QWidget(parent)
         add_traces_to_log = addCheckBox(echoGrid, rowid, "Add traces directly from the Petri-Net", this->conf.add_traces_to_log);
         max_length = addNumericBox(echoGrid, rowid, "Maximum complete trace length", this->conf.max_length);
         min_prob = addNumericBox(echoGrid, rowid, "Minimum trace probabilty:", this->conf.min_prob, 0.0, 1.0);
+        lambda = addNumericBox(echoGrid, rowid, "Lambda (embedding param.):", this->conf.lambda, 0.0, 1.0);
+        tuning_factor = addNumericBox(echoGrid, rowid, "Tuning (embedding param.):", this->conf.tuning_factor, -1.0, 1.0);
+        use_tuning_factor = addCheckBox(echoGrid, rowid, "Use Tuning? (embedding param.)", this->conf.use_tuning_factor);
+        use_path_lambda_factor = addCheckBox(echoGrid, rowid, "Use Lambda parameter? (embedding param.)", this->conf.use_path_lambda_factor);
         echoGroup->setLayout(echoGrid);
         grid->addWidget(echoGroup, 3, 0);
     }
 
     {
         QGridLayout * echoGrid = new QGridLayout();
-        QGroupBox *echoGroup = new QGroupBox(tr("Traces to add to the log set (from the Thompson automaton)"));
+        QGroupBox *echoGroup = new QGroupBox(tr("Traces operations' configuration"));
         size_t rowid = 0;
         varepsilon = addTextField(echoGrid, rowid, "Varepsilon character", {this->conf.varepsilon}, 1);
         admissibleCharList = addTextField(echoGrid, rowid, "chars to biject the labels from the petri nets", this->conf.admissibleCharList, 0);
         seedError = addNumericBox(echoGrid, rowid, "Seed for error generator", this->conf.seedError);
-        noiseThreshold = addNumericBox(echoGrid, rowid, "Maximum noise threshold", this->conf.noiseThreshold, 0.0, 1.0);
+        std::string noiseThresholdAsString;
+        for (size_t i = 0, N = this->conf.noiseThreshold.size(); i<N; i++) {
+            double x = this->conf.noiseThreshold[i];
+            noiseThresholdAsString += std::to_string(x);
+            if (i != (N-1)) noiseThresholdAsString += ';';
+        }
+        noiseThreshold = addTextField(echoGrid, rowid, "Maximum noise threshold", noiseThresholdAsString, 0);
         echoGroup->setLayout(echoGrid);
         grid->addWidget(echoGroup, 0, 1);
     }
@@ -246,10 +256,24 @@ void WSettings::closeEvent(QCloseEvent *event) {
     conf.add_traces_to_log = TO_BOOLEAN(add_traces_to_log);
     conf.max_length = TO_INT(max_length);
     conf.min_prob = TO_DBL(min_prob);
+    conf.lambda = TO_DBL(lambda);
+    conf.tuning_factor = TO_DBL(tuning_factor);
+    conf.use_tuning_factor = TO_BOOLEAN(use_tuning_factor);
+    conf.use_path_lambda_factor = TO_BOOLEAN(use_path_lambda_factor);
 
     conf.varepsilon = TO_STRING(varepsilon)[0];
     conf.admissibleCharList = TO_STRING(admissibleCharList);
-    conf.noiseThreshold = TO_DBL(noiseThreshold);
+    {
+        conf.noiseThreshold.clear();
+        std::string localNoiseThreshold = TO_STRING(noiseThreshold);
+        std::stringstream ss(localNoiseThreshold);
+        std::string number;
+        while(std::getline(ss, number, ';')) {
+            conf.noiseThreshold.push_back(std::stod(number));
+        }
+    }
+
+
     conf.seedError = TO_INT(seedError);
 
 

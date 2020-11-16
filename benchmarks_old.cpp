@@ -1,3 +1,5 @@
+#if 0
+
 //
 // Created by giacomo on 13/11/20.
 //
@@ -555,3 +557,4 @@ doBenchmark(const std::string &matrix, const std::string &query, double tuning_f
     std::cout << "expected" << std::endl <<  expected << std::endl;
     std::cout << "competitor" << std::endl << competitor << std::endl;
 }
+#endif

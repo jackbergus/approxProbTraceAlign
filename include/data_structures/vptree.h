@@ -75,6 +75,7 @@ namespace vpt {
             nodes_ = x.nodes_;
             dimension_ = x.dimension_;
             getDistance = x.getDistance;
+            return *this;
         }
 
         template<typename Container>
