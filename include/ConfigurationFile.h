@@ -14,11 +14,10 @@
 #include <data_loading/load_data.h>
 #include <log/log_operations.h>
 
-
 #include <utils/fixed_bimap.h>
 #include <filesystem>
 #include <topk/topk.h>
-//#include <topk/Aussageform/ExpressionEvaluator.h> --> DO NOT INCLUDE!
+class ExpressionEvaluator;
 
 struct ConfigurationFile {
     /**
@@ -39,7 +38,7 @@ struct ConfigurationFile {
     size_t       ith_graph              = 0;
 
     std::unordered_map<UnterstuetzenStrategie, std::string> fileStrategyMap;
-    //std::unordered_map<UnterstuetzenStrategie, ExpressionEvaluator> fileStrategyMap_loaded;
+    std::unordered_map<UnterstuetzenStrategie, ExpressionEvaluator*> fileStrategyMap_loaded; // I am forced to use a pointer because of the includion interference error from antlr4, and therefore I need to use an explicit destructor
 
     TracesFormat trace_file_format              = TracesFormat::NoLog;
     std::string  traces_file;
@@ -59,6 +58,8 @@ struct ConfigurationFile {
 
     void run();
     void serialize(const std::string& file = "");
+
+    ~ConfigurationFile();
 
 private:
     std::string configuration_filename;

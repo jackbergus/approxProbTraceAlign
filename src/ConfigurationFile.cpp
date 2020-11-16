@@ -8,6 +8,7 @@
 #include <distances/WeightEstimator.h>
 #include <log/log_operations.h>
 #include <iostream>
+#include <topk/Aussageform/ExpressionEvaluator.h> //--> DO NOT INCLUDE IN THE .H! For this reason, I opted out
 
 #define READ_GRAPH(format)      std::cout << "Reading graph '" << this->input_file << "' as a " << format << " file. Getting the " << this->ith_graph << "-th graph" << std::endl
 
@@ -376,10 +377,15 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
                     if (tentativeEnum.has_value()) {
                         arg = tentativeEnum.value();
                         fileStrategyMap.emplace(arg, kv.second.as<std::string>());
+                        fileStrategyMap_loaded.emplace(arg, new ExpressionEvaluator(kv.second.as<std::string>()));
                     }
                 }
             }
         }
     }
 
+}
+
+ConfigurationFile::~ConfigurationFile() {
+    if (!fileStrategyMap_loaded.empty()) for (auto &cp : fileStrategyMap_loaded) delete cp.second;
 }

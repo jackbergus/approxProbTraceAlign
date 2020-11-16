@@ -12,8 +12,8 @@ min_prob: 0
 use_estimator: true
 estimator_type: W_FORK
 fileStrategyMap:
-    EuclideanSpace: zip "x+y" "(x-y)*(x-y)" 0.0 v0 v1
-    TransformedSpace: (fold "x+(y*y)" 0.0 v1)-(fold "x+(y*y)" 0.0 v0)
     ProbabilitySimilarity: (fold "x*y" 1.0 v1)-(fold "x*y" 1.0 v0)
+    TransformedSpace: (fold "x+(y*y)" 0.0 v1)-(fold "x+(y*y)" 0.0 v0)
+    EuclideanSpace: zip "x+y" "(x-y)*(x-y)" 0.0 v0 v1
 varepsilon: "."
 admissibleCharList: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
