@@ -143,16 +143,14 @@ void ReadGraph::removeNode(size_t k) {
 
 #include <set>
 
-std::unordered_map<std::string, Eigen::VectorXd>
+std::unordered_map<struct path_info, Eigen::VectorXd>
 ReadGraph::generateStructuredEmbeddings(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding) {
     size_t i = 0;
-    std::unordered_map<std::string, Eigen::VectorXd> result;
+    std::unordered_map<struct path_info, Eigen::VectorXd> result;
     assert(!k.empty());
     size_t j = 0;
     for (const auto& cpM: decomposedEmbedding) {
-        for (const auto& x : cpM.second) {
-            result.emplace(cpM.first, ReadGraph::generateStructuredEmbedding(k, x));
-        }
+        result.emplace(cpM.first, ReadGraph::generateStructuredEmbedding(k, cpM.second));
     }
     return result;
 }
@@ -160,11 +158,11 @@ ReadGraph::generateStructuredEmbeddings(std::set<std::pair<std::string, std::str
 void ReadGraph::extractEmbeddingSpace(std::set<std::pair<std::string, std::string>> &k,
                                       const path_to_uembedding& decomposedEmbedding) {
     for (const auto& x : decomposedEmbedding) {
-        for (const ReadGraph::unstructured_embedding& y : x.second) {
-            for (const auto& e : y) {
+        //for (const ReadGraph::unstructured_embedding& y : x.second) {
+            for (const auto& e : x.second) {
                 k.insert(e.first);
             }
-        }
+        //}
     }//ReadGraph::unstructured_embedding
 }
 

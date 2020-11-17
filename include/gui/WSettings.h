@@ -38,7 +38,7 @@ class WSettings : public QWidget {
     QDoubleSpinBox *min_prob, *lambda, *tuning_factor;
 
     QLineEdit *varepsilon, *admissibleCharList;
-    QSpinBox *seedError;
+    QSpinBox *seedError, *numberOfTraceAlterations;
     QLineEdit *noiseThreshold;
 
     QTableView* view;

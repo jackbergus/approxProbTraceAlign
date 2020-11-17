@@ -12,6 +12,24 @@
 
 #define READ_GRAPH(format)      std::cout << "Reading graph '" << this->input_file << "' as a " << format << " file. Getting the " << this->ith_graph << "-th graph" << std::endl
 
+#include <magic_enum.hpp>
+#include <topk/old/minimum_edit_maximum_substring.h>
+#include <distances/strings/LevensteinSimilarity.h>
+
+
+double score(const Eigen::VectorXd& left, const Eigen::VectorXd& right) {
+    return left.dot(right);
+}
+
+
+double set_of_path_similarity(const std::vector<path_info>& left, const std::vector<path_info>& right, const LevensteinSimilarity& sim) {
+    double cost = 0.0;
+    for (const auto& x : left)
+        for (const auto& y : right)
+            cost += sim.similarity(x.path, y.path);
+    return cost;
+}
+
 
 void ConfigurationFile::run() {
 
@@ -28,9 +46,10 @@ void ConfigurationFile::run() {
     GenericGraph<size_t> graph;
     spd_we::WeightEstimator<size_t> we;
     we.setVarEpsilon({varepsilon});
-    std::vector<Transaction<std::string>> logFromFile;
+    std::vector<Transaction<std::string>> logFromFile, originalLog;
     admissibleCharList.erase(std::remove(admissibleCharList.begin(), admissibleCharList.end(), varepsilon), admissibleCharList.end());
     std::string epsilon{this->varepsilon};
+    LevensteinSimilarity similarity;
 
     switch (this->input_file_format) {
         case Petri_PNML:
@@ -83,11 +102,13 @@ void ConfigurationFile::run() {
             switch (this->trace_file_format) {
                 case XESLog:
                     logFromFile = load_xes(this->traces_file);
+                    originalLog = logFromFile;
                     performLogOperation(this->operations, logFromFile);
                     rememberToLog = true;
                     break;
                 case RawLog:
                     logFromFile = read_log(this->traces_file, this->separator_if_any);
+                    originalLog = logFromFile;
                     performLogOperation(this->operations, logFromFile);
                     rememberToLog = true;
                     break;
@@ -159,13 +180,8 @@ void ConfigurationFile::run() {
     finalGraph.finalizeEdgesMatrix(graph.getCost());
 
     std::cout << " 4) Converting the traces to single strings via correspondence" << std::endl;
-    for (const auto& trace : logFromFile) {
-        std::string stringBuilder;
-        for (const auto& str : trace) {
-            stringBuilder += action_to_single_char.getValue(str);
-        }
-        finalLog.emplace_back(1.0, stringBuilder, std::vector<size_t>{});
-    }
+    convertLog(logFromFile, finalLog);
+    convertLog(originalLog, finalOriginalLog);
 
 
     if (this->add_traces_to_log) {
@@ -176,6 +192,119 @@ void ConfigurationFile::run() {
         }
     }
 
+    constexpr auto& color_entries =  magic_enum::enum_entries<PathEmbeddingStrategy>();
+    constexpr std::size_t color_count = magic_enum::enum_count<PathEmbeddingStrategy>();
+    ExpressionEvaluator *probSimMetric = fileStrategyMap_loaded[UnterstuetzenStrategie::ProbabilitySimilarity];
+
+    std::vector<record_element> output_quality;
+
+    for (size_t i = 0; i<color_count; i++) {
+        std::set<std::pair<std::string,std::string>> embedding_space;
+        PathEmbeddingStrategy strategy = color_entries[i].first;
+        MultiplePathsEmbeddingStrategy* pathstrategy  = generatePathEmbeddingStrategyFromParameters(strategy);
+        GraphEmbeddingStrategy *        graphStrategy = generateGraphEmbeddingStrategyFromParameters(strategy);
+
+        ReadGraph::path_to_uembedding ptg;
+        ReadGraph::path_to_uembedding ptu = (*pathstrategy)(finalGraph);
+        ReadGraph::extractEmbeddingSpace(embedding_space, ptu);
+        auto map = ReadGraph::generateStructuredEmbeddings(embedding_space, ptu);
+        std::vector<struct path_info> mapPath;
+        for (const auto& path : map) {
+            mapPath.emplace_back(path.first);
+        }
+
+        double precision = set_of_path_similarity(mapPath, finalOriginalLog, similarity)/std::sqrt(set_of_path_similarity(mapPath, mapPath, similarity)*set_of_path_similarity(finalOriginalLog, finalOriginalLog, similarity));
+
+        for (const auto& query : finalLog) {
+            std::string actualQuery = query.path;
+            double noise = 0.0;
+
+            performBenchmark(similarity, probSimMetric, output_quality, embedding_space, strategy,
+                                               graphStrategy, map, actualQuery, noise, mapPath, precision);
+
+            for (auto& noiser : traceNoiser) {
+                std::string alteredQuery = noiser.alter(query.path);
+
+                performBenchmark(similarity, probSimMetric, output_quality, embedding_space, strategy,
+                                                   graphStrategy, map, actualQuery, noiser.noiseThreshold, mapPath, precision);
+            }
+        }
+
+
+        delete graphStrategy;
+        delete pathstrategy;
+    }
+
+}
+
+void ConfigurationFile::convertLog(const std::vector<Transaction<std::string>> &currentLog,
+                                   std::vector<struct path_info> &final)  {
+    for (const auto& trace : currentLog) {
+        std::string stringBuilder;
+        for (const auto& str : trace) {
+            stringBuilder += action_to_single_char.getValue(str);
+        }
+        final.emplace_back(1.0, stringBuilder, std::vector<size_t>{});
+    }
+}
+
+Ranking<size_t> doDulcior(Ranking<size_t>& orig, size_t N) {
+    Ranking<size_t> finalRanking;
+    for (size_t i = 0; i<N; i++) {
+        finalRanking.addScore(i, orig.getRanking(i));
+    }
+    return finalRanking;
+}
+
+void
+ConfigurationFile::performBenchmark(const LevensteinSimilarity &similarity, ExpressionEvaluator *probSimMetric,
+                                    std::vector<record_element> &output_quality,
+                                    std::set<std::pair<std::string, std::string>> &embedding_space,
+                                    PathEmbeddingStrategy &strategy, GraphEmbeddingStrategy *graphStrategy,
+                                    const std::unordered_map<struct path_info, Eigen::VectorXd> &map,
+                                    std::string &actualQuery, double noise,
+                                    std::vector<struct path_info>& pathsOrder, double precision) const {
+    ReadGraph g = ReadGraph::fromString(actualQuery, 1.0);
+    auto tmp = (*graphStrategy)(g);
+    auto x = ReadGraph::generateStructuredEmbedding(embedding_space, tmp);
+    Ranking<size_t> pathRanking, expectedRanking;
+    std::map<double, std::vector<size_t>> rankingMap;
+    size_t j = 0;
+    double forGeneralization = -1.0;
+    size_t genIdx = 0;
+    for (const auto& paths : map) {
+        double sc = score(x, paths.second);
+        pathRanking.addScore(j, sc);
+        double similarity = 1.0/(GeneralizedLevensteinDistance(paths.first.path, actualQuery)/5.0+1.0);
+        if (similarity > forGeneralization) {
+            genIdx = j;
+            forGeneralization = similarity;
+        }
+
+        double finalScore = probSimMetric->operator()({paths.first.probability, });
+        expectedRanking.addScore(j, finalScore);
+        rankingMap[finalScore].emplace_back(j);
+
+        j++;
+    }
+    ///for (const auto& x : rankingMap) assert(x.second.size() == 1); // Imposing that there are no elements with the same scoring value
+    const auto ls = [&similarity, &pathsOrder](const size_t& left, const size_t& right) { return similarity.similarity(pathsOrder.at(left).path, pathsOrder.at(right).path); };
+    double rankingDistance = expectedRanking.normalizedRank(pathRanking, ls);
+    double spearman = expectedRanking.SpearmanCorrelationIndex(pathRanking, 1.0);
+    double proposedMetric = minimum_edit_maximum_substring(pathRanking, expectedRanking);
+
+    output_quality.emplace_back(input_file, traces_file, actualQuery, actualQuery.size(), strategy, noise, rankingDistance, spearman, proposedMetric, false, forGeneralization, pathsOrder[genIdx].path, tuning_factor, use_path_lambda_factor, lambda, max_length, min_prob, precision);
+    {
+
+
+        expectedRanking = doDulcior(expectedRanking, pathsOrder.size());
+        pathRanking = doDulcior(pathRanking, pathsOrder.size());
+        double rankingDistance = expectedRanking.normalizedRank(pathRanking, ls);
+        double spearman = expectedRanking.SpearmanCorrelationIndex(pathRanking, 1.0);
+        double proposedMetric = minimum_edit_maximum_substring(pathRanking, expectedRanking);
+
+        output_quality.emplace_back(input_file, traces_file, actualQuery, actualQuery.size(), strategy, noise, rankingDistance, spearman, proposedMetric, true, forGeneralization, pathsOrder[genIdx].path, tuning_factor, use_path_lambda_factor, lambda, max_length, min_prob, precision);
+    }
 }
 
 #include <yaml-cpp/yaml.h>
@@ -212,6 +341,7 @@ void ConfigurationFile::serialize(const std::string& filename) {
     use_tuning_factor = (tuning_factor >= 0.0) && use_tuning_factor;
     out << BOOL_SERIALIZE(use_tuning_factor);
     out << BOOL_SERIALIZE(use_path_lambda_factor);
+    out << INT_SERIALIZE(numberOfTraceAlterations);
 
 
     out << BOOL_SERIALIZE(use_estimator);
@@ -361,6 +491,7 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
 
         PARSE_BOOL(add_traces_to_log);
         PARSE_INT(max_length);
+        PARSE_INT(numberOfTraceAlterations);
         PARSE_DBL(min_prob);
         PARSE_DBL(lambda);
         PARSE_DBL(tuning_factor);
@@ -459,3 +590,16 @@ ConfigurationFile::generateGraphEmbeddingStrategyFromParameters(enum PathEmbeddi
             return new TransitiveClosureGraphStrategy<NodesWithTransitiveEdgeCost<false>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, max_length);
     }
 }
+
+record_element::record_element(const std::string &inputFile, const std::string &tracesFile,
+                               const std::string &query, size_t queryLength,
+                               PathEmbeddingStrategy embeddingStrategy, double traceNoise, double rankingDistance,
+                               double spearman, double proposedMetric, bool dulcior,
+                               double generalizationScoreForQuery, std::string withTrace, double tuningFactor,
+                               bool usePathWithLambdaFactor, double lambda, size_t maxLength, double minProb, double precision)
+        : input_file(inputFile), traces_file(tracesFile), query(query), query_length(queryLength),
+          embeddingStrategy(embeddingStrategy), trace_noise(traceNoise), rankingDistance(rankingDistance),
+          spearman(spearman), proposedMetric(proposedMetric), dulcior(dulcior),
+          generalizationScoreForQuery(generalizationScoreForQuery), with_trace(withTrace), tuning_factor(tuningFactor),
+          use_path_with_lambda_factor(usePathWithLambdaFactor), lambda(lambda), max_length(maxLength),
+          min_prob(minProb), precision(precision) {}

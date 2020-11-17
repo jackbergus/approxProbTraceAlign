@@ -20,7 +20,23 @@ class ExpressionEvaluator; // Forward declaration to avoid integration bloat
  * @param probSimMetric       Function to determine the probability/similarity ranking
  * @return                      Expected ranking using the expected ranking function
  */
-TopKRanking generateExampleExpectedRanking(size_t graph_i, std::unordered_map<std::pair<size_t, size_t>, struct path_info, pair_hash>& pathsInGraph, const std::string& caba, bool dulcior, ExpressionEvaluator* probSimMetric);
+TopKRanking generateExampleExpectedRanking(std::unordered_map<std::pair<size_t, size_t>, struct path_info, pair_hash>& pathsInGraph, const std::string& caba, bool dulcior, ExpressionEvaluator* probSimMetric);
+
+
+
+template <typename T> Ranking<T>
+setRankingDulcior(const std::unordered_map<T, struct path_info, pair_hash> &pathsInGraph,
+                  bool dulcior, const Ranking<T> &expectedRanking) {
+    if (!dulcior) {
+        return expectedRanking;
+    } else {
+        TopKRanking finalRanking;
+        for (const auto& y: pathsInGraph) {
+            finalRanking.addScore(y.first, expectedRanking.getRanking(y.first));
+        }
+        return finalRanking;
+    }
+}
 
 
 #endif //FUZZYSTRINGMATCHING2_FUNCTOR_RANKINGS_H

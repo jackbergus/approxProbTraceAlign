@@ -21,7 +21,7 @@
 struct ReadGraph {
 
     using unstructured_embedding = std::unordered_map<std::pair<std::string, std::string>, double, pair_hash>;
-    using path_to_uembedding = std::unordered_map<std::string, std::vector<ReadGraph::unstructured_embedding>>;
+    using path_to_uembedding = std::unordered_map<struct path_info, ReadGraph::unstructured_embedding>;
     size_t nodes = -1;
     size_t edges = -1;
     size_t source = -1;
@@ -122,7 +122,7 @@ struct ReadGraph {
     void decomposeStart(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map);
 
 
-    static std::unordered_map<std::string, Eigen::VectorXd>
+    static std::unordered_map<struct path_info, Eigen::VectorXd>
     generateStructuredEmbeddings(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding);
 
     static Eigen::VectorXd

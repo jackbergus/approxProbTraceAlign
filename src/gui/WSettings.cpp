@@ -118,6 +118,7 @@ WSettings::WSettings(const std::string& conf, QWidget *parent) : QWidget(parent)
         varepsilon = addTextField(echoGrid, rowid, "Varepsilon character", {this->conf.varepsilon}, 1);
         admissibleCharList = addTextField(echoGrid, rowid, "chars to biject the labels from the petri nets", this->conf.admissibleCharList, 0);
         seedError = addNumericBox(echoGrid, rowid, "Seed for error generator", this->conf.seedError);
+        numberOfTraceAlterations = addNumericBox(echoGrid, rowid, "Number of edits to generate:", this->conf.numberOfTraceAlterations);
         std::string noiseThresholdAsString;
         for (size_t i = 0, N = this->conf.noiseThreshold.size(); i<N; i++) {
             double x = this->conf.noiseThreshold[i];
@@ -255,6 +256,7 @@ void WSettings::closeEvent(QCloseEvent *event) {
 
     conf.add_traces_to_log = TO_BOOLEAN(add_traces_to_log);
     conf.max_length = TO_INT(max_length);
+    conf.numberOfTraceAlterations = TO_INT(numberOfTraceAlterations);
     conf.min_prob = TO_DBL(min_prob);
     conf.lambda = TO_DBL(lambda);
     conf.tuning_factor = TO_DBL(tuning_factor);

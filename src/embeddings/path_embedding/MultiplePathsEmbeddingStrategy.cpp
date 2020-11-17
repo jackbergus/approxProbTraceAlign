@@ -8,7 +8,7 @@ ReadGraph::path_to_uembedding MultiplePathsEmbeddingStrategy::operator()(ReadGra
     auto it = rg.iterateOverPaths(doNotVisitLoopsTwice, maxPathLength, minimumPathCost);
     ReadGraph::path_to_uembedding result;
     for (const auto& path: it) {
-        result[path.path].emplace_back(generatePathEmbedding(rg, path));
+        result[path] = (generatePathEmbedding(rg, path));
     }
     return result;
 }
