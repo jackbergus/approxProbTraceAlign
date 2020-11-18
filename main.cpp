@@ -1,6 +1,6 @@
 
 
-#include <topk/Aussageform/ExpressionEvaluator.h>
+#include <topk/Aussageform/DistanceExpressionEvaluator.h>
 
 // Default main that is run at production
 int official_main(int argc, char* argv[]);
@@ -11,7 +11,7 @@ int official_main(int argc, char* argv[]);
 //#define DEBUG
 
 void sandbox() {
-    ExpressionEvaluator expr{"zip \"x+y\" \"(x-y)*(x-y)\" 0.0 v0 v1"};
+    DistanceExpressionEvaluator expr{"zip \"x+y\" \"(x-y)*(x-y)\" 0.0 v0 v1"};
     std::cout << expr({1,2,3},{4,5,6}) << std::endl;
     std::cout << expr({1,2,3},{7,5,6}) << std::endl;
     std::cout << expr({1,4,3},{4,5,6}) << std::endl;

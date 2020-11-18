@@ -117,6 +117,7 @@ PathIterator::canVisit(const stack_info &current, const Eigen::SparseMatrix<doub
                        size_t dst) const {
     return ( // Both the following conditions must follow:
                    (!doNotVisitLoopsTwice) || current.visited.find(dst) == current.visited.end()) && // 1) Both I can visit a node if and only if it has not visited before or if this condition is not required,
-           (approximatelyLessEqual(minimumPathCost, current.probabilisticPath * it.value())); // 2) And the path cost must worth it
+                  (current.path.size() <= maxPathLength) && //3) I forgot! we need to stop the iteration in the case that we already reach the maximum size limit!
+                   (approximatelyLessEqual(minimumPathCost, current.probabilisticPath * it.value())); // 2) And the path cost must worth it
 
 }

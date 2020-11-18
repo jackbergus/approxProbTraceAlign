@@ -48,19 +48,7 @@ struct ReadGraph {
      */
     ReadGraph(const std::string& filename);
 
-    static ReadGraph fromString(const std::string& string, double stringWeight) {
-        assert(string.size() > 1);
-        ReadGraph rg;
-        size_t n = string.size();
-        rg.init(n, n-1, 0, n-1);
-        for (size_t i = 0; i<n-1; i++) {
-            rg.addNode(i, std::string{string[i]});
-            rg.addEdge(i, i+1, 1.0);
-        }
-        rg.addNode(n-1, std::string{string[n-1]});
-        rg.finalizeEdgesMatrix(stringWeight);
-        return rg;
-    }
+    static ReadGraph fromString(const std::string& string, double stringWeight);
 
     void printGraph() const;
 

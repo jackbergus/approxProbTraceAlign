@@ -56,7 +56,9 @@ class GenericGraph {
 
         if (!someChange) {
             for (auto it = node_labelled_weighted.begin(), en = node_labelled_weighted.end(); it != en && (!someChange); it++) {
-                if ((it->first != start) && (it->first != end) && (it->second.first == epsilon)) {
+                if ((it->first != start) &&
+                    (it->first != end) &&
+                    (it->second.first == epsilon)) {
                     size_t eps = it->first;
                     std::vector<std::pair<id_type, double>> outs = outgoing(eps);
                     std::vector<std::pair<id_type, double>> ins = ingoing(eps);
@@ -69,6 +71,7 @@ class GenericGraph {
                             add_edge(src.first, tgt.first, src.second * tgt.second);
                         }
                     }
+                    if (someChange) break;
                 }
             }
         }
@@ -176,15 +179,31 @@ public:
 
     void transfer_weight_from_nodes_to_edges() {
         std::unordered_map<std::pair<id_type, id_type>, double, pair_hash> map;
+        std::vector<std::pair<id_type, id_type>> toRemove;
         for (const auto& cp : outgoingEdges) {
             double summation = 0.0;
             for (const auto& out: cp.second) {
                 summation+= node_labelled_weighted.at(out.first).second;
             }
+
             for (const auto& out: cp.second) {
-                map.emplace(std::make_pair(cp.first, out.first), node_labelled_weighted.at(out.first).second / summation);
+                double weight;
+                if ((summation <= std::numeric_limits<double>::epsilon()) && (cp.second.size() == 1)) {
+                    weight = 1.0;
+                } else if (summation <= std::numeric_limits<double>::epsilon()) {
+                    weight = 0.0;
+                    toRemove.emplace_back(std::make_pair(cp.first, out.first));
+                }  else {
+                    weight = node_labelled_weighted.at(out.first).second / summation;
+                }
+                map.emplace(std::make_pair(cp.first, out.first), weight);
             }
         }
+        for (const auto& cp : toRemove) {
+            remove_edge(cp.first, cp.second);
+        }
+        if (!toRemove.empty())
+            removeSolitaryNodes();
         update_edge_weight(map);
     }
 
@@ -207,7 +226,8 @@ public:
     }
 
     void doClosure(const std::string& epsilon = ".") {
-        while (epsilonClosure(epsilon));
+        size_t i = 0;
+        while (epsilonClosure(epsilon)) { std::cerr << "Step " << i++ << std::endl; }
     }
 
 

@@ -9,7 +9,7 @@
 #include <topk/Ladenprogramm.h>
 #include <unordered_map>
 
-class ExpressionEvaluator; // Forward declaration to avoid integration bloat
+class DistanceExpressionEvaluator; // Forward declaration to avoid integration bloat
 
 /**
  * Generate the expected ranking using the scoring function that was preloaded by the configuration file
@@ -20,7 +20,7 @@ class ExpressionEvaluator; // Forward declaration to avoid integration bloat
  * @param probSimMetric       Function to determine the probability/similarity ranking
  * @return                      Expected ranking using the expected ranking function
  */
-TopKRanking generateExampleExpectedRanking(std::unordered_map<std::pair<size_t, size_t>, struct path_info, pair_hash>& pathsInGraph, const std::string& caba, bool dulcior, ExpressionEvaluator* probSimMetric);
+TopKRanking generateExampleExpectedRanking(std::unordered_map<std::pair<size_t, size_t>, struct path_info, pair_hash>& pathsInGraph, const std::string& caba, bool dulcior, DistanceExpressionEvaluator* probSimMetric);
 
 
 

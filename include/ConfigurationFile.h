@@ -22,39 +22,12 @@
 #include <embeddings/path_embedding/MultiplePathsEmbeddingStrategy.h>
 #include <embeddings/graph_embedding/GraphEmbeddingStrategy.h>
 #include <distances/strings/LevensteinSimilarity.h>
+#include <benchmarking/new/record_element_per_query.h>
+#include <benchmarking/new/additional_benchmarks_per_log.h>
 
-class ExpressionEvaluator;
+class DistanceExpressionEvaluator;
 
-struct record_element {
-    std::string input_file;
-    std::string traces_file;
-    std::string query;
-    size_t query_length;
-    PathEmbeddingStrategy embeddingStrategy;
-    double trace_noise;
-
-    double tuning_factor;
-    bool   use_path_with_lambda_factor;
-    double lambda;
-    size_t max_length;
-    double min_prob;
-
-    double rankingDistance;
-    double spearman;
-    double proposedMetric;
-    double precision;
-    double generalizationScoreForQuery;
-    std::string with_trace;
-
-    bool   dulcior;
-
-    record_element(const std::string &inputFile, const std::string &tracesFile,
-                   const std::string &query, size_t queryLength,
-                   PathEmbeddingStrategy embeddingStrategy, double traceNoise, double rankingDistance,
-                   double spearman, double proposedMetric, bool dulcior,
-                   double generalizationScoreForQuery, std::string withTrace, double tuningFactor,
-                   bool usePathWithLambdaFactor, double lambda, size_t maxLength, double minProb, double precision);
-};
+#include <benchmarking/Ranking.h>
 
 struct ConfigurationFile {
     /**
@@ -77,7 +50,7 @@ struct ConfigurationFile {
     size_t       ith_graph              = 0;
 
     std::unordered_map<UnterstuetzenStrategie, std::string> fileStrategyMap;
-    std::unordered_map<UnterstuetzenStrategie, ExpressionEvaluator*> fileStrategyMap_loaded; // I am forced to use a pointer because of the includion interference error from antlr4, and therefore I need to use an explicit destructor
+    std::unordered_map<UnterstuetzenStrategie, DistanceExpressionEvaluator*> fileStrategyMap_loaded; // I am forced to use a pointer because of the includion interference error from antlr4, and therefore I need to use an explicit destructor
 
     TracesFormat trace_file_format              = TracesFormat::NoLog;
     std::string  traces_file;
@@ -103,6 +76,10 @@ struct ConfigurationFile {
     std::vector<AlterString> traceNoiser;
     size_t                   numberOfTraceAlterations = 10;
 
+
+    std::vector<record_element_per_query> output_quality;
+    std::vector<additional_benchmarks_per_log> log_quality;
+
     /**
      * Generate edge embedding strategy from the defined PathEmbeddingStrategy
      * @param casus
@@ -114,22 +91,35 @@ struct ConfigurationFile {
     void run();
     void serialize(const std::string& file = "");
 
+    double set_of_path_similarity(const std::vector<path_info>& tracesSet, const std::vector<path_info>& querySet, const LevensteinSimilarity& sim, std::vector<additional_benchmarks_per_log>* opt = nullptr, double* precisionNormalization = nullptr, PathEmbeddingStrategy* strategy = nullptr);
+
     ~ConfigurationFile();
 
 private:
     std::string configuration_filename;
 
-    void
-    performBenchmark(const LevensteinSimilarity &similarity, ExpressionEvaluator *probSimMetric,
-                     std::vector<record_element> &output_quality,
+    Ranking<size_t>
+    performBenchmark(const LevensteinSimilarity &similarity/*, DistanceExpressionEvaluator *probSimDistance*/,
                      std::set<std::pair<std::string, std::string>> &embedding_space, PathEmbeddingStrategy &strategy,
                      GraphEmbeddingStrategy *graphStrategy,
-                     const std::unordered_map<struct path_info, Eigen::VectorXd> &map, std::string &actualQuery,
+                     const std::unordered_map<struct path_info, Eigen::VectorXd> &map, std::string &query,
                      double noise,
-                     std::vector<struct path_info>& pathsOrder, double precision) const;
+                     std::vector<struct path_info>& pathsOrder, std::ostream& log_quality,  Ranking<size_t>* precomputedTraceRanking = nullptr) ;
 
     void
     convertLog(const std::vector<Transaction<std::string>> &currentLog, std::vector<struct path_info> &final);
+
+    void
+    log_stats(const std::unordered_map<struct path_info, Eigen::VectorXd> &map, const std::string &query, double noise,
+              std::ostream &log_quality, Ranking<size_t> *precomputedTraceRanking, const std::string &strategyName,
+              size_t querySize, bool isMultiThreaded, bool isDulcior, unsigned int &threadExperiment,
+              Ranking<size_t> &pathRanking, Ranking<size_t> &expectedRanking) const;
+
+    void
+    log_ranking(const std::string &query, double noise, std::ostream &log_quality,
+                Ranking<size_t> *precomputedTraceRanking,
+                const std::string &strategyName, size_t querySize, Ranking<size_t> &pathRanking,
+                Ranking<size_t> &expectedRanking, double forGeneralization, double dulcior) const;
 };
 
 bool isFileFormatPetri(enum FileFormat format);

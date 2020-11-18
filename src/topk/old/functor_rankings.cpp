@@ -3,10 +3,10 @@
 //
 
 #include "topk/old/functor_rankings.h"
-#include <topk/Aussageform/ExpressionEvaluator.h>>
+#include <topk/Aussageform/DistanceExpressionEvaluator.h>>
 
 TopKRanking generateExampleExpectedRanking(size_t graph_i, std::unordered_map<std::pair<size_t, size_t>, struct path_info, pair_hash> &pathsInGraph,
-                                           const std::string &caba, bool dulcior, ExpressionEvaluator *probSimMetric) {
+                                           const std::string &caba, bool dulcior, DistanceExpressionEvaluator *probSimMetric) {
     std::map<double, std::vector<std::pair<size_t, size_t>>> rankingMap;
     assert(probSimMetric && (probSimMetric->getStrategy() == UnterstuetzenStrategie::ProbabilitySimilarity));
     TopKRanking expectedRanking;

@@ -37,7 +37,7 @@ struct TransitiveClosureGraphStrategy : public GraphEmbeddingStrategy {
         ///double tmp = 1.0;
         ///std::swap(tmp, rg.weight);
         for (const auto& path : rg.iterateOverPaths(false, maxPath, std::numeric_limits<double>::epsilon()*2)) {
-            std::cout << path << std::endl;
+            ///std::cout << path << std::endl;
             for (const auto& nodeId : path.actualPath) {
                 if (rg.inv_label_conversion.at(nodeId) != EPSILON)
                     it.acceptNode(rg.inv_label_conversion.at(nodeId), 1.0);

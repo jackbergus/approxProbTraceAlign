@@ -2,8 +2,8 @@
 // Created by giacomo on 14/11/20.
 //
 
-#ifndef FUZZYSTRINGMATCHING2_EXPRESSIONEVALUATOR_H
-#define FUZZYSTRINGMATCHING2_EXPRESSIONEVALUATOR_H
+#ifndef FUZZYSTRINGMATCHING2_DISTANCEEXPRESSIONEVALUATOR_H
+#define FUZZYSTRINGMATCHING2_DISTANCEEXPRESSIONEVALUATOR_H
 
 namespace antlr4 {
     class ANTLRInputStream;
@@ -15,7 +15,7 @@ class expressionParser;
 #include <sstream>
 #include <topk/topk.h>
 
-class ExpressionEvaluator : public expressionBaseVisitor {
+class DistanceExpressionEvaluator : public expressionBaseVisitor {
     std::vector<std::vector<double>> arguments;
     const char empty[0] = {};
     antlr4::ANTLRInputStream stream;
@@ -33,15 +33,15 @@ public:
 
     void setStrategy(UnterstuetzenStrategie strategy);
 
-    ExpressionEvaluator() : stream(empty, 0) {}
-    ExpressionEvaluator(const std::string& expr);
-    ExpressionEvaluator(const ExpressionEvaluator& x);
-    ExpressionEvaluator& operator=(const ExpressionEvaluator& x);
+    DistanceExpressionEvaluator() : stream(empty, 0) {}
+    DistanceExpressionEvaluator(const std::string& expr);
+    DistanceExpressionEvaluator(const DistanceExpressionEvaluator& x);
+    DistanceExpressionEvaluator& operator=(const DistanceExpressionEvaluator& x);
     double operator()(const std::vector<double>& lhs, const std::vector<double>& rhs);
     double operator()(const std::vector<double>& lhs);
 
 
-    ~ExpressionEvaluator();
+    ~DistanceExpressionEvaluator();
 
     antlrcpp::Any visitZip(expressionParser::ZipContext *ctx) override;
     antlrcpp::Any visitDiv(expressionParser::DivContext *ctx) override;
@@ -57,8 +57,8 @@ public:
 
 private:
     void allocateAnew();
-    void setCopy(const ExpressionEvaluator &x);
+    void setCopy(const DistanceExpressionEvaluator &x);
 };
 
 
-#endif //FUZZYSTRINGMATCHING2_EXPRESSIONEVALUATOR_H
+#endif //FUZZYSTRINGMATCHING2_DISTANCEEXPRESSIONEVALUATOR_H

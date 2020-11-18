@@ -14,6 +14,7 @@ std::vector<GenericGraph<size_t>> load_bpmn(const std::string &filename, const s
     std::vector<GenericGraph<size_t>> petri_nets;
     if (root_node) {
         SIBLING_ITERATE(bpmn, root_node, "process", false) {
+            if (bpmn->name() != std::string("process")) continue;
             size_t nodeId = 0;
             const char* spn_id = GET_ATTRIBUTE(bpmn, "id");
             std::string initial_label;
@@ -25,6 +26,7 @@ std::vector<GenericGraph<size_t>> load_bpmn(const std::string &filename, const s
 
             SIBLING_ITERATE(spn_node, bpmn, "task", false) {
                 std::string node_id = GET_ATTRIBUTE(spn_node, "id");
+                //std::cerr << node_id << std::endl;
                 std::string node_label = GET_ATTRIBUTE(spn_node, "name");
 
                 size_t node_id_ = nodeId;
@@ -39,12 +41,31 @@ std::vector<GenericGraph<size_t>> load_bpmn(const std::string &filename, const s
 
             SIBLING_ITERATE(spn_node, bpmn, "exclusiveGateway", false) {
                 std::string node_id = GET_ATTRIBUTE(spn_node, "id");
+                //std::cerr << node_id << std::endl;
                 std::string node_label = epsilon;
 
                 size_t node_id_ = nodeId;
                 auto it = label_to_id.insert(std::make_pair(node_id, node_id_));
                 if (it.second) nodeId++; else node_id_ = it.first->second;
                 graph.add_node(node_id_, node_label, 1.0);
+            }
+
+            SIBLING_ITERATE(spn_node, bpmn, "sequenceFlow", false) {
+                std::string src = GET_ATTRIBUTE(spn_node, "sourceRef");
+                std::string dst = GET_ATTRIBUTE(spn_node, "targetRef");
+                auto it = label_to_id.find(src);
+                if (it == label_to_id.end()) {// the bpmn could also not set a beginner node asn actual node. So, we need to insert it...
+                    label_to_id[src] = nodeId;
+                    graph.add_node(nodeId, ".", 1.0);
+                    nodeId++;
+                }
+                it = label_to_id.find(dst);
+                if (it == label_to_id.end()) {
+                    label_to_id[dst] = nodeId;
+                    graph.add_node(nodeId, ".", 1.0);
+                    nodeId++;
+                }
+                graph.add_edge(label_to_id.at(src), label_to_id.at(dst));
             }
 
             {
@@ -58,12 +79,6 @@ std::vector<GenericGraph<size_t>> load_bpmn(const std::string &filename, const s
                 assert(end);
                 final_label = GET_ATTRIBUTE(end, "id");
                 graph.setEnd(label_to_id.at(final_label));
-            }
-
-            SIBLING_ITERATE(spn_node, bpmn, "sequenceFlow", false) {
-                std::string src = GET_ATTRIBUTE(spn_node, "sourceRef");
-                std::string dst = GET_ATTRIBUTE(spn_node, "targetRef");
-                graph.add_edge(label_to_id.at(src), label_to_id.at(dst));
             }
         }
     }
