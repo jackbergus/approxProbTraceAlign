@@ -43,7 +43,12 @@ void ConfigurationFile::run() {
         std::time_t t = std::time(nullptr);
         std::tm tm = *std::localtime(&t);
         oss << std::put_time(&tm, "%F %T%z - %a %e %b, %Y") << std::endl;
-        this->results_folder = oss.str();
+        {
+            std::string str = oss.str();
+            str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+            str = configuration_filename + "_" + str;
+            this->results_folder = str;
+        }
         std::filesystem::create_directory(results_folder);
         serialize((results_folder / "configuration.yaml").c_str());
     }
@@ -51,7 +56,7 @@ void ConfigurationFile::run() {
     GenericGraph<size_t> graph;
     spd_we::WeightEstimator<size_t> we;
     we.setVarEpsilon({varepsilon});
-    std::vector<Transaction<std::string>> logForWeightEstimation, originalLog, logForBenchmarks;
+    std::vector<Transaction<TimestampedEvent>> logForWeightEstimation, originalLog, logForBenchmarks;
     admissibleCharList.erase(std::remove(admissibleCharList.begin(), admissibleCharList.end(), varepsilon), admissibleCharList.end());
     std::string epsilon{this->varepsilon};
     LevensteinSimilarity similarity;
@@ -111,7 +116,7 @@ void ConfigurationFile::run() {
                     originalLog = logForWeightEstimation;
                     performLogOperation(this->operations, logForWeightEstimation);
                     {
-                        std::set<std::vector<std::string>> difference;
+                        std::set<std::vector<TimestampedEvent>> difference;
                         for (const auto& x : originalLog) {
                             difference.emplace(x);
                         }
@@ -129,7 +134,7 @@ void ConfigurationFile::run() {
                     originalLog = logForWeightEstimation;
                     performLogOperation(this->operations, logForWeightEstimation);
                     {
-                        std::set<std::vector<std::string>> difference;
+                        std::set<std::vector<TimestampedEvent>> difference;
                         for (const auto& x : originalLog) {
                             difference.emplace(x);
                         }
@@ -429,12 +434,12 @@ void ConfigurationFile::run() {
 #endif
 }
 
-void ConfigurationFile::convertLog(const std::vector<Transaction<std::string>> &currentLog,
+void ConfigurationFile::convertLog(const std::vector<Transaction<TimestampedEvent>> &currentLog,
                                    std::vector<struct path_info> &final)  {
     for (const auto& trace : currentLog) {
         std::string stringBuilder;
         for (const auto& str : trace) {
-            stringBuilder += action_to_single_char.getValue(str);
+            stringBuilder += action_to_single_char.getValue(str.event_name);
         }
         final.emplace_back(1.0, stringBuilder, std::vector<size_t>{});
     }

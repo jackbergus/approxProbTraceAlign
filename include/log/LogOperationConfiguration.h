@@ -8,7 +8,8 @@
 enum LogOperations {
     LogSample,
     LogFilterFrequency,
-    LogFilterValues
+    LogFilterValues,
+    LogFilterTemporalLength
 };
 
 struct LogOperationConfiguration {

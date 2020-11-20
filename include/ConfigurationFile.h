@@ -11,7 +11,7 @@
 #include <iostream>
 #include <vector>
 #include <ReadGraph.h>
-#include <data_loading/load_data.h>
+#include <data_loading/local_load_data.h>
 #include <log/log_operations.h>
 
 #include <utils/fixed_bimap.h>
@@ -107,7 +107,7 @@ private:
                      std::vector<struct path_info>& pathsOrder, std::ostream& log_quality,  Ranking<size_t>* precomputedTraceRanking = nullptr) ;
 
     void
-    convertLog(const std::vector<Transaction<std::string>> &currentLog, std::vector<struct path_info> &final);
+    convertLog(const std::vector<Transaction<TimestampedEvent>> &currentLog, std::vector<struct path_info> &final);
 
     void
     log_stats(const std::unordered_map<struct path_info, Eigen::VectorXd> &map, const std::string &query, double noise,

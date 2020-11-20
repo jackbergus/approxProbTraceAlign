@@ -8,7 +8,7 @@
 
 
 void performLogOperation(const std::vector<LogOperationConfiguration> &vconf,
-                         std::vector<Transaction<std::string>> &log) {
+                         std::vector<Transaction<TimestampedEvent>> &log) {
 
     std::random_device rd;
     std::mt19937 g(rd());
@@ -22,14 +22,14 @@ void performLogOperation(const std::vector<LogOperationConfiguration> &vconf,
                 auto first = log.begin() + (conf.keep_low_up_otherwise ? 0 : ((size_t) conf.factor * log.size()));
                 auto last = log.begin() +
                             (conf.keep_low_up_otherwise ? ((size_t) conf.factor * log.size()) : (log.size() - 1));
-                std::vector<Transaction<std::string>> newVec(first, last);
+                std::vector<Transaction<TimestampedEvent>> newVec(first, last);
                 std::cout << "Reduced size, from " << log.size() << " to " << newVec.size() << std::endl;
                 log = newVec;
             }
                 break;
 
             case LogFilterFrequency: {
-                std::vector<Transaction<std::string>> output;
+                std::vector<Transaction<TimestampedEvent>> output;
                 std::map<double, std::vector<size_t>> ordering;
                 double N = log.size();
                 std::cout << "LogSample: histogramming. Keep Low = " << conf.keep_low_up_otherwise << std::endl;
@@ -67,12 +67,45 @@ void performLogOperation(const std::vector<LogOperationConfiguration> &vconf,
                 double value = conf.factor * (max - min) + min;
                 std::cout << "Log max = " << max << " Log min = " << min << " LogFilterValue = " << conf.factor
                           << " Limit value = " << value << " Keep Low = " << conf.keep_low_up_otherwise << std::endl;
-                std::vector<Transaction<std::string>> output;
+                std::vector<Transaction<TimestampedEvent>> output;
                 for (const auto &t : log) {
                     if (conf.keep_low_up_otherwise) {
                         if (((double) t.size()) <= value) output.emplace_back(t);
                     } else {
                         if (((double) t.size()) >= value) output.emplace_back(t);
+                    }
+                }
+                std::cout << "Reduced size, from " << log.size() << " to " << output.size() << std::endl;
+                log = output;
+            }
+            break;
+
+            case LogFilterTemporalLength: {
+                double max = -1.0;
+                double min = std::numeric_limits<double>::max();
+                std::vector<double> lengths;
+                for (const auto &t : log) {
+                    long long int localMin = std::numeric_limits<long long int>::max();
+                    long long int localMax = -1.0;
+                    for (const auto &x : t) {
+                        localMin = std::min(localMin, x.millisSinceEpoch);
+                        localMax = std::max(localMax, x.millisSinceEpoch);
+                    }
+                    double x = ((double)(localMax-localMin));
+                    lengths.emplace_back(x);
+                    max = std::max(max, x);
+                    min = std::min(min, x);
+                }
+                double value = conf.factor * (max - min) + min;
+                std::cout << "Log max = " << max << " Log min = " << min << " LogFilterValue = " << conf.factor
+                          << " Limit value = " << value << " Keep Low = " << conf.keep_low_up_otherwise << std::endl;
+                std::vector<Transaction<TimestampedEvent>> output;
+                size_t i = 0;
+                for (const auto &t : log) {
+                    if (conf.keep_low_up_otherwise) {
+                        if (((double) lengths[i++]) <= value) output.emplace_back(t);
+                    } else {
+                        if (((double) lengths[i++]) >= value) output.emplace_back(t);
                     }
                 }
                 std::cout << "Reduced size, from " << log.size() << " to " << output.size() << std::endl;

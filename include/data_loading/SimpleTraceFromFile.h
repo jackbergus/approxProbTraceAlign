@@ -7,6 +7,7 @@
 
 #include <fptree.hpp>
 #include <string>
+#include "local_load_data.h"
 
 /**
  * Reads one single transaction from a string, where a separator is used to separate each event
@@ -14,9 +15,9 @@
  * @param sep               Separation
  * @return                  The resulting transaction
  */
-Transaction<std::string> transaction_from_string(const std::string& transaction_line, const char sep = ';');
+Transaction<TimestampedEvent> transaction_from_string(const std::string& transaction_line, const char sep = ';');
 
-std::vector<Transaction<std::string>> read_log(const std::string& file_path, const char sep = ';');
+std::vector<Transaction<TimestampedEvent>> read_log(const std::string& file_path, const char sep = ';');
 
 template <typename T>
 size_t countFreq(const Transaction<T> &pat, const Transaction<T> &txt) {
@@ -46,6 +47,9 @@ size_t countFreq(const Transaction<T> &pat, const Transaction<T> &txt) {
     return res;
 }
 
+
+size_t countFreq2(const Transaction<std::string> &pat, const Transaction<TimestampedEvent> &txt);
+
 namespace spd_we {
 
             /**
@@ -54,7 +58,7 @@ namespace spd_we {
              * @param label     Activity
              * @return
              */
-    double q_I(const std::vector<Transaction<std::string>>& L, const std::string& label, const std::string& varepsilon);
+    double q_I(const std::vector<Transaction<TimestampedEvent>>& L, const std::string& label, const std::string& varepsilon);
 
 
     /**
@@ -63,7 +67,7 @@ namespace spd_we {
      * @param label     Activity
      * @return
      */
-    double q_F(const std::vector<Transaction<std::string>>& L, const std::string& label, const std::string& varepsilon);
+    double q_F(const std::vector<Transaction<TimestampedEvent>>& L, const std::string& label, const std::string& varepsilon);
 
     /**
      * Counts the number of transactions in a log having a given subsequence (s,t)
@@ -72,9 +76,9 @@ namespace spd_we {
      * @param t
      * @return
      */
-    double q_P(const std::vector<Transaction<std::string>>& L, const std::string& s, const std::string& t, const std::string& varepsilon);
+    double q_P(const std::vector<Transaction<TimestampedEvent>>& L, const std::string& s, const std::string& t, const std::string& varepsilon);
 
-    double w_freq(const std::vector<Transaction<std::string>>& L, const std::string&t_label, const std::string& varepsilon);
+    double w_freq(const std::vector<Transaction<TimestampedEvent>>& L, const std::string&t_label, const std::string& varepsilon);
 
 }
 

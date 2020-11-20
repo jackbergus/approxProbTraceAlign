@@ -6,16 +6,32 @@
 int official_main(int argc, char* argv[]);
 
 
-
+#include <unicode/datefmt.h>
+#include <unicode/smpdtfmt.h>
 
 //#define DEBUG
+#include <chrono>
+#include <iomanip>
+#include <date.h>
+
+
 
 void sandbox() {
-    DistanceExpressionEvaluator expr{"zip \"x+y\" \"(x-y)*(x-y)\" 0.0 v0 v1"};
+    /*long long int milliSecondsSinceEpoch =
+    std::chrono::duration_cast<std::chrono::milliseconds>(parse8601("2014-11-11T14:26:44.000Z").time_since_epoch()).count();
+    const auto durationSinceEpoch = std::chrono::milliseconds(milliSecondsSinceEpoch);
+    const std::chrono::time_point<std::chrono::system_clock> tp_after_duration(durationSinceEpoch);
+    time_t time_after_duration = std::chrono::system_clock::to_time_t(tp_after_duration);
+
+    std::tm* formattedTime = std::localtime(&time_after_duration);
+
+    long long int milliseconds_remainder = milliSecondsSinceEpoch % 1000;
+    std::cout <<std::put_time(std::localtime(&time_after_duration), "%y-%m-%d-%H-%M-%S-") << milliseconds_remainder << std::endl;*/
+    /*DistanceExpressionEvaluator expr{"zip \"x+y\" \"(x-y)*(x-y)\" 0.0 v0 v1"};
     std::cout << expr({1,2,3},{4,5,6}) << std::endl;
     std::cout << expr({1,2,3},{7,5,6}) << std::endl;
     std::cout << expr({1,4,3},{4,5,6}) << std::endl;
-    std::cout << expr({1,2,3},{4,5,8}) << std::endl;
+    std::cout << expr({1,2,3},{4,5,8}) << std::endl;*/
 }
 
 int main(int argc, char* argv[]) {

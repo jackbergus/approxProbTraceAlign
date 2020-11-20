@@ -6,7 +6,7 @@
 #define FUZZYSTRINGMATCHING2_WEIGHTESTIMATOR_H
 
 #include <GenericGraph.h>
-#include <utils/SimpleTraceFromFile.h>
+#include <data_loading/SimpleTraceFromFile.h>
 #include <unordered_map>
 
 namespace spd_we {
@@ -31,11 +31,11 @@ namespace spd_we {
         std::unordered_map<id_type, double> pw, freq;
         std::unordered_map<std::string, double> qi,qf;
         std::unordered_map<std::pair<std::string, std::string>, double, pair_hash> pq;
-        const std::vector<Transaction<std::string>>* log;
+        const std::vector<Transaction<TimestampedEvent>>* log;
         double totalLog = 0;
         std::string varepsilon;
 
-        void prepareForkEstimator(const std::vector<Transaction<std::string>>& log) {
+        void prepareForkEstimator(const std::vector<Transaction<TimestampedEvent>>& log) {
             assert(!varepsilon.empty());
             if (this->log == &log) return; // It has already been prepared!
             else this->log = (&log);//const_cast<std::vector<Transaction<std::string>> *>
@@ -99,7 +99,7 @@ namespace spd_we {
             WeightEstimator::graph = graph;
         }
 
-        void setLog(const std::vector<Transaction<std::string>>& log) {
+        void setLog(const std::vector<Transaction<TimestampedEvent>>& log) {
             prepareForkEstimator(log);
         }
 
