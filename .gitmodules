@@ -22,3 +22,6 @@
 [submodule "submodules/knn-cpp"]
 	path = submodules/knn-cpp
 	url = https://github.com/Rookfighter/knn-cpp
+[submodule "submodules/date"]
+	path = submodules/date
+	url = https://github.com/HowardHinnant/date/
