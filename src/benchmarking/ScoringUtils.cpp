@@ -2,7 +2,7 @@
 // Created by giacomo on 17/11/20.
 //
 
-#include "benchmarking/new/ScoringUtils.h"
+#include "benchmarking/ScoringUtils.h"
 
 Ranking<size_t> doDulcior(Ranking<size_t> &orig, size_t N) {
     Ranking<size_t> finalRanking;

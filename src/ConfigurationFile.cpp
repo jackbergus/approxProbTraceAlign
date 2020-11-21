@@ -3,9 +3,6 @@
 //
 
 #include "ConfigurationFile.h"
-#include "benchmarking/new/LogBenchmark.h"
-#include "benchmarking/new/MultithreadedBenchmarkForPooling.h"
-#include "../AbstractKNN.h"
 #include <regex>
 #include <GenericGraph.h>
 #include <distances/WeightEstimator.h>
@@ -16,19 +13,18 @@
 #define READ_GRAPH(format)      std::cout << "Reading graph '" << this->input_file << "' as a " << format << " file. Getting the " << this->ith_graph << "-th graph" << std::endl
 
 #include <magic_enum.hpp>
-#include <topk/old/minimum_edit_maximum_substring.h>
+#include <benchmarking/minimum_edit_maximum_substring.h>
 #include <distances/strings/LevensteinSimilarity.h>
 #include <thread>
 
 
-double ConfigurationFile::set_of_path_similarity(const std::vector<path_info>& tracesSet, const std::vector<path_info>& querySet, const LevensteinSimilarity& sim, std::vector<additional_benchmarks_per_log>* opt, double* precisionNormalization, PathEmbeddingStrategy* strategy) {
+double ConfigurationFile::set_of_path_similarity(const std::vector<path_info> &tracesSet,
+                                                 const std::vector<path_info> &querySet,
+                                                 const LevensteinSimilarity &sim) {
     double cost = 0.0;
     for (const auto& x : tracesSet) {
         for (const auto& y : querySet) {
             double val = sim.similarity(x.path, y.path)*(x.probability*y.probability);
-            /*if (opt && precisionNormalization && strategy) {
-                opt->emplace_back(input_file, traces_file, x.path, x.path.size(), *strategy, 0.0,  false, tuning_factor, use_path_lambda_factor, lambda, max_length, min_prob, LogPrecisionMetric, val/(*precisionNormalization), y.path, y.path.size());
-            }*/
             cost += val;
         }
     }
@@ -99,9 +95,10 @@ struct DotProductDistance
     }
 };
 
-#include <multithreaded/MultithreadWrap.h>
 #include <data_structures/vptree.h>
-#include <knn/multi_index_hashing.h>
+#include <knn/kdtree_minkowski.h>
+#include <benchmarking/ScoringUtils.h>
+
 typedef Eigen::MatrixXd Matrix;
 typedef knn::Matrixi Matrixi;
 
@@ -426,7 +423,7 @@ void ConfigurationFile::run() {
 
         std::cout << " * generation precision metric" << std::flush;
         double precision_normalization = std::sqrt(set_of_path_similarity(mapPath, mapPath, similarity)*set_of_path_similarity(finalOriginalLog, finalOriginalLog, similarity));
-        double precision = set_of_path_similarity(mapPath, finalOriginalLog, similarity, &log_quality, &precision_normalization)/precision_normalization;
+        double precision = set_of_path_similarity(mapPath, finalOriginalLog, similarity)/precision_normalization;
         std::cout << "... done" << std::endl;
 
         log1 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','

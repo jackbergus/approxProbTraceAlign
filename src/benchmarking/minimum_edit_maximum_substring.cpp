@@ -2,7 +2,7 @@
 // Created by giacomo on 16/11/20.
 //
 
-#include <topk/old/algorithm_map.h>
+#include <topk/algorithm_map.h>
 
 void rectify(struct algorithm_map& x) {}
 void rectify2(struct algorithm_map& x) {
@@ -12,7 +12,7 @@ void rectify2(struct algorithm_map& x) {
     }
 }
 
-#include "benchmarking/new/minimum_edit_maximum_substring.h"
+#include "benchmarking/minimum_edit_maximum_substring.h"
 #include <numeric>
 #include <unordered_map>
 
