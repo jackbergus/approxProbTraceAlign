@@ -21,7 +21,7 @@ matrix:
             - qtdeclarative5-dev
             - qtdeclarative5-dev-tools
             - libopenmpi-dev
-            - boost1.71
+            - libboost1.71-all-dev
 
 before_install:
    - chmod +x install_deps.sh 
