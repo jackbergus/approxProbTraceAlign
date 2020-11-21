@@ -3,6 +3,25 @@ language: cpp
 compiler:
    - gcc
 
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          packages:
+            - cmake 
+            - uuid-dev
+            - maven
+            - libcdt5
+            - libcgraph6
+            - libgraphviz-dev
+            - libgvc6
+            - libxdot4
+            - libgvpr2
+            - qtdeclarative5-dev
+            - qtdeclarative5-dev-tools
+            - libeigen3-dev
+            - libopenmpi-dev
 
 before_install:
    - chmod +x install_deps.sh 
