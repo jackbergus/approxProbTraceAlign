@@ -2,6 +2,8 @@
 // Created by giacomo on 14/11/20.
 //
 
+#if 0
+
 #include "topk/Programme/VpTreeProgramm.h"
 
 void VpTreeProgramm::clear() {
@@ -51,3 +53,4 @@ void
 VpTreeProgramm::storeInMatrix(size_t i, const std::vector<double> &cps, const std::pair<size_t, size_t> &graph_trace_id) {
     trivial_storage[cps].emplace_back(graph_trace_id);
 }
+#endif

@@ -5,7 +5,8 @@
 #ifndef FUZZYSTRINGMATCHING2_BENCHMARKCONFIGURATION_H
 #define FUZZYSTRINGMATCHING2_BENCHMARKCONFIGURATION_H
 
-
+#if 0
+// TODO: REMOVE
 #include <InputStream.h>
 #include <benchmarking/BenchmarkStrategy.h>
 #include <ostream>
@@ -32,6 +33,7 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const BenchmarkConfiguration &configuration);
 
 };
+#endif
 
 
 #endif //FUZZYSTRINGMATCHING2_BENCHMARKCONFIGURATION_H

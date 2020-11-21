@@ -4,8 +4,8 @@
 
 #ifndef FUZZYSTRINGMATCHING2_RANKINGTEST_H
 #define FUZZYSTRINGMATCHING2_RANKINGTEST_H
-
-
+#if 0
+// TODO REMOVE
 #include "GraphCartridge.h"
 #include <benchmarking/Ranking.h>
 #include <matrix_graph_path/path_info.h>
@@ -34,6 +34,6 @@ public:
     }
 
 };
-
+#endif
 
 #endif //FUZZYSTRINGMATCHING2_RANKINGTEST_H

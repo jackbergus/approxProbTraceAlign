@@ -109,11 +109,13 @@ private:
     void
     convertLog(const std::vector<Transaction<TimestampedEvent>> &currentLog, std::vector<struct path_info> &final);
 
+#if 0
     void
     log_stats(const std::unordered_map<struct path_info, Eigen::VectorXd> &map, const std::string &query, double noise,
               std::ostream &log_quality, Ranking<size_t> *precomputedTraceRanking, const std::string &strategyName,
               size_t querySize, bool isMultiThreaded, bool isDulcior, unsigned int &threadExperiment,
               Ranking<size_t> &pathRanking, Ranking<size_t> &expectedRanking) const;
+#endif
 
     void
     log_ranking(const std::string &query, double noise, std::ostream &log_quality,

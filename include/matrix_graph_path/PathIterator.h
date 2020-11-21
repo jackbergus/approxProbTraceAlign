@@ -37,7 +37,6 @@ template <typename T> bool approximatelyLessEqual(T a, T b)
     return definitelyLessThan(a, b) || approximatelyEqual(a, b);
 }
 
-#include <CopyableStack.h>
 #include <ostream>
 
 

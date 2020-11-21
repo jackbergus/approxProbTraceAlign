@@ -58,7 +58,8 @@ template <typename BenchmarkKey> struct Ranking {
             lhsSquaredSum += std::pow(lhs, 2.0);
             rhsSquaredSum += std::pow(rhs, 2.0);
         }
-        return over / std::sqrt(lhsSquaredSum * rhsSquaredSum);
+        const double below = std::sqrt(lhsSquaredSum * rhsSquaredSum);
+        return ((below == 0.0) ? 0.0 : (over / below)); // when the below number is too low, then there is no correlation...
     }
 
     const typename std::map<double, std::vector<BenchmarkKey>>::const_reverse_iterator & maximum() const  {

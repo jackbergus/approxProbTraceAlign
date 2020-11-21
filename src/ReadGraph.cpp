@@ -4,7 +4,7 @@
 
 #include <numeric>
 #include <iterator>
-#include <ThomsonNFA.h>
+//#include <ThomsonNFA.h>
 #include "ReadGraph.h"
 
 
@@ -111,13 +111,13 @@ double ReadGraph::generateGraphFromPath(const std::vector<size_t> &path, ReadGra
     double graphCost = 1.0;
     for (size_t i = 0; i<max-1; i++) {
         size_t j = path[i], k = path[i+1];
-        if ((nodeLabelling.at(j) == EPSILON))  {
+        if ((nodeLabelling.at(j) == "."))  {
             assert(i == 0);
             graphCost *= edge_weight_matrix.coeffRef(j, k);
             source = path[1];
             continue;
         }
-        if ((nodeLabelling.at(k) == EPSILON)) {
+        if ((nodeLabelling.at(k) == ".")) {
             assert(i == max-2);
             graphCost *= edge_weight_matrix.coeffRef(j, k);
             target = path[max-2];

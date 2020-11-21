@@ -5,7 +5,8 @@
 #ifndef FUZZYSTRINGMATCHING2_GRAPHCARTRIDGE_H
 #define FUZZYSTRINGMATCHING2_GRAPHCARTRIDGE_H
 
-
+#if 0
+// TODO: REMOVE
 #include <InputStream.h>
 #include <unordered_map>
 #include <vector>
@@ -22,3 +23,4 @@ public:
 
 };
 #endif //FUZZYSTRINGMATCHING2_GRAPHCARTRIDGE_H
+#endif

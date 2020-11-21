@@ -2,6 +2,7 @@
 // Created by giacomo on 21/10/20.
 //
 
+#if 0
 #include "GraphCartridge.h"
 
 void GraphCartridge::loadGraph(const ReadGraphConfiguration &grafo) {
@@ -33,3 +34,4 @@ void GraphCartridge::fillVector(std::vector<ReadGraph> &toFill) const {
     toFill.clear();
     for (const auto& cp : graphs) toFill.emplace_back(cp.second);
 }
+#endif

@@ -5,7 +5,7 @@
 #ifndef FUZZYSTRINGMATCHING2_TRANSITIVECLOSUREGRAPHSTRATEGY_H
 #define FUZZYSTRINGMATCHING2_TRANSITIVECLOSUREGRAPHSTRATEGY_H
 
-#include <ThomsonNFA.h>
+//#include <ThomsonNFA.h>
 #include "GraphEmbeddingStrategy.h"
 
 /**
@@ -39,7 +39,7 @@ struct TransitiveClosureGraphStrategy : public GraphEmbeddingStrategy {
         for (const auto& path : rg.iterateOverPaths(false, maxPath, std::numeric_limits<double>::epsilon()*2)) {
             ///std::cout << path << std::endl;
             for (const auto& nodeId : path.actualPath) {
-                if (rg.inv_label_conversion.at(nodeId) != EPSILON)
+                if (rg.inv_label_conversion.at(nodeId) != varepsilon)
                     it.acceptNode(rg.inv_label_conversion.at(nodeId), 1.0);
             }
             it.nextNodeIteration(1.0);

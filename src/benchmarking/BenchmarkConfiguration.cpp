@@ -2,6 +2,7 @@
 // Created by giacomo on 21/10/20.
 //
 
+#if 0
 #include <utils/AlterString.h>
 #include "benchmarking/BenchmarkConfiguration.h"
 
@@ -72,3 +73,4 @@ void BenchmarkConfiguration::benchmarkMultiplePathsFromSameGraph(const std::stri
 std::ostream &operator<<(std::ostream &os, const BenchmarkConfiguration &configuration) {
     return os << *configuration.benchmark;
 }
+#endif

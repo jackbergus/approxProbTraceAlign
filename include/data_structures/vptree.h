@@ -1,325 +1,194 @@
-// Based on http://stevehanov.ca/blog/index.php?id=130 by Steve Hanov
+//
+// Created by giacomo on 07/12/2019.
+//
 
-#pragma once
+#ifndef TUTORIALS_VPTREE_NODE_H
+#define TUTORIALS_VPTREE_NODE_H
 
-#include <algorithm>
 #include <vector>
-#include <queue>
-#include <limits>
 #include <random>
-#include <cmath>
-#include <stdexcept>
-#include <functional>
-#include <topk/topk.h>
-
-namespace vpt {
-
-    typedef std::vector<double> Vector;
-    //typedef std::function<double(const Vector& v1, const Vector& v2)> Metric;
-    struct Metric {
-        std::function<double(const Vector& v1, const Vector& v2)> actualMetric;
-        UnterstuetzenStrategie                                     strategy;
-
-        Metric() {}
-        Metric(std::function<double(const Vector& v1, const Vector& v2)> m, UnterstuetzenStrategie s) : actualMetric{m}, strategy{s} {}
-        Metric(const Metric&) = default;
-        Metric& operator=(const Metric&) = default;
-    };
-    typedef std::pair<std::vector<double>, std::vector<int>> DistancesIndices;
-    typedef std::pair<std::vector<std::vector<double>>, std::vector<std::vector<int>>> BatchDistancesIndices;
+#include <algorithm>
+#include <iostream>
 
 
-    template<class InputIterator>
-    double sum(InputIterator begin, InputIterator end) {
-        double result = 0;
-        for (; begin != end; ++begin) {
-            result += *begin;
-        }
-        return result;
+/**
+ * A kernel function provides the similarity between two elements
+ * @tparam T
+ */
+template <typename T> struct DistanceFunction {
+    DistanceFunction() = default;
+    virtual ~DistanceFunction() = default;
+    virtual double distance(const T& lhs, const T& rhs) {
+        return (&lhs == &rhs);
+    }
+};
+
+
+template <typename Point> struct vp_node {
+
+    unsigned int id; ///<@ id associated to the current node (i.e., insertion order)
+    Point pt;        ///<@ value to be compared
+    double radius;   ///<@ radius that, in the standard definition, provides the boundary between the left and right nodes
+    unsigned int leftChild = std::numeric_limits<unsigned int>::max(); ///<@ setting the leftChild to nullptr
+    unsigned int rightChild = std::numeric_limits<unsigned int>::max(); ///<@ setting the rightChild to nullptr
+    bool isLeaf = false; ///<@ nevertheless, each node is not necessairly a leaf
+
+    vp_node(unsigned int id, Point pt, double radius) : id(id), pt(pt), radius(radius) {}
+};
+
+template <typename Point, typename DistanceFunction> struct vp_tree {
+    std::vector<vp_node<Point>> tree; ///<@ representing the tree as a vector
+    DistanceFunction ker;             ///<@ instance of the distance function provided by the template parameter
+    std::mt19937 rng;                 ///<@ random number generator
+
+    // Please note: this is not a thread-safe implementation
+    double tau;                         ///<@ current distance decision value at the iteration
+    std::set<Point, DistanceFunction> found;          ///<@ current found elements for the given lookup query
+
+    /**
+     * Initializing the element with a vector of elements
+     * @param ls
+     */
+    vp_tree(const std::vector<Point>& ls) {
+        tree.reserve(ls.size());
+        size_t i = 0;
+        for (auto x : ls)
+            tree.emplace_back(i++, x, 0);
+        recursive_restruct_tree(0, ls.size()-1);
     }
 
+    /**
+     * Initializing the tree with some static values
+     * @param ls
+     */
+    vp_tree(std::initializer_list<Point> ls) {
+        tree.reserve(ls.size());
+        size_t i = 0;
+        for (auto x : ls)
+            tree.emplace_back(i++, x, 0);
+        recursive_restruct_tree(0, ls.size());
+    }
 
+    /**
+     * Looking for the elements near to id that are not exactely the same as him
+     * @param id
+     */
+    void topkSearch(const Point& id, size_t k) {
+        found.clear();
+        tau    = std::numeric_limits<double>::max();
+        ///std::cout << "Id. pt = " << tree[id].pt << std::endl;
+        lookUpNearsetTo(0, id, k);
+    }
 
-    /*template<typename Container>
-    struct EuclideanMetric {
-        double operator() (const Container& v1, const Container& v2) const {
-            Vector diffSquares(v1.size());
-            std::transform(v1.begin(), v1.end(), v2.begin(), diffSquares.begin(), [] (double lhs, double rhs) {
-                return (lhs - rhs) * (lhs - rhs);
-            });
-            auto sum = vpt::sum(diffSquares.begin(), diffSquares.end());
-            return std::sqrt(sum);
+private:
+    void lookUpNearsetTo(size_t root_id, const Point& id, size_t k) {
+        //std::cout << root_id << std::endl;
+        ///auto node = tree[id];
+        auto root = tree[root_id];
+        double rootRadius = tree[root_id].radius;
+        double dist = ker(root.pt, id);
+
+        ///std::cout << "---------" << std::endl;
+        ///std::cout << std::string(depth, '.') <<dist << "=\\delta(" << root.pt << "," << node.pt << ")" << std::endl;
+        ///std::cout << std::string(depth, '.') << "Root. Pt = " << root.pt << " radius = " << rootRadius << " rootDistance = " << dist << std::endl;
+        /*if ((root_id != id))*/ { // do not add the same object
+
+            found.insert(root.pt);
+            if (found.size() > k) {
+                found.erase(std::prev(found.end()));
+            }
+#if 0
+            // If I find a better object, then discard all the previous ones, and set the current one
+            if (definitelyLessThan(dist,tau)) {
+                found.clear();
+                found.emplace_back(root_id);
+                ///std::cout << std::string(depth, '.') << "New Tau pt: " << root.pt << std::endl;
+                ///std::cout << std::string(depth, '.') << "(tau=dist): " << dist << std::endl;
+                tau = dist;
+            } else
+                // Otherwise, if they are very similar, then I could add this other one too
+            if (approximatelyEqual(dist, tau)) {
+                found.emplace_back(root_id);
+                tau = std::min(dist, tau);
+                ///std::cout << std::string(depth, '.') << "Old Tau " << tau << "=" << dist << std::endl;
+            }
+#endif
         }
-    };*/
 
-    class DimensionMismatch: public std::runtime_error {
-    public:
-        DimensionMismatch(int expected, int got)
-                : std::runtime_error("Item dimension doesn't match: expected " + std::to_string(expected) + ", got " + std::to_string(got))
-        {}
-    };
-
-
-
-    class Searcher;
-
-
-    class VpTree {
-    public:
-        template<typename InputIterator>
-        explicit VpTree(InputIterator start, InputIterator end, Metric metric /*= EuclideanMetric<Vector>()*/);
-
-        VpTree(const VpTree& x) : items_{x.items_}, nodes_{x.nodes_}, dimension_{x.dimension_}, getDistance{x.getDistance} {}
-        VpTree&operator=(const VpTree& x) {
-            items_ = x.items_;
-            nodes_ = x.nodes_;
-            dimension_ = x.dimension_;
-            getDistance = x.getDistance;
-            return *this;
-        }
-
-        template<typename Container>
-        explicit VpTree(const Container& container, Metric metric /*= EuclideanMetric<Vector>()*/);
-        explicit VpTree(std::initializer_list<Vector> list, Metric metric /*= EuclideanMetric<Vector>()*/);
-
-        DistancesIndices getNearestNeighbors(const Vector& target, int neighborsCount) const;
-        template<typename VectorLike>
-        DistancesIndices getNearestNeighbors(const VectorLike& target, int neighborsCount) const;
-        DistancesIndices getNearestNeighbors(std::initializer_list<double> target, int neighborsCount) const;
-
-        template<typename Container>
-        BatchDistancesIndices getNearestNeighborsBatch(const Container& targets, int neighborsCount) const;
-        BatchDistancesIndices getNearestNeighborsBatch(std::initializer_list<Vector> targets, int neighborsCount) const;
-
-        Metric getDistance;
-
-    private:
-        struct Node {
-            static const int Leaf = -1;
-
-            Node(int item, double threshold = 0., int left = Leaf, int right = Leaf)
-                    : item(item), threshold(threshold), left(left), right(right)
-            { }
-            Node() : Node(0) {}
-            Node(const Node&) = default;
-            Node&operator=(const Node&) = default;
-
-            int item;
-            double threshold;
-            int left;
-            int right;
-
-
-        };
-
-    private:
-        typedef std::pair<Vector, int> Item;
-
-        std::vector<Item> items_;
-        std::vector<Node> nodes_;
-
-        std::mt19937 rng_;
-
-        int dimension_;
-
-    private:
-        template<typename InputIterator>
-        std::vector<Item> makeItems(InputIterator start, InputIterator end);
-
-        int makeTree(int lower, int upper);
-        void selectRoot(int lower, int upper);
-        void partitionByDistance(int lower, int pos, int upper);
-        int makeNode(int item);
-        Node root() const { return nodes_[0]; }
-
-        friend class Searcher;
-    };
-
-    class Searcher {
-    private:
-        typedef typename VpTree::Node Node;
-
-    public:
-        explicit Searcher(const VpTree* tree, const Vector& target, int neighborsCount);
-
-        std::pair<std::vector<double>, std::vector<int>> search();
-
-        struct HeapItem {
-            bool operator < (const HeapItem& other) const {
-                return dist < other.dist;
+        // Continuing with the traversal depending on the distance from the root
+        if (dist < rootRadius) {
+            ///std::cout << std::string(depth, '.')  << dist << '<' << rootRadius << std::endl;
+            if (root.leftChild != std::numeric_limits<unsigned int>::max() && dist - tau <= rootRadius) {
+                ///std::cout << std::string(depth, '.') << dist << '-' << tau << "<=" << rootRadius <<  std::endl;
+                lookUpNearsetTo(root.leftChild, id, k);
             }
 
-            int item;
-            double dist;
-        };
-
-    private:
-        void searchInNode(const Node& node);
-
-        const VpTree* tree_;
-        Vector target_;
-        int neighborsCount_;
-        double tau_;
-        std::priority_queue<HeapItem> heap_;
-    };
-
-
-
-    template<typename InputIterator>
-    VpTree::VpTree(InputIterator start, InputIterator end, Metric metric)
-            : getDistance(metric), items_(makeItems(start, end)), nodes_(), rng_() {
-        std::random_device rd;
-        rng_.seed(rd());
-        nodes_.reserve(items_.size());
-        makeTree(0, items_.size());
-    }
-
-    template<typename Container>
-    VpTree::VpTree(const Container& container, Metric metric)
-            : VpTree(container.begin(), container.end(), metric)
-    { }
-
-    VpTree::VpTree(std::initializer_list<Vector> list, Metric metric)
-            : VpTree(list.begin(), list.end(), metric)
-    { }
-
-    int VpTree::makeTree(int lower, int upper) {
-        if (lower >= upper) {
-            return Node::Leaf;
-        } else if (lower + 1 == upper) {
-            return makeNode(lower);
+            // At this stage, the tau value might be updated from the previous recursive call
+            if (root.rightChild != std::numeric_limits<unsigned int>::max() && dist + tau >= rootRadius) {
+                ///std::cout << std::string(depth, '.') << dist << '+' << tau << ">=" << rootRadius <<  std::endl;
+                lookUpNearsetTo(root.rightChild, id, k);
+            }
         } else {
-            selectRoot(lower, upper);
-            int median = (upper + lower) / 2;
-            partitionByDistance(lower, median, upper);
-            auto node = makeNode(lower);
-            nodes_[node].threshold = getDistance.actualMetric(items_[lower].first, items_[median].first);
-            nodes_[node].left = makeTree(lower + 1, median);
-            nodes_[node].right = makeTree(median, upper);
-            return node;
-        }
-    }
+            ///std::cout << std::string(depth, '.') << dist << '<' << rootRadius << std::endl;
+            if (root.rightChild != std::numeric_limits<unsigned int>::max() && dist + tau >= rootRadius) {
+                ///std::cout << std::string(depth, '.') << dist << '+' << tau << ">=" << rootRadius <<  std::endl;
+                lookUpNearsetTo(root.rightChild, id, k);
+            }
 
-    void VpTree::selectRoot(int lower, int upper) {
-        std::uniform_int_distribution<int> uni(lower, upper - 1);
-        int root = uni(rng_);
-        std::swap(items_[lower], items_[root]);
-    }
-
-    void VpTree::partitionByDistance(int lower, int pos, int upper) {
-        std::nth_element(
-                items_.begin() + lower + 1,
-                items_.begin() + pos,
-                items_.begin() + upper,
-                [lower, this] (const Item& i1, const Item& i2) {
-                    return getDistance.actualMetric(items_[lower].first, i1.first) < getDistance.actualMetric(items_[lower].first, i2.first);
-                });
-    }
-
-    int VpTree::makeNode(int item) {
-        nodes_.push_back(Node(item));
-        return nodes_.size() - 1;
-    }
-
-    template<typename InputIterator>
-    std::vector<std::pair<Vector, int>> VpTree::makeItems(InputIterator begin, InputIterator end) {
-        if (begin != end) {
-            dimension_ = begin->size();
-        } else {
-            dimension_ = -1;
-        }
-
-        std::vector<Item> res;
-        for (int i = 0; begin != end; ++begin, ++i) {
-            auto vec = Vector(begin->begin(), begin->end());
-            res.push_back(std::make_pair(vec, i));
-
-            auto lastDimension = res.back().first.size();
-            if (lastDimension != dimension_) {
-                throw DimensionMismatch(dimension_, lastDimension);
+            // At this stage, the tau value might be updated from the previous recursive call
+            if (root.leftChild != std::numeric_limits<unsigned int>::max() && dist - tau <= rootRadius) {
+                ///std::cout << std::string(depth, '.') << dist << '-' << tau << "<=" << rootRadius <<  std::endl;
+                lookUpNearsetTo(root.leftChild, id, k);
             }
         }
-        return res;
     }
 
-    template<typename VectorLike>
-    DistancesIndices VpTree::getNearestNeighbors(const VectorLike& target, int neighborsCount) const {
-        return getNearestNeighbors(Vector(target.begin(), target.end()), neighborsCount);
-    }
-
-    DistancesIndices VpTree::getNearestNeighbors(std::initializer_list<double> target, int neighborsCount) const {
-        return getNearestNeighbors(Vector(target.begin(), target.end()), neighborsCount);
-    }
-
-    DistancesIndices VpTree::getNearestNeighbors(const Vector& target, int neighborsCount) const {
-        auto targetDimension = target.size();
-        if (targetDimension != dimension_) {
-            throw DimensionMismatch(dimension_, targetDimension);
-        }
-        Searcher searcher(this, target, neighborsCount);
-        return searcher.search();
-    }
-
-    template<typename Container>
-    BatchDistancesIndices VpTree::getNearestNeighborsBatch(const Container& targets, int neighborsCount) const {
-        std::vector<std::vector<double>> batchDistances(targets.size());
-        std::vector<std::vector<int>> batchIndices(targets.size());
-#pragma omp parallel for schedule(dynamic)
-        for (int i = 0; i < targets.size(); ++i) {
-            std::tie(batchDistances[i], batchIndices[i]) = getNearestNeighbors(targets[i], neighborsCount);
-        }
-        return BatchDistancesIndices(batchDistances, batchIndices);
-    }
-
-    BatchDistancesIndices VpTree::getNearestNeighborsBatch(std::initializer_list<Vector> targets, int neighborsCount) const {
-        return getNearestNeighborsBatch(std::vector<Vector>(targets.begin(), targets.end()), neighborsCount);
-    }
-
-
-    Searcher::Searcher(const VpTree* tree, const Vector& target, int neighborsCount)
-            : tree_(tree), target_(target), neighborsCount_(neighborsCount), tau_(std::numeric_limits<double>::max()), heap_()
-    { }
-
-    DistancesIndices Searcher::search() {
-        searchInNode(tree_->root());
-
-        DistancesIndices results;
-        while(!heap_.empty()) {
-            results.first.push_back(heap_.top().dist);
-            results.second.push_back(tree_->items_[heap_.top().item].second);
-            heap_.pop();
-        }
-        std::reverse(results.first.begin(), results.first.end());
-        std::reverse(results.second.begin(), results.second.end());
-        return results;
-    }
-
-    void Searcher::searchInNode(const Node& node) {
-        double dist = tree_->getDistance.actualMetric(tree_->items_[node.item].first, target_);
-
-        if (dist < tau_) {
-            if (heap_.size() == neighborsCount_)
-                heap_.pop();
-
-            heap_.push(HeapItem{node.item, dist});
-
-            if (heap_.size() == neighborsCount_)
-                tau_ = heap_.top().dist;
-        }
-
-        if (dist < node.threshold) {
-            if (node.left != Node::Leaf && dist - tau_ <= node.threshold)
-                searchInNode(tree_->nodes_[node.left]);
-
-            if (node.right != Node::Leaf && dist + tau_ >= node.threshold)
-                searchInNode(tree_->nodes_[node.right]);
+    void recursive_restruct_tree(size_t first, size_t last) {
+        if (first >= last) {
+            // If the elements overlaps, then I reached a leaf node
+            tree[first].isLeaf = true;
+            tree[first].leftChild = std::numeric_limits<unsigned int>::max();
+            tree[first].rightChild = std::numeric_limits<unsigned int>::max();
         } else {
-            if (node.right != Node::Leaf && dist + tau_ >= node.threshold)
-                searchInNode(tree_->nodes_[node.right]);
+            if ((last - first) <= 1) {
+                // If the elements differ by two, then I decide that one is the root, and the other is the child
+                tree[first].radius = ker(tree[first].pt, tree[last].pt);
+                tree[first].leftChild = last;
+                tree[first].rightChild = std::numeric_limits<unsigned int>::max();
+            } else {
+                // Picking the root randomly as the first element of the tree ~ O(1)
+                std::uniform_int_distribution<int> uni(first, last - 1);
+                int root = uni(rng);
+                std::swap(tree[first], tree[root]);
 
-            if (node.left != Node::Leaf && dist - tau_ <= node.threshold)
-                searchInNode(tree_->nodes_[node.left]);
+                size_t median = (first + last) / 2; // TODO: other heuristic, separating the elements within a fixed radius from the object, and the ones out
+
+                /*
+                 * nth_element is a partial sorting algorithm that rearranges elements in [first, last) such that:
+                 *
+                 * - The element pointed at by median is changed to whatever element would occur in that position if [first, last) were sorted.
+                 * - All of the elements before this new nth element are less than or equal to the elements after the new nth element.
+                 */
+                std::nth_element(
+                        tree.begin() + first + 1,//first
+                        tree.begin() + median,   //median
+                        tree.begin() + last,    //last
+                        [first, this] (const vp_node<Point>& i1, const vp_node<Point>& i2) {
+                            return ker(tree[first].pt, i1.pt) < ker(tree[first].pt, i2.pt);
+                        });
+
+                // Setting the separating elements
+                tree[first].radius = ker(tree[first].pt, tree[median].pt);
+
+                // Recursively splitting in half the elements within my radius and the ones out
+                tree[first].leftChild = first+1;
+                tree[first].rightChild = (first + last) / 2 + 1;
+                recursive_restruct_tree(tree[first].leftChild, tree[first].rightChild-1);
+                recursive_restruct_tree(tree[first].rightChild, last);
+
+            }
         }
     }
+};
 
-}
+#endif //TUTORIALS_VPTREE_NODE_H

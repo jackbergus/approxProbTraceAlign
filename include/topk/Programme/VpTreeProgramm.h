@@ -5,13 +5,14 @@
 #ifndef FUZZYSTRINGMATCHING2_VPTREEPROGRAMM_H
 #define FUZZYSTRINGMATCHING2_VPTREEPROGRAMM_H
 
+#if 0
 #include <data_structures/vptree.h>
 #include <topk/Ladenprogramm.h>
 #include <topk/topk.h>
 #include <utils/vector_hash.h>
 
 class VpTreeProgramm : public Ladenprogramm {
-    vpt::VpTree* tree = nullptr;
+    vpt::VpTree<T* tree = nullptr;
     std::unordered_map<std::vector<double>, std::vector<std::pair<size_t, size_t>>, vector_hash<double>> trivial_storage;
 
     vpt::Metric ProbSim{[](const vpt::Vector& v1, const vpt::Vector& v2)  {
@@ -46,6 +47,6 @@ protected:
     void
     storeInMatrix(size_t i, const std::vector<double> &cps, const std::pair<size_t, size_t> &graph_trace_id) override;
 };
-
+#endif
 
 #endif //FUZZYSTRINGMATCHING2_VPTREEPROGRAMM_H

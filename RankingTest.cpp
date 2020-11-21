@@ -1,7 +1,7 @@
 //
 // Created by giacomo on 21/10/20.
 //
-
+#if 0
 #include "RankingTest.h"
 
 double RankingTest::generateRanking(const std::string &query, size_t topK) {
@@ -28,3 +28,4 @@ double RankingTest::generateRanking(const std::string &query, size_t topK) {
 
 RankingTest::RankingTest(bool doNotVisiPahtsTwive, size_t maxPathLength, double minimumPathCost) : doNotVisiPahtsTwive(
         doNotVisiPahtsTwive), maxPathLength(maxPathLength), minimumPathCost(minimumPathCost) {}
+#endif
