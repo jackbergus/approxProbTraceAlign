@@ -2,8 +2,8 @@
 // Created by giacomo on 17/11/20.
 //
 
-#ifndef FUZZYSTRINGMATCHING2_MULTITHREADEDBENCHMARKFORPOOLING_H
-#define FUZZYSTRINGMATCHING2_MULTITHREADEDBENCHMARKFORPOOLING_H
+#ifndef FUZZYSTRINGMATCHING2_SCORINGUTILS_H
+#define FUZZYSTRINGMATCHING2_SCORINGUTILS_H
 
 
 #include <distances/strings/LevensteinSimilarity.h>
@@ -16,10 +16,10 @@
 #include <utils/AlterString.h>
 #include <distances/strings/Levenstein.h>
 #include <benchmarking/Ranking.h>
-#include <benchmarking/new/minimum_edit_maximum_substring.h>
+#include <benchmarking/minimum_edit_maximum_substring.h>
 
 Ranking<size_t> doDulcior(Ranking<size_t> &orig, size_t N);
 
 double score(const Eigen::VectorXd &left, const Eigen::VectorXd &right);
 
-#endif //FUZZYSTRINGMATCHING2_MULTITHREADEDBENCHMARKFORPOOLING_H
+#endif //FUZZYSTRINGMATCHING2_SCORINGUTILS_H

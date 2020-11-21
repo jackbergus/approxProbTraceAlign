@@ -12,7 +12,7 @@ void rectify2(struct algorithm_map& x) {
     }
 }
 
-#include "topk/old/minimum_edit_maximum_substring.h"
+#include "benchmarking/new/minimum_edit_maximum_substring.h"
 #include <numeric>
 #include <unordered_map>
 

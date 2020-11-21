@@ -5,8 +5,9 @@
 #ifndef FUZZYSTRINGMATCHING2_RANKPATHCOLLECTIONPARAMETER_H
 #define FUZZYSTRINGMATCHING2_RANKPATHCOLLECTIONPARAMETER_H
 
+#if 0
 #include <string>
-#include <benchmarking/BenchmarkStrategy.h>
+#include <benchmarking/Ranking.h>
 #include "ReadGraph.h"
 
 template <typename Element, typename RankingArgument> struct RankPathCollectionParameter {
@@ -14,3 +15,4 @@ template <typename Element, typename RankingArgument> struct RankPathCollectionP
 };
 
 #endif //FUZZYSTRINGMATCHING2_RANKPATHCOLLECTIONPARAMETER_H
+#endif
