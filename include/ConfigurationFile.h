@@ -22,8 +22,6 @@
 #include <embeddings/path_embedding/MultiplePathsEmbeddingStrategy.h>
 #include <embeddings/graph_embedding/GraphEmbeddingStrategy.h>
 #include <distances/strings/LevensteinSimilarity.h>
-#include <benchmarking/new/record_element_per_query.h>
-#include <benchmarking/new/additional_benchmarks_per_log.h>
 
 class DistanceExpressionEvaluator;
 
@@ -77,8 +75,6 @@ struct ConfigurationFile {
     size_t                   numberOfTraceAlterations = 10;
 
 
-    std::vector<record_element_per_query> output_quality;
-    std::vector<additional_benchmarks_per_log> log_quality;
 
     /**
      * Generate edge embedding strategy from the defined PathEmbeddingStrategy
@@ -91,7 +87,7 @@ struct ConfigurationFile {
     void run();
     void serialize(const std::string& file = "");
 
-    double set_of_path_similarity(const std::vector<path_info>& tracesSet, const std::vector<path_info>& querySet, const LevensteinSimilarity& sim, std::vector<additional_benchmarks_per_log>* opt = nullptr, double* precisionNormalization = nullptr, PathEmbeddingStrategy* strategy = nullptr);
+    double set_of_path_similarity(const std::vector<path_info>& tracesSet, const std::vector<path_info>& querySet, const LevensteinSimilarity& sim);
 
     ~ConfigurationFile();
 
