@@ -1,18 +1,12 @@
 [submodule "submodules/antlr4"]
 	path = submodules/antlr4
 	url = https://github.com/antlr/antlr4
-[submodule "submodules/lemon"]
-	path = submodules/lemon
-	url = https://github.com/hcorrada/lemon-mirror
 [submodule "submodules/json"]
 	path = submodules/json
 	url = https://github.com/nlohmann/json
 [submodule "submodules/maigc_enum"]
 	path = submodules/maigc_enum
 	url = https://github.com/Neargye/magic_enum
-[submodule "submodules/libfort"]
-	path = submodules/libfort
-	url = https://github.com/seleznevae/libfort
 [submodule "submodules/fpgrowth"]
 	path = submodules/fpgrowth
 	url = https://github.com/jackbergus/FP-growth/
@@ -28,6 +22,3 @@
 [submodule "submodules/knn-cpp"]
 	path = submodules/knn-cpp
 	url = https://github.com/Rookfighter/knn-cpp
-[submodule "submodules/date"]
-	path = submodules/date
-	url = https://github.com/HowardHinnant/date
