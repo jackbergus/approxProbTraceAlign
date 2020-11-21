@@ -6,6 +6,7 @@ compiler:
 matrix:
   include:
     - os: linux
+      dist: focal
       addons:
         apt:
           packages:
