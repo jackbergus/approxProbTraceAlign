@@ -10,3 +10,5 @@ data/*.xes
 *.pdf
 dist/
 dist/*
+data/sepsis
+/data/sepsis/*
