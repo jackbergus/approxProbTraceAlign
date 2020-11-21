@@ -3,7 +3,7 @@
 mkdir -p antlr4/cpp
 
 # Installing the required packages
-sudo apt-get install -y uuid-dev mvn cmake clang libcdt5 libcgraph6 libgraphviz-dev libgcv6 libxdot4 libgvpr2 qtdeclarative5-dev qtdeclarative5-dev-tools libeigen3-dev libopenmpi-dev
+sudo apt-get install -y uuid-dev maven cmake clang libcdt5 libcgraph6 libgraphviz-dev libgvc6 libxdot4 libgvpr2 qtdeclarative5-dev qtdeclarative5-dev-tools libeigen3-dev libopenmpi-dev
 
 ## Pulling the repositories
 git submodule update --init --recursive
