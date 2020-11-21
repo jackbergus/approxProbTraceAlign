@@ -20,7 +20,6 @@ matrix:
             - libgvpr2
             - qtdeclarative5-dev
             - qtdeclarative5-dev-tools
-            - libeigen3-dev
             - libopenmpi-dev
 
 before_install:

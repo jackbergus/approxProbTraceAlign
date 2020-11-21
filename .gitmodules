@@ -25,3 +25,6 @@
 [submodule "submodules/date"]
 	path = submodules/date
 	url = https://github.com/HowardHinnant/date/
+[submodule "submodules/eigen"]
+	path = submodules/eigen
+	url = https://gitlab.com/libeigen/eigen
