@@ -1,4 +1,4 @@
-# (Approximate) Probabilistic Trace Alignment
+# (Approximated) Probabilistic Trace Alignment
 
 This free and open software program implements the (Approximate) Probabilistic Trace Alignment.
 
