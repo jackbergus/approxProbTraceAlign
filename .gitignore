@@ -6,6 +6,9 @@ data/lib/
 data/java-se-8u41-ri/
 data/java-se-8u41-ri/*
 data/*.xes
+data/sm2/
+data/sm2/*
+data/sm.zip
 *.png
 *.pdf
 dist/

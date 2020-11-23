@@ -3,6 +3,7 @@ project(fuzzyStringMatching2)
 
 set(CMAKE_CXX_STANDARD 20)
 
+
 add_subdirectory(submodules/yaml)
 include_directories(submodules/yaml/include)
 

@@ -8,6 +8,7 @@ are_traces_compressed: false
 separator_if_any: ";"
 add_traces_to_log: false
 max_length: 20
+min_prob: 4.4408920985006262e-16
 lambda: 0.070000000000000007
 tuning_factor: 0.0001
 use_tuning_factor: true
@@ -17,12 +18,12 @@ use_estimator: true
 estimator_type: W_CONSTANT
 operations:
     -   operation: LogFilterTemporalLength
-        factor: 0.0006269891963989805
+        factor: 0.00062698919639898052
         keep_low_up_otherwise: true
 fileStrategyMap:
-    ProbabilitySimilarity: (fold "x*y" 1.0 v1)-(fold "x*y" 1.0 v0)
-    TransformedSpace: (fold "x+(y*y)" 0.0 v1)-(fold "x+(y*y)" 0.0 v0)
     EuclideanSpace: zip "x+y" "(x-y)*(x-y)" 0.0 v0 v1
+    TransformedSpace: (fold "x+(y*y)" 0.0 v1)-(fold "x+(y*y)" 0.0 v0)
+    ProbabilitySimilarity: (fold "x*y" 1.0 v1)-(fold "x*y" 1.0 v0)
 varepsilon: "."
 admissibleCharList: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
 noiseThreshold:

@@ -70,7 +70,7 @@ ReadGraph::ReadGraph(const std::string &filename) {
             i = fscanf(file, "%zd %zd %lf\n", &src, &dst, &weight);
             error = (i == EOF || (i != 3));
             if (error) return;
-            assert(std::abs(weight) <= 1.0);
+            //assert(std::abs(weight) <= 1.0);
             addEdge(src, dst, weight);
         }
         finalizeEdgesMatrix(w);
@@ -93,7 +93,7 @@ bool ReadGraph::addNode(size_t id, const std::string &label) {
 
 void ReadGraph::addEdge(size_t src, size_t dst, double weight) {
     ///std::cerr << '[' << src << ", " << dst << "] = " << weight << std::endl;
-    assert(0 <= weight && weight <= 1);
+    ///assert(0 <= weight && weight <= 1);
     if (weight != 0) tripletList.emplace_back(src,dst,weight);
 }
 
@@ -108,7 +108,7 @@ void ReadGraph::finalizeEdgesMatrix(double cost) {
 
 
 void ReadGraph::decomposeStart(double lambda, ConditionalReadGraphIterable &iterable, path_to_uembedding &map) {
-    assert(false && "TODO: you have to implement it!");
+    ///assert(false && "TODO: you have to implement it!");
     /*for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A,source); it; ++it){
         generatePathEmbeddings(lambda, iterable, map, {weight * it.value()}, {it.col()});
     }*/
@@ -133,13 +133,13 @@ double ReadGraph::generateGraphFromPath(const std::vector<size_t> &path, ReadGra
     for (size_t i = 0; i<max-1; i++) {
         size_t j = path[i], k = path[i+1];
         if ((nodeLabelling.at(j) == "."))  {
-            assert(i == 0);
+            ///assert(i == 0);
             graphCost *= edge_weight_matrix.coeffRef(j, k);
             source = path[1];
             continue;
         }
         if ((nodeLabelling.at(k) == ".")) {
-            assert(i == max-2);
+            ///assert(i == max-2);
             graphCost *= edge_weight_matrix.coeffRef(j, k);
             target = path[max-2];
             continue;
@@ -168,7 +168,7 @@ std::unordered_map<struct path_info, Eigen::VectorXd>
 ReadGraph::generateStructuredEmbeddings(std::set<std::pair<std::string, std::string>> &k, const path_to_uembedding &decomposedEmbedding) {
     size_t i = 0;
     std::unordered_map<struct path_info, Eigen::VectorXd> result;
-    assert(!k.empty());
+    ///assert(!k.empty());
     size_t j = 0;
     for (const auto& cpM: decomposedEmbedding) {
         result.emplace(cpM.first, ReadGraph::generateStructuredEmbedding(k, cpM.second));
@@ -225,7 +225,7 @@ void ReadGraph::extractEmbeddingSpace(std::set<std::pair<std::string, std::strin
 }
 
 ReadGraph ReadGraph::fromString(const std::string &string, double stringWeight) {
-    assert(!string.empty());
+    ///assert(!string.empty());
     ReadGraph rg;
     size_t n = string.size();
     rg.init(n, n-1, 0, n-1);

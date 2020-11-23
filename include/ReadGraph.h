@@ -136,7 +136,7 @@ struct ReadGraph {
 
     static Eigen::VectorXd
     generateStructuredEmbedding(std::set<std::pair<std::string, std::string>> &k, const unstructured_embedding &x) {
-        assert(!k.empty());
+        //assert(!k.empty());
         Eigen::VectorXd embedding(k.size());
         size_t i = 0;
         for (const auto& cp : k) {
@@ -202,7 +202,7 @@ private:
         obj << "source: " << source<< std::endl;
         obj << "target: " << target<< std::endl;
         obj << "weight: " << weight<< std::endl;
-        assert(inv_label_conversion.size() == nodes);
+        //assert(inv_label_conversion.size() == nodes);
         for (const auto& cp : inv_label_conversion)
             obj << cp.first << " " << cp.second<< std::endl;
         for (int k=0; k < A.outerSize(); ++k)
