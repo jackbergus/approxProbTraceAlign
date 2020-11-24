@@ -376,9 +376,11 @@ void ConfigurationFile::run() {
 
         std::cout << " * generating embeddings... " << std::flush;
         ReadGraph::path_to_uembedding ptg;
+        steady_clock::time_point generateEmbeddingStart = steady_clock::now();
         ReadGraph::path_to_uembedding ptu = (*pathstrategy)(finalGraph);
         ReadGraph::extractEmbeddingSpace(embedding_space, ptu);
         auto map = ReadGraph::generateStructuredEmbeddings(embedding_space, ptu);
+        double embeddingWholeTraces = duration_cast<std::chrono::nanoseconds>(steady_clock::now() - generateEmbeddingStart).count()/1000000.0;
         std::vector<struct path_info> mapPath;
         std::vector<Eigen::VectorXd> mapVecs;
         for (const auto& path : map) {
@@ -405,14 +407,14 @@ void ConfigurationFile::run() {
         vp_tree<Eigen::VectorXd, VpTreePairPow2DotProduct> vpTreeProposed{mapVecs};
         steady_clock::time_point vpTreeProposedEndLoad = steady_clock::now();
         double proposedLoading = duration_cast<std::chrono::nanoseconds>(vpTreeProposedEndLoad - vpTreeProposedStartLoad).count()/1000000.0;
-        std::cout << "VPTree loading time with to-be-recomputed metric: (ns) " << proposedLoading << std::endl;
+        std::cout << "VPTree loading time with Embedding: (ns) " << proposedLoading << std::endl;
         log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
              << traces_file.substr(traces_file.find_last_of("/\\") + 1)<< ','
              <<   ','
              <<   ','
              << strategyName << ','
              << 0.0 << ','
-             << "VPTreeLoading+Embedding," << proposedLoading << ",,0" << std::endl;
+             << "VPTreeLoading+Embedding," << embeddingWholeTraces+proposedLoading << ",,0" << std::endl;
 
 
         steady_clock::time_point knnProposedStartLoad = steady_clock::now();
@@ -432,14 +434,14 @@ void ConfigurationFile::run() {
         kdtreeProposed.build();
         steady_clock::time_point knnProposedEndLoad = steady_clock::now();
         double proposedLoadingKNN = duration_cast<std::chrono::nanoseconds>(knnProposedEndLoad - knnProposedStartLoad).count()/1000000.0;
-        std::cout << "VPTree loading time with to-be-recomputed metric: (ns) " << proposedLoadingKNN << std::endl;
+        std::cout << "KDTree loading time with to-be-recomputed metric: (ns) " << proposedLoadingKNN << std::endl;
         log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
              << traces_file.substr(traces_file.find_last_of("/\\") + 1)<< ','
              <<   ','
              <<   ','
              << strategyName << ','
              << 0.0 << ','
-             << "VPKDTreeMinkowski+Embedding," << proposedLoadingKNN << ",,0" << std::endl;
+             << "VPKDTreeMinkowski+Embedding," << embeddingWholeTraces+proposedLoadingKNN << ",,0" << std::endl;
 
 
         std::cout << " * generation precision metric" << std::flush;
@@ -537,8 +539,11 @@ void ConfigurationFile::run() {
 
 
             {
+
+                steady_clock::time_point embeddingGenerationStart = steady_clock::now();
                 ReadGraph g = ReadGraph::fromString(actualQuery, 1.0);
                 auto tmp = (*graphStrategy)(g);
+                double toAdd = duration_cast<std::chrono::nanoseconds>(steady_clock::now() - embeddingGenerationStart).count()/1000000.0;
                 auto x = ReadGraph::generateStructuredEmbedding(embedding_space, tmp);
 
 
@@ -552,7 +557,7 @@ void ConfigurationFile::run() {
                         << query.first.size() << ','
                         << strategyName << ','
                         << 0.0 << ','
-                     << "VPTree+Embedding," << transformedQuery << ",,0" << std::endl;
+                     << "VPTree+Embedding," << toAdd+transformedQuery << ",,0" << std::endl;
 
 
 
@@ -571,7 +576,7 @@ void ConfigurationFile::run() {
                      << query.first.size() << ','
                      << strategyName << ','
                      << 0.0 << ','
-                     << "VPKDTreeMinkowski+Embedding," << transformedQueryProposed << ",,0" << std::endl;
+                     << "VPKDTreeMinkowski+Embedding," << toAdd+transformedQueryProposed << ",,0" << std::endl;
             }
 
 
