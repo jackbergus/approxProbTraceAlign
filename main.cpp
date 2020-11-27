@@ -22,15 +22,19 @@
 
 #include <iomanip>
 #include "ConfigurationFile.h"
+#include "PetriNet.h"
 #include <utils/xml_utils.h>
 #include <QtWidgets/QApplication>
 #include <gui/WSettings.h>
 #include <args.hxx>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <regex>
 
 
 int main(int argc, char* argv[]) {
+
+#if 1
 
     args::ArgumentParser parser("FuzzyStringMatching (2) (c) 2020-2021 by Giacomo Bergami.", "This free and open software program implements the (Approximate) Probabilistic Trace Alignment. Youse at your own risk.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
@@ -82,4 +86,100 @@ int main(int argc, char* argv[]) {
         std::cout << parser;
     }
     return 0;
+#else
+
+    /*PetriNet pn;
+    pn.places = {0,1,2,3,4,5,6};
+    pn.transitions = {7,8,9,10,11,12};
+    pn.transition_labelling[7] = "t1";
+    pn.transition_labelling[8] = "t2";
+    pn.transition_labelling[9] = "t3";
+    pn.transition_labelling[10] = "t4";
+    pn.transition_labelling[11] = "t5";
+    pn.transition_labelling[12] = "t6";
+    pn.firing_weight[7] = 1.0;
+    pn.firing_weight[8] = 1.0;
+    pn.firing_weight[9] = 1.0;
+    pn.firing_weight[10] = 1.0;
+    pn.firing_weight[11] = 1.0;
+    pn.firing_weight[12] = 1.0;
+    PetriNet::Marking m0 = {1,0,0,0,0,0,0};
+    assert(pn.places.size() == m0.size());
+    pn.w_set_cost(0, 7,1);
+
+    pn.w_set_cost(1, 8,1);
+    pn.w_set_cost(1, 11,1);
+
+    pn.w_set_cost(2, 10,1);
+
+    pn.w_set_cost(3, 12,1);
+
+    pn.w_set_cost(4, 9,1);
+
+    pn.w_set_cost(5, 12,1);
+
+    pn.w_set_cost(7, 1,1);
+    pn.w_set_cost(7, 4,1);
+
+    pn.w_set_cost(8, 2,1);
+
+    pn.w_set_cost(9, 5,1);
+
+    pn.w_set_cost(10, 3,1);
+
+    pn.w_set_cost(11, 3,1);
+
+    pn.w_set_cost(12, 6,1);
+
+    pn.generateOutgoingForReachabilityGraph({0, 1, 0, 0, 1, 0, 0});
+
+    // aFTER BUilding the petri net up, setting up the Reachability of it
+    const auto rg = pn.generateReachabilityGraph(m0);
+
+
+    PetriNet::MetaReachabilityGraph mrg;
+    size_t eSize_plusOne = 1;
+    for (const auto& cp : rg.outgoingEdges) {
+        for (const auto& e : cp.second) {
+            mrg.node_id_assoc.put(eSize_plusOne++, std::make_pair(cp.first, std::make_pair(e.second, e.first)));
+            eSize_plusOne++;
+        }
+    }
+    for (const auto& cp : rg.outgoingEdges) {
+        for (const auto& e : cp.second) {
+            const auto it = rg.outgoingEdges.find(e.first);
+            if (it != rg.outgoingEdges.end()) {
+                for (const auto& e2 : it->second) {
+                    mrg.outgoingEdges[mrg.node_id_assoc.getKey(std::make_pair(cp.first, std::make_pair(e.second, e.first)))]
+                                     [mrg.node_id_assoc.getKey(std::make_pair(e.first, std::make_pair(e2.second, e2.first)))] = e.first;
+                }
+            }
+        }
+    }
+    if (doAddIState(rg, m0)) {
+        mrg.initialEState = {0};
+        for (const auto& e : rg.outgoingEdges.at(m0)) {
+            mrg.outgoingEdges[0][mrg.node_id_assoc.getKey(std::make_pair(m0, std::make_pair(e.second, e.first)))] = e.first;
+        }
+    }
+    const auto fs = getFinalState(rg);
+    if (doAddFState(rg, fs)) {
+        mrg.finalEState = {eSize_plusOne};
+        for (const auto& out : rg.outgoingEdges) {
+            const auto it = out.second.find(fs);
+            if (it != out.second.end()) {
+                mrg.outgoingEdges[mrg.node_id_assoc.getKey(std::make_pair(out.first, std::make_pair(it->second, it->first)))][eSize_plusOne] = it->first;
+            }
+        }
+    }
+
+    */
+    ///load_pnml("/home/giacomo/Immagini/split-miner-2.0/sepsis_23000000.pnml");
+
+
+    load_pnml("/home/giacomo/Immagini/split-miner-2.0/sepsis_10000000.pnml");
+
+
+
+#endif
 }

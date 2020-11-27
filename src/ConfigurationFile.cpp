@@ -175,7 +175,7 @@ void ConfigurationFile::run() {
             break;
     }
     graph.removeSolitaryNodes();
-    graph.render((this->results_folder / "graph_01_input.pdf").c_str());
+    //////graph.render((this->results_folder / "graph_01_input.pdf").c_str());
     bool rememberToLog = false;
     bool useEstimator = false;
 
@@ -248,7 +248,7 @@ void ConfigurationFile::run() {
             graph.transfer_weight_from_nodes_to_edges();
             auto now = std::chrono::steady_clock::now();
             std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
-            graph.render((this->results_folder / "graph_02_weight_transfer.pdf").c_str());
+            //////graph.render((this->results_folder / "graph_02_weight_transfer.pdf").c_str());
         }
     }
 
@@ -258,7 +258,7 @@ void ConfigurationFile::run() {
         graph.doClosure(epsilon);
         auto now = std::chrono::steady_clock::now();
         std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
-        graph.render((this->results_folder / "graph_03_e-closed.pdf").c_str());
+        //////graph.render((this->results_folder / "graph_03_e-closed.pdf").c_str());
     }
 
 
@@ -270,9 +270,9 @@ void ConfigurationFile::run() {
         for (const auto& id : graph.getNodes()) {
             graph.updateNodeWeight(id, we.getNodeWeight(id, this->estimator_type));
         }
-        graph.render((this->results_folder / "graph_04_estimator.pdf").c_str());
+        //////graph.render((this->results_folder / "graph_04_estimator.pdf").c_str());
         graph.transfer_weight_from_nodes_to_edges();
-        graph.render((this->results_folder / "graph_04_estimator_transfer.pdf").c_str());
+        //////graph.render((this->results_folder / "graph_04_estimator_transfer.pdf").c_str());
         auto now = std::chrono::steady_clock::now();
         std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
     }

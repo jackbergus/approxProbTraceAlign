@@ -140,11 +140,11 @@ namespace spd_we {
                     key_pair.second = label;
                     double S = 0.0;
                     for (const auto& in : graph->ingoing(id)) {
-                        for (const auto& in2 : graph->ingoing(in.first)) {
-                            std::string label2 = graph->getNodeLabel(in2.first);
+                        //for (const auto& in2 : graph->ingoing(in.first)) {
+                            std::string label2 = graph->getNodeLabel(in/*2*/.first);
                             key_pair.first = label2;
                             S += pq.at(key_pair);
-                        }
+                        //}
                     }
                     return std::max(1.0, qi.at(label)+qf.at(label)+S);
                 }
@@ -153,11 +153,11 @@ namespace spd_we {
                     key_pair.first = label;
                     double S = 0.0;
                     for (const auto& in : graph->outgoing(id)) {
-                        for (const auto& in2 : graph->outgoing(in.first)) {
-                            std::string label2 = graph->getNodeLabel(in2.first);
+                        for (const auto& in2 : graph->outgoing(in.first)) {// TODO:REMOVE
+                            std::string label2 = graph->getNodeLabel(in2.first);// TODO: change in2 to in
                             key_pair.second = label2;
                             S += pq.at(key_pair);
-                        }
+                        }// TODO:REMOVE
                     }
                     return std::max(1.0, qi.at(label)+qf.at(label)+S);
                 }
@@ -170,11 +170,11 @@ namespace spd_we {
                     key_pair.first = label;
                     double S = 0.0;
                     for (const auto& in : graph->outgoing(id)) {
-                        for (const auto& in2 : graph->outgoing(in.first)) {
-                            std::string label2 = graph->getNodeLabel(in2.first);
+                        //for (const auto& in2 : graph->outgoing(in.first)) {
+                            std::string label2 = graph->getNodeLabel(in/*2*/.first);
                             key_pair.second = label2;
                             S += pq.at(key_pair);
-                        }
+                        //}
                     }
                     double result = ( qi.at(label)+qf.at(label)+S)*T/L;
                     return (result <= std::numeric_limits<double>::epsilon()) ? 0.0 : result;
