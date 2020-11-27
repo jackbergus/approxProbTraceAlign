@@ -29,6 +29,8 @@
 #include <unordered_map>
 #include <utils/pair_hash.h>
 #include "LabelledPathVisitingStrategy.h"
+#include <chrono>
+using namespace std::chrono;
 //#define NEW_DEFINITION
 
 /**
@@ -65,6 +67,7 @@ struct OnlyTransitiveEdgesCost : public LabelledPathVisitingStrategy {
      * @param value     Value associated to the path
      */
     virtual void acceptMultiedge(const std::string& left, const std::string& right, double value) override {
+        steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
         if ((left != varepsilon) && (right != varepsilon)) {
             if (use_new_definition) {
                 auto itE = L_node_frequency.insert(std::make_pair(left, 1));
@@ -75,12 +78,14 @@ struct OnlyTransitiveEdgesCost : public LabelledPathVisitingStrategy {
             auto it = currentEdgeStep.insert(std::make_pair(std::make_pair(left, right), value));
             if (!it.second) it.first->second += value;
         }
+        benchmark_time += duration_cast<std::chrono::nanoseconds>(steady_clock::now() - vpTreeTransformedStartQuery).count()/1000000.0;
     }
 
     /**
      * Finalizes the map by dividing for the possible elements associated to the path
      */
     virtual void nextEdgeIteration() override {
+        steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
         for (auto& it : currentEdgeStep) {
             const std::pair<std::string, std::string>& cp = it.first;
             double normalization;
@@ -103,6 +108,7 @@ struct OnlyTransitiveEdgesCost : public LabelledPathVisitingStrategy {
         } else {
             edge_summation = 0;
         }
+        benchmark_time += duration_cast<std::chrono::nanoseconds>(steady_clock::now() - vpTreeTransformedStartQuery).count()/1000000.0;
     }
 
     /**
@@ -110,19 +116,24 @@ struct OnlyTransitiveEdgesCost : public LabelledPathVisitingStrategy {
      *
      * @param weight        Weight associated to the graph
      */
-    virtual void finalize(double weight) override {
+    virtual double finalize(double weight) override {
+        steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
         double S = 0; // Define a probability distribution over the all components: we need to normalize their values. Summing up all the results
         for (const auto& it : pair_embedding) {
             S += (it.second * it.second);
         }
-        if (S <= std::numeric_limits<double>::epsilon())
-            S = std::numeric_limits<double>::epsilon();
+        if (S <= machine_epsilon)
+            S = machine_epsilon;
         ///std::cerr << S << std::endl;
         for (auto& it : pair_embedding) {
             const double normalized_over_current_length_distribution = (it.second / S) ; // Normalization of the component
             const double weight_the_resulting_value_with_the_graph_s_weight = normalized_over_current_length_distribution * weight; // Multiplying by weight, so that if all the elegible criteria are met, the desired probability is returned
             it.second = weight_the_resulting_value_with_the_graph_s_weight;
         }
+        benchmark_time += duration_cast<std::chrono::nanoseconds>(steady_clock::now() - vpTreeTransformedStartQuery).count()/1000000.0;
+        double cpy = 0.0;
+        std::swap(benchmark_time, cpy);
+        return cpy;
     }
 
 

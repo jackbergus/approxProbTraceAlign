@@ -53,26 +53,46 @@ struct TransitiveClosureGraphStrategy : public GraphEmbeddingStrategy {
         } else if (max_length < 0) {
             max_length = maxPath;
         }
-        assert(max_length >= 0);
+        ///assert(max_length >= 0);
         T it{varepsilon, embedding, tuning, lambda, max_length};
         ///double tmp = 1.0;
         ///std::swap(tmp, rg.weight);
+        double itWithMethodInvocation = 0.0;
+        steady_clock::time_point queryTransformationToVectorTimeStart = steady_clock::now();
         for (const auto& path : rg.iterateOverPaths(false, maxPath, std::numeric_limits<double>::epsilon()*2)) {
             ///std::cout << path << std::endl;
             for (const auto& nodeId : path.actualPath) {
-                if (rg.inv_label_conversion.at(nodeId) != varepsilon)
-                    it.acceptNode(rg.inv_label_conversion.at(nodeId), 1.0);
+                auto x = rg.inv_label_conversion.at(nodeId);
+                if (x != varepsilon) {
+                    steady_clock::time_point queryTransformationToVectorTimeStart = steady_clock::now();
+                    it.acceptNode(x, 1.0);
+                    steady_clock::time_point queryTransformationToVectorTimeEnd = steady_clock::now();
+                    double transformedQuery = duration_cast<std::chrono::nanoseconds>(queryTransformationToVectorTimeEnd - queryTransformationToVectorTimeStart).count()/1000000.0;
+                    itWithMethodInvocation+= transformedQuery;
+                }
             }
+            steady_clock::time_point queryTransformationToVectorTimeStart = steady_clock::now();
             it.nextNodeIteration(1.0);
+            steady_clock::time_point queryTransformationToVectorTimeEnd = steady_clock::now();
+            double transformedQuery = duration_cast<std::chrono::nanoseconds>(queryTransformationToVectorTimeEnd - queryTransformationToVectorTimeStart).count()/1000000.0;
+            itWithMethodInvocation+= transformedQuery;
         }
         ///std::swap(tmp, rg.weight);
         size_t i = 0;
         while ((current.nonZeros() > 0) && ((i++) != maxPath)) {
             matrix_iterator<T>(current, rg.inv_label_conversion, it);
             it.nextEdgeIteration();
+            steady_clock::time_point queryTransformationToVectorTimeStart = steady_clock::now();
+            steady_clock::time_point queryTransformationToVectorTimeEnd = steady_clock::now();
+            double transformedQuery = duration_cast<std::chrono::nanoseconds>(queryTransformationToVectorTimeEnd - queryTransformationToVectorTimeStart).count()/1000000.0;
+            itWithMethodInvocation+= transformedQuery;
             current = current * rg.A;
         }
-        it.finalize(rg.weight);
+        double totalTimeExtimation = it.finalize(rg.weight);
+        double tareItExtimation = totalTimeExtimation - itWithMethodInvocation;
+        steady_clock::time_point queryTransformationToVectorTimeEnd = steady_clock::now();
+        double transformedQuery = duration_cast<std::chrono::nanoseconds>(queryTransformationToVectorTimeEnd - queryTransformationToVectorTimeStart).count()/1000000.0;
+        benchmarking_time += (transformedQuery-tareItExtimation);
         return embedding;
     }
 

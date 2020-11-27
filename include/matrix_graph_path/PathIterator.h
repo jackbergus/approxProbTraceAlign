@@ -96,31 +96,6 @@ public:
 
     PathIterator& operator=(const PathIterator&) = default;
 
-    /*void enumeratePath(int currentNode, int destination, std::vector<bool> &visited, std::vector<size_t> &path, double probabilisticPath) {
-        if (!visitLoops) visited[currentNode] = true;
-        path.emplace_back(currentNode);
-
-
-        // If current vertex is same as destination, then print
-        if ((currentNode == destination) || (approximatelyLessEqual(probabilisticPath, minimumPathCost)) || (maxPathLength == visited.size())) {
-
-        }
-        else // If current vertex is not destination
-        {
-            for (Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(A, currentNode); it; ++it)
-            {
-                assert(it.row() == currentNode);
-                size_t dst = it.col();
-                if (!visited[dst])
-                    enumeratePath(dst, destination, visited, path, probabilisticPath * it.value());
-            }
-        }
-
-        // Remove current vertex from path[] and mark it as unvisited
-        path.pop_back();
-        if (!visitLoops) visited[currentNode] = false;
-    }*/
-
     /**
      * Initializes the iterator
      * @param currNode              Where to start the visit

@@ -43,7 +43,8 @@ template <typename BenchmarkKey> struct Ranking {
     ~Ranking() {}
 
     void addScore(const BenchmarkKey& element, double score) {
-        assert(scoring.insert(std::make_pair(element, score)).second);
+        scoring.insert(std::make_pair(element, score));
+        ///assert(scoring.insert(std::make_pair(element, score)).second);
         orderedList[score].emplace_back(element);
         localS.insert(element);
         summation += score;
