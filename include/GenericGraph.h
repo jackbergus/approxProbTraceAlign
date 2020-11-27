@@ -27,6 +27,7 @@
 #define FUZZYSTRINGMATCHING2_GENERICGRAPH_H
 
 #include <unordered_map>
+#include <map>
 #include <vector>
 #include <ostream>
 #include <utils/pair_hash.h>
@@ -37,6 +38,8 @@
 #include <graphviz/gvc.h>
 #include <graphviz/cgraph.h>
 #include <sstream>
+#include <fstream>
+#include <boost/unordered_map.hpp>
 
 /*extern gvplugin_library_t gvplugin_dot_layout_LTX_library;
 extern gvplugin_library_t gvplugin_neato_layout_LTX_library;
@@ -45,9 +48,9 @@ extern gvplugin_library_t gvplugin_quartz_LTX_library;*/
 
 template <typename id_type>
 class GenericGraph {
-    std::unordered_map<id_type, std::vector<std::pair<id_type, double>>> outgoingEdges;
-    std::unordered_map<id_type, std::vector<std::pair<id_type, double>>> ingoingEdges;
-    std::unordered_map<id_type, std::pair<std::string, double>>          node_labelled_weighted;
+    boost::unordered_map<id_type, std::vector<std::pair<id_type, double>>> outgoingEdges;
+    boost::unordered_map<id_type, std::vector<std::pair<id_type, double>>> ingoingEdges;
+    boost::unordered_map<id_type, std::pair<std::string, double>>          node_labelled_weighted;
     id_type start;
     id_type end;
     double weight;
@@ -57,16 +60,56 @@ class GenericGraph {
     bool epsilonClosure(const std::string& epsilon = ".") {
         std::vector<id_type> epsilons;
         bool  someChange = false;
+
+        ///if (!someChange) {
+
+            for (auto it = node_labelled_weighted.cbegin(), en = node_labelled_weighted.cend(); it != en;) {
+                if ((it->first != start) &&
+                    (it->first != end) &&
+                    (it->second.first == epsilon)) {
+                    size_t eps = it->first;
+                    std::cout << eps << "... Ok!" << std::endl;
+                    std::vector<std::pair<id_type, double>> outs = outgoing(eps);
+                    std::vector<std::pair<id_type, double>> ins = ingoing(eps);
+                    for (const auto& e : outs) remove_edge(eps, e.first);
+                    for (const auto& e : ins)  remove_edge(e.first, eps);
+                    it = node_labelled_weighted.erase(it);
+                    if (!someChange) someChange = someChange || ((!outs.empty()) && (!ins.empty()));
+                    for (const auto& tgt: outs) {
+                        for (const auto& src: ins) {
+                            add_edge(src.first, tgt.first, src.second * tgt.second);
+                        }
+                    }
+                    //if (someChange) break;
+                } else {
+                    it++;
+                    //std::cout << std::endl;
+                }
+            }
+        ///}
+
+        if (someChange) return someChange;
+
         size_t neu_start = start, neu_end = end;
         if ((node_labelled_weighted.at(start).first == epsilon) && (outgoing(start).size() == 1)) {
-            auto cp = outgoingEdges.at(start)[0];
-            neu_start = cp.first;
-            remove_edge(start, neu_start);
-            node_labelled_weighted.erase(start);
-            weight *= cp.second;
-            someChange = true;
+            auto curr = outgoingEdges.at(start)[0];
+            if (ingoing(start).empty()) {
+                neu_start = curr.first;
+                remove_edge(start, neu_start);
+                node_labelled_weighted.erase(start);
+                weight *= curr.second;
+                someChange = true;
+            } else {
+                /*auto veccp = ingoing(start);
+                for (const auto& cp : veccp) {
+                    remove_edge(cp.first, start);
+                    add_edge(cp.first, curr.first, cp.second * curr.second);
+                }
+                someChange = true;*/
+            }
         }
         if ((node_labelled_weighted.at(end).first == epsilon) && (ingoing(end).size() == 1)) {
+            assert((outgoing(end).empty()));
             auto cp = ingoingEdges.at(end)[0];
             neu_end = cp.first;
             remove_edge(neu_end, end);
@@ -75,27 +118,6 @@ class GenericGraph {
             someChange = true;
         }
 
-        if (!someChange) {
-            for (auto it = node_labelled_weighted.begin(), en = node_labelled_weighted.end(); it != en && (!someChange); it++) {
-                if ((it->first != start) &&
-                    (it->first != end) &&
-                    (it->second.first == epsilon)) {
-                    size_t eps = it->first;
-                    std::vector<std::pair<id_type, double>> outs = outgoing(eps);
-                    std::vector<std::pair<id_type, double>> ins = ingoing(eps);
-                    for (const auto& e : outs) remove_edge(eps, e.first);
-                    for (const auto& e : ins)  remove_edge(e.first, eps);
-                    node_labelled_weighted.erase(eps);
-                    someChange = (!outs.empty()) && (!ins.empty());
-                    for (const auto& tgt: outs) {
-                        for (const auto& src: ins) {
-                            add_edge(src.first, tgt.first, src.second * tgt.second);
-                        }
-                    }
-                    if (someChange) break;
-                }
-            }
-        }
         start = neu_start;
         end = neu_end;
         return someChange;
@@ -310,6 +332,25 @@ public:
     }
 
 
+    void print(const std::string& filename) {
+        std::ofstream file{filename};
+        std::unordered_map<id_type, std::string> nodes;
+        file << "start: " << start << " end:" << end << std::endl;
+        for (const auto& n : node_labelled_weighted) {
+            std::string label = n.second.first + " [w=" + std::to_string(n.second.second) +", id=" + std::to_string(n.first) +"]";
+            std::string id = std::to_string(n.first);
+            file << "vertex id: " << id << " label: " << label <<std::endl;
+            nodes.emplace(n.first, id);
+        }
+        for (const auto& n : node_labelled_weighted) {
+            for (const auto& out : outgoing(n.first)) {
+                ///assert(node_labelled_weighted.find(out.first) != node_labelled_weighted.end());
+                file << "edge " << n.first << "[" << n.second.first << "," << n.second.second << "]" << "-->" << out.first << std::endl;
+            }
+        }
+    }
+
+
     bool render(const std::string& filename = "rendertest.pdf") {
         std::string str;
         {
@@ -325,9 +366,11 @@ public:
                 }
                 for (const auto& n : node_labelled_weighted) {
                     for (const auto& out : outgoing(n.first)) {
-                        std::cerr << n.first << "[" << n.second.first << "," << n.second.second << "]" << "-->" << out.first << std::endl;
+                        assert(node_labelled_weighted.find(out.first) != node_labelled_weighted.end());
+                        //std::cerr << n.first << "[" << n.second.first << "," << n.second.second << "]" << "-->" << out.first << std::endl;
                         render.addEdge(render.getNode(nodes.at(n.first)), render.getNode(nodes.at(out.first)), std::to_string(out.second));
                     }
+
                 }
                 oss << render;
                 ///renderToFile(render, "dot", "x11");

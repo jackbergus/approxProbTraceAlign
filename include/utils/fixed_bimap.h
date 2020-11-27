@@ -48,6 +48,10 @@ template <typename K, typename V> class fixed_bimap {
     size_t size = 0;
 
 public:
+    fixed_bimap() = default;
+    fixed_bimap(const fixed_bimap<K, V>&) = default;
+    fixed_bimap& operator=(const fixed_bimap<K, V>&) = default;
+
     /**
      * Always assumes that the key and the value are always with a bimap.
      * This method is implemented to reduce the amounts of checks for a boolean variable.
@@ -85,16 +89,28 @@ public:
         }
     }
 
-    V getValue(K key) {
-        std::ostringstream oss{};
-        oss << "k_" << key;
-        return elements[map[oss.str()]].second;
-    }
-
-    K getKey(V value) {
+    bool containsValue(V value) {
         std::ostringstream vos{};
         vos << "v_" << value;
-        return elements[map[vos.str()]].first;
+        return map.find(vos.str()) != map.end();
+    }
+
+    bool containsKey(K key) {
+        std::ostringstream oss{};
+        oss << "k_" << key;
+        return map.find(oss.str()) != map.end();
+    }
+
+    V getValue(K key) const {
+        std::ostringstream oss{};
+        oss << "k_" << key;
+        return elements.at(map.at(oss.str())).second;
+    }
+
+    K getKey(V value) const {
+        std::ostringstream vos{};
+        vos << "v_" << value;
+        return elements.at(map.at(vos.str())).first;
     }
 
     const std::vector<std::pair<K, V>>& getElements() const { return elements; }
