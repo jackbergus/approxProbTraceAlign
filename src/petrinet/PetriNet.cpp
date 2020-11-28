@@ -2,7 +2,7 @@
 // Created by giacomo on 24/11/20.
 //
 
-#include "PetriNet.h"
+#include "petrinet/PetriNet.h"
 
 size_t PetriNet::w_cost(size_t p, size_t t)  {
     auto it = omega.find(p);
@@ -15,7 +15,7 @@ void PetriNet::w_set_cost(size_t p, size_t t, size_t cost) {
     omega[p][t] = cost;
 }
 
-bool PetriNet::is_transition_enabled(size_t transition_id, const PetriNet::Marking &marking)  {
+bool PetriNet::is_transition_enabled(size_t transition_id, const Marking &marking)  {
     assert((places.size()) == marking.size());
     for (const size_t& place_id : places) {
         if (marking[(place_id)] < w_cost(place_id, transition_id)) return false;
@@ -23,7 +23,7 @@ bool PetriNet::is_transition_enabled(size_t transition_id, const PetriNet::Marki
     return true;
 }
 
-std::unordered_set<size_t> PetriNet::enabling_transitions(const PetriNet::Marking &marking)  {
+std::unordered_set<size_t> PetriNet::enabling_transitions(const Marking &marking)  {
     assert((places.size()) == marking.size());
     std::unordered_set<size_t> result;
     for (const size_t& place_id : places) {
@@ -36,7 +36,7 @@ std::unordered_set<size_t> PetriNet::enabling_transitions(const PetriNet::Markin
     return result;
 }
 
-PetriNet::Transition_to_Marking PetriNet::generateOutgoingForReachabilityGraph(const PetriNet::Marking &marking)  {
+Transition_to_Marking PetriNet::generateOutgoingForReachabilityGraph(const Marking &marking)  {
     Transition_to_Marking transitionToMarking;
     for (const size_t& transition: enabling_transitions(marking)) {
         ///std::cout << '*' << transition << std::endl;
@@ -56,7 +56,7 @@ PetriNet::Transition_to_Marking PetriNet::generateOutgoingForReachabilityGraph(c
     return transitionToMarking;
 }
 
-PetriNet::ReachabilityGraph PetriNet::generateReachabilityGraph(const PetriNet::Marking &m0) {
+ReachabilityGraph PetriNet::generateReachabilityGraph(const Marking &m0) {
     ReachabilityGraph rg;
     rg.initialState = m0;
     std::queue<Marking> q;
@@ -101,7 +101,7 @@ PetriNet::ReachabilityGraph PetriNet::generateReachabilityGraph(const PetriNet::
 
 #include <fstream>
 
-PetriNet::MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const PetriNet::Marking &m0) {
+MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Marking &m0) {
     std::cerr << "Generating the reachability graph... " << std::flush;
     auto rg = generateReachabilityGraph(m0);
 
@@ -112,12 +112,12 @@ PetriNet::MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Pe
 
     std::cerr << "done!" << std::endl << "Generating the Transition Graph from it... " << std::flush;
 
-    PetriNet::MetaReachabilityGraph mrg;
+    MetaReachabilityGraph mrg;
     // Defining the vertices and their labelling from the graph's nodes
     size_t eSize_plusOne = 1;
     for (const auto& cp : rg.outgoingEdges) {
         for (const auto& e : cp.second) {
-            mrg.node_id_assoc.put(eSize_plusOne++, std::make_pair(cp.first, e));
+            mrg.node_id_assoc.put(eSize_plusOne++, {cp.first, e});
             eSize_plusOne++;
         }
     }
@@ -127,8 +127,8 @@ PetriNet::MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Pe
             const auto it = rg.outgoingEdges.find(e.adjacentVertexId);
             if (it != rg.outgoingEdges.end()) {
                 for (const auto& e2 : it->second) {
-                    mrg.outgoingEdges[mrg.node_id_assoc.getKey(std::make_pair(v_out.first, e))]
-                        .emplace( e.adjacentVertexId, mrg.node_id_assoc.getKey(std::make_pair(e.adjacentVertexId, e2)));
+                    mrg.outgoingEdges[mrg.node_id_assoc.getKey({v_out.first, e})]
+                        .emplace( e.adjacentVertexId, mrg.node_id_assoc.getKey({e.adjacentVertexId, e2}));
                 }
             }
         }
@@ -138,13 +138,13 @@ PetriNet::MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Pe
         mrg.isInitialEStateAddedAfterwards = true;
         for (const auto& e : rg.outgoingEdges.at(m0)) {
             mrg.outgoingEdges[0]
-               .emplace( e.adjacentVertexId, mrg.node_id_assoc.getKey(std::make_pair(m0, e)));
+               .emplace( e.adjacentVertexId, mrg.node_id_assoc.getKey({m0, e}));
         }
     } else { // Otherwise, use the first edge
         const auto e = rg.outgoingEdges.at(m0);
         mrg.isInitialEStateAddedAfterwards = false;
         assert(e.size() == 1);
-        mrg.initialEState = mrg.node_id_assoc.getKey(std::make_pair(m0, *e.begin()));
+        mrg.initialEState = mrg.node_id_assoc.getKey({m0, *e.begin()});
         for (const auto& u : rg.outgoingEdges) {
             for (const auto& e : u.second) {
                 assert(e.adjacentVertexId != m0);
@@ -161,7 +161,7 @@ PetriNet::MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Pe
             if (it != out.second.end()) {
             }*/
             mrg.outgoingEdges[mrg.node_id_assoc.getKey(out)]
-               .emplace(out.second.adjacentVertexId, eSize_plusOne);
+               .emplace(out.edgeTarget.adjacentVertexId, eSize_plusOne);
         }
     } else if (fs.size() == 1) {
         auto it = fs.begin();
@@ -210,12 +210,12 @@ PetriNet::MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Pe
     return mrg;
 }
 
-bool doAddIState(const PetriNet::ReachabilityGraph &rg, const PetriNet::Marking &m0) {
+bool doAddIState(const ReachabilityGraph &rg, const Marking &m0) {
     return rg.outgoingEdges.find(m0)->second.size() > 1;
 }
 
-std::set<PetriNet::ReachabilityGraphEdge> getFinalState(const PetriNet::ReachabilityGraph &rg) {
-    std::set<PetriNet::Marking > finalStates;
+std::set<RGEdge<size_t,Marking>> getFinalState(const ReachabilityGraph &rg) {
+    std::set<Marking > finalStates;
     for (const auto& state : rg.allStates) {
         const auto it = rg.outgoingEdges.find(state);
         if (it == rg.outgoingEdges.cend() || it->second.empty()) {
@@ -223,18 +223,18 @@ std::set<PetriNet::ReachabilityGraphEdge> getFinalState(const PetriNet::Reachabi
             ///assert(finalStates.size() == 1);
         }
     }
-    std::set<PetriNet::ReachabilityGraphEdge> toReturn;
+    std::set<RGEdge<size_t,Marking>> toReturn;
     for (const auto& src : rg.outgoingEdges) {
         for (const auto& outE : src.second) {
             if (finalStates.find(outE.adjacentVertexId) != finalStates.end()) {
-                toReturn.insert( std::make_pair(src.first, outE));
+                toReturn.emplace( src.first, outE);
             }
         }
     }
     return toReturn;
 }
 
-bool doAddFState(const PetriNet::ReachabilityGraph &rg, const PetriNet::Marking &f0) {
+bool doAddFState(const ReachabilityGraph &rg, const Marking &f0) {
     assert(false);
     /*size_t countForFinal = 0;
     for (const auto& cp : rg.outgoingEdges) {
@@ -245,21 +245,8 @@ bool doAddFState(const PetriNet::ReachabilityGraph &rg, const PetriNet::Marking 
     return countForFinal != 1;*/
 }
 
-#include <iterator> // needed for std::ostram_iterator
-std::ostream &operator<<(std::ostream &out, const  std::vector<size_t> &v) {
-    out << '(';
-    if ( !v.empty() ) {
-        std::copy (v.begin(), v.end(), std::ostream_iterator<size_t>(out, ","));
-    }
-    out << ")";
-    return out;
-}
 
-std::ostream &operator<<(std::ostream &out, const PetriNet::ReachabilityGraphEdge &e) {
-    return out << e.first << "-[" << e.second.edgeLabel << "]->" << e.second.adjacentVertexId;
-}
-
-std::ostream &operator<<(std::ostream &out, const PetriNet::Transition_to_Marking &v) {
+std::ostream &operator<<(std::ostream &out, const Transition_to_Marking &v) {
     out << '{';
     if ( !v.empty() ) {
         for (const auto& cp : v) {
@@ -270,11 +257,3 @@ std::ostream &operator<<(std::ostream &out, const PetriNet::Transition_to_Markin
     return out;
 }
 
-std::ostream &PetriNet::ReachabilityGraph::print(std::ostream &os, const std::unordered_map<size_t, std::string> &tl) {
-    for (const auto& it : outgoingEdges) {
-        for (const auto &it2 : it.second) {
-            os << it.first << "-[" << tl.at(it2.edgeLabel) << "]->" << it2.adjacentVertexId << std::endl;
-        }
-    }
-    return os;
-}

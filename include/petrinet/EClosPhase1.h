@@ -1,0 +1,17 @@
+//
+// Created by giacomo on 28/11/20.
+//
+
+#ifndef FUZZYSTRINGMATCHING2_ECLOSPHASE1_H
+#define FUZZYSTRINGMATCHING2_ECLOSPHASE1_H
+
+
+
+class EClosPhase1 {
+
+
+
+};
+
+
+#endif //FUZZYSTRINGMATCHING2_ECLOSPHASE1_H

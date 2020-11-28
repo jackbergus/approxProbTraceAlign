@@ -22,7 +22,7 @@
 
 #include <iomanip>
 #include "ConfigurationFile.h"
-#include "PetriNet.h"
+#include "petrinet/PetriNet.h"
 #include <utils/xml_utils.h>
 #include <QtWidgets/QApplication>
 #include <gui/WSettings.h>
@@ -30,11 +30,11 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <regex>
-
+#include <fstream>
 
 int main(int argc, char* argv[]) {
 
-#if 1
+#if 0
 
     args::ArgumentParser parser("FuzzyStringMatching (2) (c) 2020-2021 by Giacomo Bergami.", "This free and open software program implements the (Approximate) Probabilistic Trace Alignment. Youse at your own risk.");
     args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
@@ -177,9 +177,29 @@ int main(int argc, char* argv[]) {
     ///load_pnml("/home/giacomo/Immagini/split-miner-2.0/sepsis_23000000.pnml");
 
 
-    load_pnml("/home/giacomo/Immagini/split-miner-2.0/sepsis_10000000.pnml");
-
-
+    auto graph = load_pnml("/home/giacomo/Immagini/split-miner-2.0/sepsis_23000000.pnml")[0];
+    std::cerr << "Weight transfer" << std::endl;
+    graph.transfer_weight_from_nodes_to_edges();
+    std::cerr << "Closure" << std::endl;
+    graph.doClosure(".");
+    ReadGraph    finalGraph;
+    std::cerr << "Loading into the final format" << std::endl;
+    finalGraph.init(graph.nodes()+1, graph.countEdges(), graph.getStart(), graph.getEnd());
+    finalGraph.name = graph.getName();
+    std::cerr << " 1) Loading the vertices and outgoing edges" << std::endl;
+    for (const auto& n : graph.getNodes()) {
+        std::string s = graph.getNodeLabel(n);
+        std::replace( s.begin(), s.end(), ' ', '_');
+        finalGraph.addNode(n, s);
+        for (const auto& e : graph.outgoing(n)) {
+            finalGraph.addEdge(n, e.first, e.second);
+        }
+    }
+    std::cerr << " 2) Finalizing the representation" << std::endl;
+    finalGraph.finalizeEdgesMatrix(graph.getCost());
+    std::cerr << "Writing at last!" << std::endl;
+    std::ofstream save_preprocessing_step{"sepsis_23000000.txt"};
+    finalGraph.printStream(save_preprocessing_step);
 
 #endif
 }

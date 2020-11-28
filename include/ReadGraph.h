@@ -189,20 +189,14 @@ struct ReadGraph {
     generateGraphFromPath(const std::vector<size_t> &path, ReadGraph &rg, const std::unordered_map<size_t, std::string> &nodeLabelling,
                           Eigen::SparseMatrix<double, Eigen::RowMajor> &edge_weight_matrix);
 
-private:
-
-
-
-    void removeNode(size_t i);
-
 
     template <typename T> void printStream(T& obj) {
-        obj << "nodes: " << nodes << std::endl;
+        obj << "nodes: " << inv_label_conversion.size() << std::endl;
         obj << "edges: " << edges<< std::endl;
         obj << "source: " << source<< std::endl;
         obj << "target: " << target<< std::endl;
         obj << "weight: " << weight<< std::endl;
-        assert(inv_label_conversion.size() == nodes);
+        //assert(inv_label_conversion.size() == nodes);
         for (const auto& cp : inv_label_conversion)
             obj << cp.first << " " << cp.second<< std::endl;
         for (int k=0; k < A.outerSize(); ++k)
@@ -213,6 +207,14 @@ private:
             }
         }
     }
+
+private:
+
+
+
+    void removeNode(size_t i);
+
+
 
 
 

@@ -26,7 +26,7 @@
 #include <regex>
 #include <utils/xml_utils.h>
 #include "data_loading/load_pnml.h"
-#include "../../PetriNet.h"
+#include "petrinet/PetriNet.h"
 
 std::vector<GenericGraph<size_t>> load_pnml(const std::string &filename, const std::string &epsilon) {
     std::regex regex{"a\\d+"};
@@ -69,7 +69,7 @@ std::vector<GenericGraph<size_t>> load_pnml(const std::string &filename, const s
 
                 // Inferring the initial marking
                 std::cerr << "MaxSize " << nodeId << std::endl;
-                PetriNet::Marking marking(nodeId, 0);
+                Marking marking(nodeId, 0);
                 SIBLING_ITERATE_CHECK(spn_node, spn_page, "place", false) {
                         //if (strncmp(spn_node->name(), "place", spn_node->name_size()) == 0) {
                         rapidxml::xml_node<> * nodeLabel = GET_FIRST_CHILD(spn_node, "initialMarking");
@@ -165,16 +165,19 @@ std::vector<GenericGraph<size_t>> load_pnml(const std::string &filename, const s
                     }
                 }
 
-                std::cerr << "Removing Solitary Nodes (if any)... " << std::endl;
-                graph.removeSolitaryNodes();
-                std::cerr << "Transferring weight from nodes to edges... " << std::endl;
+                /*std::cerr << "Removing Solitary Nodes (if any)... " << std::endl;
                 graph.transfer_weight_from_nodes_to_edges();
+                std::cerr << "Do Closure... " << std::endl;
+                graph.doClosure(epsilon);*/
+                /*graph.removeSolitaryNodes();
+                std::cerr << "Transferring weight from nodes to edges... " << std::endl;
+
                 std::cerr << "Performing the e-closure... " << std::endl;
-                ///graph.print("out/03_ReadGraph.txt");
-                ///graph.doClosure(epsilon);
-                ///std::cerr << "Debug rendering... " << std::endl;
-                ///graph.print("out/04_closed.txt");
-                //graph.render("rendering_test.pdf");
+                //graph.print("out/03_ReadGraph.txt");
+                ///
+                std::cerr << "Debug rendering... " << std::endl;
+                //graph.print("out/04_closed.txt");
+                //graph.render("rendering_test.pdf");*/
             }
         }
     } else {

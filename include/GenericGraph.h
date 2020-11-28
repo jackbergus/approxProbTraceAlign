@@ -48,13 +48,14 @@ extern gvplugin_library_t gvplugin_quartz_LTX_library;*/
 
 template <typename id_type>
 class GenericGraph {
-    boost::unordered_map<id_type, std::vector<std::pair<id_type, double>>> outgoingEdges;
-    boost::unordered_map<id_type, std::vector<std::pair<id_type, double>>> ingoingEdges;
-    boost::unordered_map<id_type, std::pair<std::string, double>>          node_labelled_weighted;
+    std::unordered_map<id_type, std::vector<std::pair<id_type, double>>> outgoingEdges;
+    std::unordered_map<id_type, std::vector<std::pair<id_type, double>>> ingoingEdges;
+    std::unordered_map<id_type, std::pair<std::string, double>>          node_labelled_weighted;
     id_type start;
     id_type end;
     double weight;
     std::string name;
+
 
 
     bool epsilonClosure(const std::string& epsilon = ".") {
@@ -64,11 +65,12 @@ class GenericGraph {
         ///if (!someChange) {
 
             for (auto it = node_labelled_weighted.cbegin(), en = node_labelled_weighted.cend(); it != en;) {
+
                 if ((it->first != start) &&
                     (it->first != end) &&
                     (it->second.first == epsilon)) {
                     size_t eps = it->first;
-                    std::cout << eps << "... Ok!" << std::endl;
+                    //std::cout << eps << "... Ok!" << std::endl;
                     std::vector<std::pair<id_type, double>> outs = outgoing(eps);
                     std::vector<std::pair<id_type, double>> ins = ingoing(eps);
                     for (const auto& e : outs) remove_edge(eps, e.first);
@@ -125,9 +127,26 @@ class GenericGraph {
 
 
 public:
-    GenericGraph() {}
-    GenericGraph(const GenericGraph&) = default;
-    GenericGraph& operator=(const GenericGraph&) = default;
+    GenericGraph() {}    GenericGraph(const GenericGraph&x ) : outgoingEdges{x.outgoingEdges},
+                                                               ingoingEdges{x.ingoingEdges},
+                                                               node_labelled_weighted{x.node_labelled_weighted},
+                                                               start{x.start}, end{x.end}, weight{x.weight}, name{x.name}{
+
+    }
+    GenericGraph& operator=(const GenericGraph& x) {
+        outgoingEdges.clear();
+        for (const auto& y : x.outgoingEdges) outgoingEdges[y.first] = y.second;
+        ingoingEdges.clear();
+        for (const auto& y : x.ingoingEdges) ingoingEdges[y.first] = y.second;
+        node_labelled_weighted.clear();
+        for (const auto& y : x.node_labelled_weighted) node_labelled_weighted[y.first] = y.second;
+        start = x.start;
+        end = x.end;
+        weight = x.weight;
+        name = x.name;
+        return *this;
+    }
+
 
     std::vector<size_t> getNodes() const {
         std::vector<size_t> result;
