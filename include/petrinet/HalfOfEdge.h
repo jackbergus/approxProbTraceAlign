@@ -63,4 +63,37 @@ namespace std {
     };
 }
 
+template <typename EdgeLabelType, typename VertexIdType>
+struct HalfOfEdgeWithCost {
+    HalfOfEdge<EdgeLabelType, VertexIdType> halfEdge;
+    double cost;
+
+    HalfOfEdgeWithCost() {}
+    HalfOfEdgeWithCost(const HalfOfEdge<EdgeLabelType, VertexIdType> &edge, double cost) : halfEdge(edge), cost(cost) {}
+    HalfOfEdgeWithCost(const HalfOfEdgeWithCost&) = default;
+    HalfOfEdgeWithCost& operator=(const HalfOfEdgeWithCost&) = default;
+
+    bool operator<(const HalfOfEdgeWithCost &rhs) const {
+        if (halfEdge < rhs.halfEdge) return true;
+        if (rhs.halfEdge < halfEdge) return false;
+        return cost < rhs.cost;
+    }
+    bool operator>(const HalfOfEdgeWithCost &rhs) const  { return rhs < *this;    }
+    bool operator<=(const HalfOfEdgeWithCost &rhs) const { return !(rhs < *this); }
+    bool operator>=(const HalfOfEdgeWithCost &rhs) const { return !(*this < rhs); }
+    bool operator==(const HalfOfEdgeWithCost &rhs) const { return halfEdge == rhs.halfEdge && cost == rhs.cost; }
+    bool operator!=(const HalfOfEdgeWithCost &rhs) const { return !(rhs == *this); }
+};
+
+namespace std {
+    template <typename EdgeLabelType, typename VertexIdType>
+    struct hash<HalfOfEdgeWithCost<EdgeLabelType,VertexIdType>> {
+        std::size_t operator()(const HalfOfEdgeWithCost<EdgeLabelType,VertexIdType>& k) const {
+            std::hash<HalfOfEdge<EdgeLabelType, VertexIdType>> edgeHasher;
+            std::hash<double> costHasher;
+            return hash_combine(hash_combine(71, edgeHasher(k.halfEdge)), costHasher(k.cost));
+        }
+    };
+}
+
 #endif //FUZZYSTRINGMATCHING2_HALFOFEDGE_H

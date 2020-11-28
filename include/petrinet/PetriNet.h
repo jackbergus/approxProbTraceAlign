@@ -48,13 +48,9 @@ struct PetriNet {
     ///boost::unordered_map<size_t, Marking>  transitionToMarking;
 
     size_t w_cost(size_t p, size_t t) ;
-
     void w_set_cost(size_t p, size_t t, size_t cost);
-
     bool is_transition_enabled(size_t transition_id, const Marking& marking) ;
-
     std::unordered_set<size_t> enabling_transitions(const Marking& marking) ;
-
     Transition_to_Marking generateOutgoingForReachabilityGraph(const Marking& marking) ;
 
     /**
@@ -69,7 +65,7 @@ struct PetriNet {
      * @param m0    Initial state
      * @return      Transition Graph
      */
-    MetaReachabilityGraph generateMetaReachabilityGraph(const Marking& m0);
+    MetaReachabilityGraph generateMetaReachabilityGraph(const Marking& m0, const std::string& epsilon = ".");
 };
 
 

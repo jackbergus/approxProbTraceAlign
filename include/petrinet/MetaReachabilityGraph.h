@@ -15,7 +15,7 @@ struct MetaReachabilityGraph {
     size_t initialEState;
     size_t finalEState;
     bool isFinalEStateAddedAfterwards, isInitialEStateAddedAfterwards;
-    std::unordered_map<size_t, std::unordered_set<HalfOfEdge<Marking, size_t>>> outgoingEdges;
+    std::unordered_map<size_t, std::vector<HalfOfEdgeWithCost<Marking, size_t>>> outgoingEdges;
     fixed_bimap<size_t, RGEdge<size_t, Marking>> node_id_assoc;
 
     MetaReachabilityGraph() = default;

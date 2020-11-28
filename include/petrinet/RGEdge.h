@@ -47,4 +47,37 @@ namespace std {
     };
 }
 
+template <typename EdgeLabelType, typename VertexIdType>
+struct RGEdgeWithCost {
+    RGEdge<EdgeLabelType, VertexIdType> edge;
+    double cost;
+
+    RGEdgeWithCost() {}
+    RGEdgeWithCost(const RGEdge<EdgeLabelType, VertexIdType> &edge, double cost) : edge(edge), cost(cost) {}
+    RGEdgeWithCost(const RGEdgeWithCost&) = default;
+    RGEdgeWithCost& operator=(const RGEdgeWithCost&) = default;
+
+    bool operator<(const RGEdgeWithCost &rhs) const {
+        if (edge < rhs.edge) return true;
+        if (rhs.edge < edge) return false;
+        return cost < rhs.cost;
+    }
+    bool operator>(const RGEdgeWithCost &rhs) const  { return rhs < *this;    }
+    bool operator<=(const RGEdgeWithCost &rhs) const { return !(rhs < *this); }
+    bool operator>=(const RGEdgeWithCost &rhs) const { return !(*this < rhs); }
+    bool operator==(const RGEdgeWithCost &rhs) const { return edge == rhs.edge && cost == rhs.cost; }
+    bool operator!=(const RGEdgeWithCost &rhs) const { return !(rhs == *this); }
+};
+
+namespace std {
+    template <typename EdgeLabelType, typename VertexIdType>
+    struct hash<RGEdgeWithCost<EdgeLabelType,VertexIdType>> {
+        std::size_t operator()(const RGEdgeWithCost<EdgeLabelType,VertexIdType>& k) const {
+            std::hash<RGEdge<EdgeLabelType, VertexIdType>> edgeHasher;
+            std::hash<double> costHasher;
+            return hash_combine(hash_combine(71, edgeHasher(k.edge)), costHasher(k.cost));
+        }
+    };
+}
+
 #endif //FUZZYSTRINGMATCHING2_RGEDGE_H
