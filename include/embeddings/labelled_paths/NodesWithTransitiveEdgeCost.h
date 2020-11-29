@@ -44,13 +44,16 @@ struct NodesWithTransitiveEdgeCost : public OnlyTransitiveEdgesCost<use_new_defi
     ~NodesWithTransitiveEdgeCost() override {};
 
     void acceptNode(const std::string &node, double value) override  {
-        assert(node != OnlyTransitiveEdgesCost<use_new_definition>::varepsilon);
+        ///assert(node != OnlyTransitiveEdgesCost<use_new_definition>::varepsilon);
+        steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
         nodeSummation += (value );
         auto it = currentNodeStep.insert(std::make_pair(node, value));
         if (!it.second) it.first->second += value;
+        LabelledPathVisitingStrategy::benchmark_time += duration_cast<std::chrono::nanoseconds>(steady_clock::now() - vpTreeTransformedStartQuery).count()/1000000.0;
     }
 
     void nextNodeIteration(double thisNormalizationCost) override {
+        steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
         for (auto& it : currentNodeStep) {
             const std::string& cp = it.first;
             double tmp = (it.second / (nodeSummation)) * thisNormalizationCost;
@@ -60,9 +63,11 @@ struct NodesWithTransitiveEdgeCost : public OnlyTransitiveEdgesCost<use_new_defi
             }
         }
         nodeSummation = 0;
+        LabelledPathVisitingStrategy::benchmark_time += duration_cast<std::chrono::nanoseconds>(steady_clock::now() - vpTreeTransformedStartQuery).count()/1000000.0;
     }
 
-    void finalize(double weight) override {
+    virtual double finalize(double weight) override {
+        steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
         double edgeCost = tuning == -1.0 ? 1.0 : std::pow(tuning, OnlyTransitiveEdgesCost<use_new_definition>::len);
         double nodeCost = tuning == -1.0 ? 1.0 : edgeCost/*1-edgecost*/;
         OnlyTransitiveEdgesCost<use_new_definition>::finalize(weight * edgeCost);
@@ -71,14 +76,18 @@ struct NodesWithTransitiveEdgeCost : public OnlyTransitiveEdgesCost<use_new_defi
             S += (it.second * it.second);
         }
         S = std::sqrt(S);
-        if (S <= std::numeric_limits<double>::epsilon())
-            S = std::numeric_limits<double>::epsilon();
+        if (S <= LabelledPathVisitingStrategy::machine_epsilon)
+            S = LabelledPathVisitingStrategy::machine_epsilon;
         for (auto& it : node_embedding) {
             const double normalized_over_current_length_distribution = (it.second / S); // Normalization of the component
             const double weight_the_resulting_value_with_the_graph_s_weight = normalized_over_current_length_distribution * nodeCost; // Multiplying by weight, so that if all the elegible criteria are met, the desired probability is returned
-            assert(
-                    OnlyTransitiveEdgesCost<use_new_definition>::pair_embedding.insert(std::make_pair(std::make_pair(OnlyTransitiveEdgesCost<use_new_definition>::varepsilon, it.first), weight_the_resulting_value_with_the_graph_s_weight)).second);
+            /*assert(*/
+                    OnlyTransitiveEdgesCost<use_new_definition>::pair_embedding.insert(std::make_pair(std::make_pair(OnlyTransitiveEdgesCost<use_new_definition>::varepsilon, it.first), weight_the_resulting_value_with_the_graph_s_weight));/*.second);*/
         }
+        LabelledPathVisitingStrategy::benchmark_time += duration_cast<std::chrono::nanoseconds>(steady_clock::now() - vpTreeTransformedStartQuery).count()/1000000.0;
+        double cpy = 0.0;
+        std::swap(LabelledPathVisitingStrategy::benchmark_time, cpy);
+        return cpy;
     }
 };
 

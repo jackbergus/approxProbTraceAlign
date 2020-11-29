@@ -41,6 +41,8 @@ struct LabelledPathVisitingStrategy {
     std::unordered_map<std::pair<std::string, std::string>, double, pair_hash>& pair_embedding;
     size_t len;
     double lambda_pow, lambda;
+    double benchmark_time;
+    const double machine_epsilon = std::numeric_limits<double>::epsilon();
 
     /**
      * Initialization
@@ -72,7 +74,7 @@ struct LabelledPathVisitingStrategy {
      *
      * @param weight        Weight associated to the graph
      */
-    virtual void finalize(double weight) = 0;
+    virtual double finalize(double weight) = 0;
 };
 
 #include <random>

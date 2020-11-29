@@ -70,7 +70,7 @@ struct VpTreePairPow2Distance {
 
 struct VpTreePairPow2DotProduct {
     virtual double operator()(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs) const {
-        return 1.0-lhs.dot(rhs)/std::sqrt(lhs.dot(lhs)*rhs.dot(rhs));
+        return 1.0-lhs.dot(rhs)/*/std::sqrt(lhs.dot(lhs)*rhs.dot(rhs))*/;
     }
 };
 
@@ -391,7 +391,7 @@ void ConfigurationFile::run() {
         std::cout << " done" << std::endl;
 
         steady_clock::time_point vpTreeActualDistanceStartLoad = steady_clock::now();
-        vp_tree<struct path_info, VpTreeStructDistance> vptreeActualMetric{mapPath};
+        vp_tree<struct path_info, VpTreeStructDistance> vptreeActualMetricOverFullPaths{mapPath};
         steady_clock::time_point vpTreeActualDistanceEndLoad = steady_clock::now();
         double actualMetricLoading = duration_cast<std::chrono::nanoseconds>(vpTreeActualDistanceEndLoad - vpTreeActualDistanceStartLoad).count()/1000000.0;
         std::cout << "VPTree loading time with to-be-recomputed metric: (ns) " << actualMetricLoading << std::endl;
@@ -401,7 +401,7 @@ void ConfigurationFile::run() {
              <<  ','
              << strategyName << ','
              << 0.0 << ','
-             << "VPTreeLoading+Metric," << actualMetricLoading << ",,0" << std::endl;
+             << "VPTreeLoading+Metric," << allEmbeddingGenerationTime+actualMetricLoading << ",,0" << std::endl;
 
         steady_clock::time_point vpTreeProposedStartLoad = steady_clock::now();
         vp_tree<Eigen::VectorXd, VpTreePairPow2DotProduct> vpTreeProposed{mapVecs};
@@ -415,6 +415,7 @@ void ConfigurationFile::run() {
              << strategyName << ','
              << 0.0 << ','
              << "VPTreeLoading+Embedding," << embeddingWholeTraces+proposedLoading << ",,0" << std::endl;
+
 
 
         steady_clock::time_point knnProposedStartLoad = steady_clock::now();
@@ -466,7 +467,7 @@ void ConfigurationFile::run() {
             {
                 struct path_info forQuery{1.0, actualQuery, {}};
                 steady_clock::time_point vpTreeActualDistanceStartQuery = steady_clock::now();
-                vptreeActualMetric.topkSearch(forQuery, 20);
+                vptreeActualMetricOverFullPaths.topkSearch(forQuery, map.size()*0.6);
                 steady_clock::time_point vpTreeActualDistanceEndQuery = steady_clock::now();
                 double actualMetricQuery = duration_cast<std::chrono::nanoseconds>(vpTreeActualDistanceEndLoad - vpTreeActualDistanceStartLoad).count()/1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
@@ -489,7 +490,7 @@ void ConfigurationFile::run() {
                     transformedSpace.emplace_back((1.0/(similarity*sqrt)), (1.0/(probability*sqrt)));
                 }
                 vp_tree<std::pair<double,double>, VpTreePairPow2Distance> transformed_tree{transformedSpace};
-                transformed_tree.topkSearch(std::make_pair(0,0), 10);
+                transformed_tree.topkSearch(std::make_pair(0,0), map.size()*0.6);
                 steady_clock::time_point vpTreeTransformedEndQuery = steady_clock::now();
                 double transformedQuery = duration_cast<std::chrono::nanoseconds>(vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count()/1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
@@ -525,7 +526,7 @@ void ConfigurationFile::run() {
                 queryPoints << 0,  0;
                 Matrixi indices;
                 Matrix distances;
-                kdtree.query(queryPoints, 10, indices, distances);
+                kdtree.query(queryPoints, map.size()*0.6, indices, distances);
                 steady_clock::time_point vpTreeTransformedEndQuery = steady_clock::now();
                 double transformedQuery = duration_cast<std::chrono::nanoseconds>(vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count()/1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
@@ -541,16 +542,20 @@ void ConfigurationFile::run() {
             {
 
                 steady_clock::time_point embeddingGenerationStart = steady_clock::now();
+
                 ReadGraph g = ReadGraph::fromString(actualQuery, 1.0);
+                steady_clock::time_point queryTransformationToVectorTimeEnd = steady_clock::now();
                 auto tmp = (*graphStrategy)(g);
                 double toAdd = duration_cast<std::chrono::nanoseconds>(steady_clock::now() - embeddingGenerationStart).count()/1000000.0;
                 auto x = ReadGraph::generateStructuredEmbedding(embedding_space, tmp);
-
+                double transformedQuery = graphStrategy->benchmarking_time + duration_cast<std::chrono::nanoseconds>(queryTransformationToVectorTimeEnd - queryTransformationToVectorTimeStart).count()/1000000.0;
+                std::cerr << transformedQuery << " & " << graphStrategy->benchmarking_time <<  std::endl;
+                graphStrategy->benchmarking_time = 0;
 
                 steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
-                vpTreeProposed.topkSearch(x, 10);
+                vpTreeProposed.topkSearch(x, map.size()*0.6);
                 steady_clock::time_point vpTreeTransformedEndQuery = steady_clock::now();
-                double transformedQuery = duration_cast<std::chrono::nanoseconds>(vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count()/1000000.0;
+                double transformedQuerySearch = duration_cast<std::chrono::nanoseconds>(vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count()/1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                      << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
                         << query.first << ','
@@ -560,15 +565,13 @@ void ConfigurationFile::run() {
                      << "VPTree+Embedding," << toAdd+transformedQuery << ",,0" << std::endl;
 
 
-
+                steady_clock::time_point vpTreeTransformedStartQueryProposed = steady_clock::now();
                 Matrix queryPoints(embedding_space.size(), 1);
                 queryPoints.col(0) = x;
-                steady_clock::time_point vpTreeTransformedStartQueryProposed = steady_clock::now();
                 Matrixi indices;
                 Matrix distances;
-                kdtreeProposed.query(queryPoints, 10, indices, distances);
+                kdtreeProposed.query(queryPoints, map.size()*0.6, indices, distances);
                 steady_clock::time_point vpTreeTransformedEndQueryProposed = steady_clock::now();
-
                 double transformedQueryProposed = duration_cast<std::chrono::nanoseconds>(vpTreeTransformedEndQueryProposed - vpTreeTransformedStartQueryProposed).count()/1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                      << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
@@ -596,106 +599,6 @@ void ConfigurationFile::run() {
         delete graphStrategy;
         delete pathstrategy;
     }
-
-
-
-#if MULTITHREADED_IMPL
-    size_t id = 0;
-
-    for (size_t i = 0; i<color_count; i++) {
-        std::set<std::pair<std::string,std::string>> embedding_space;
-
-        //globals per parameter
-        PathEmbeddingStrategy strategy = color_entries[i].first;
-        {
-
-            benchmark_common_ground setting1;
-            setting1.input_file = input_file;
-            setting1.traces_file = traces_file;
-            setting1.tuning_factor = tuning_factor;
-            setting1.use_path_with_lambda_factor = use_path_lambda_factor;
-            setting1.lambda = lambda;
-            setting1.max_length = max_length;
-            setting1.min_prob = min_prob;
-            setting1.embeddingStrategy = strategy;
-            toMultiThread.emplace_back(id++, strategy, epsilon, setting1, localMetric, finalGraph, admissibleCharList, seedError, this->noiseThreshold, this->finalLog, this->finalOriginalLog);
-            pool.poolExecute([](MultithreadedBenchmarkForPooling* ptr) {return ptr->run();}, &toMultiThread[toMultiThread.size()-1]);
-
-            benchmark_common_ground setting2 = setting1;
-            setting2.tuning_factor = -1.0;             // disabling the tuning
-            toMultiThread.emplace_back(id++, strategy, epsilon, setting2, localMetric, finalGraph, admissibleCharList, seedError, this->noiseThreshold, this->finalLog, this->finalOriginalLog);
-            pool.poolExecute([](MultithreadedBenchmarkForPooling* ptr) {return ptr->run();}, &toMultiThread[toMultiThread.size()-1]);
-
-        }
-
-        /*
-        std::cout << "Strategy " << (i+1) << " of " << color_count << ": " << color_entries[i].second.data() << std::endl;
-
-        MultiplePathsEmbeddingStrategy* pathstrategy  = generatePathEmbeddingStrategyFromParameters(strategy);
-        GraphEmbeddingStrategy *        graphStrategy = generateGraphEmbeddingStrategyFromParameters(strategy);
-
-
-        std::cout << " * generating embeddings" << std::flush;
-        ReadGraph::path_to_uembedding ptg;
-        ReadGraph::path_to_uembedding ptu = (*pathstrategy)(finalGraph);
-        ReadGraph::extractEmbeddingSpace(embedding_space, ptu);
-        auto map = ReadGraph::generateStructuredEmbeddings(embedding_space, ptu);
-        std::vector<struct path_info> mapPath;
-        for (const auto& path : map) {
-            mapPath.emplace_back(path.first);
-        }
-        std::cout << "... done" << std::endl;
-
-        std::cout << " * generation precision metric" << std::flush;
-        double precision_normalization = std::sqrt(set_of_path_similarity(mapPath, mapPath, similarity)*set_of_path_similarity(finalOriginalLog, finalOriginalLog, similarity));
-        double precision = set_of_path_similarity(mapPath, finalOriginalLog, similarity, &log_quality, &precision_normalization)/precision_normalization;
-        std::cout << "... done" << std::endl;
-        std::cout << "   precision = " << precision << std::endl;
-
-        std::cout << " * starting with query analysis!" << std::endl;
-        for (const auto& query : finalLog) {
-            std::string actualQuery = query.path;
-            double noise = 0.0;
-            std::cout << "    - trace: " << actualQuery << std::endl;
-
-            performBenchmark(similarity, probSimMetric, embedding_space, strategy,
-                                               graphStrategy, map, actualQuery, noise, mapPath);
-
-            for (auto& noiser : traceNoiser) {
-                std::string alteredQuery;
-                do {
-                    if (alteredQuery == "bcc")
-                        std::cerr << "DEBUG" << std::endl;
-                    alteredQuery = noiser.alter(query.path);
-                } while ((alteredQuery == query.path) || (alteredQuery.empty()));
-                std::cout << "      : alteredAs: " << alteredQuery << std::endl;
-
-                performBenchmark(similarity, probSimMetric, embedding_space, strategy, graphStrategy, map, actualQuery, noiser.noiseThreshold, mapPath);
-            }
-        }
-        std::cout << "Phase done!" << std::endl;
-
-        */
-        //delete graphStrategy;
-        //delete pathstrategy;
-    }
-
-    std::string logFile1 = (results_folder / "log_proposed_main.csv").string();
-    std::ofstream log1(logFile1, std::ofstream::out);
-    std::string logFile2 = (results_folder / "log_proposed_additional.csv").string();
-    std::ofstream log2(logFile2, std::ofstream::out);
-
-    LogBenchmark::log_record_element_per_query(log1);
-    LogBenchmark::log_record_element_per_log(log2);
-    for (auto& key : pool.foreach()) {
-        log1 << std::flush;
-        log2 << std::flush;
-        LogBenchmark::log_record_element_per_query(log1, key.first);
-        LogBenchmark::log_record_element_per_log(log2, key.second);
-        log1 << std::flush;
-        log2 << std::flush;
-    }
-#endif
 }
 
 void ConfigurationFile::convertLog(const std::vector<Transaction<TimestampedEvent>> &currentLog,
@@ -708,20 +611,6 @@ void ConfigurationFile::convertLog(const std::vector<Transaction<TimestampedEven
         final.emplace_back(1.0, stringBuilder, std::vector<size_t>{});
     }
 }
-
-#if 0
-
-std::pair<size_t, double> getSimilarity(Ranking<size_t>& expectedRanking, Ranking<size_t>& pathRanking) {
-    return std::make_pair(1, expectedRanking.normalizedRank(pathRanking, [](size_t x, size_t y){return x==y;}));
-}
-std::pair<size_t, double> getSpearman(Ranking<size_t>& expectedRanking, Ranking<size_t>& pathRanking) {
-    return std::make_pair(1, expectedRanking.SpearmanCorrelationIndex(pathRanking, 1.0));
-}
-std::pair<size_t, double> getProposed(Ranking<size_t>& expectedRanking, Ranking<size_t>& pathRanking) {
-    return std::make_pair(2, minimum_edit_maximum_substring(pathRanking, expectedRanking));
-}
-#endif
-
 
 Ranking<size_t>
 ConfigurationFile::performBenchmark(const LevensteinSimilarity &similarity/*, DistanceExpressionEvaluator *probSimDistance*/,

@@ -29,6 +29,7 @@
 #include <ReadGraph.h>
 
 struct GraphEmbeddingStrategy {
+    double benchmarking_time;
     virtual ReadGraph::unstructured_embedding operator()(ReadGraph &rg) = 0;
 };
 

@@ -27,9 +27,11 @@
 
 ReadGraph::path_to_uembedding MultiplePathsEmbeddingStrategy::operator()(ReadGraph &rg) {
     auto it = rg.iterateOverPaths(doNotVisitLoopsTwice, maxPathLength, minimumPathCost);
+    benchmarking_cost = 0;
     ReadGraph::path_to_uembedding result;
     for (const auto& path: it) {
         result[path] = (generatePathEmbedding(rg, path));
     }
+    // benchmarking_cost updated
     return result;
 }

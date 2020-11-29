@@ -136,7 +136,7 @@ struct ReadGraph {
 
     static Eigen::VectorXd
     generateStructuredEmbedding(std::set<std::pair<std::string, std::string>> &k, const unstructured_embedding &x) {
-        assert(!k.empty());
+        //assert(!k.empty());
         Eigen::VectorXd embedding(k.size());
         size_t i = 0;
         for (const auto& cp : k) {

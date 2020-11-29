@@ -330,12 +330,12 @@ public:
         for (const auto& cp : node_labelled_weighted) {
             auto it = outgoingEdges.find(cp.first);
             if ((it == outgoingEdges.end()) || (it->second.empty())) {
-                assert(!found); // ERROR: there are multiple terminal nodes (something fishy:  a likely bad input representation)
+                ///assert(!found); // ERROR: there are multiple terminal nodes (something fishy:  a likely bad input representation)
                 end = cp.first;
                 found = true;
             }
         }
-        assert(found);// ERROR: no terminal node can be inferred (something fishy: it should exsist a node having no outgoing edges)
+        ///assert(found);// ERROR: no terminal node can be inferred (something fishy: it should exsist a node having no outgoing edges)
     }
 
     void generateBimapLabels(fixed_bimap<std::string, char>& bimap, const std::string& admissible_chars, const std::string& eps) {
@@ -344,7 +344,7 @@ public:
         for (const auto& cp : node_labelled_weighted) {
             if (cp.second.first == eps) continue;
             if (visitedLabels.insert(cp.second.first).second) {
-                assert(nlabels < admissible_chars.size());
+                ///assert(nlabels < admissible_chars.size());
                 bimap.put(cp.second.first, admissible_chars[nlabels++]);
             }
         }

@@ -47,11 +47,22 @@ struct EmbedPathsOverSingleGraphStrategy : public MultiplePathsEmbeddingStrategy
             : MultiplePathsEmbeddingStrategy(varepsilon, doNotVisitLoopsTwice, maxPathLength, minimumPathCost), strategy{set_lambda_to_one, varepsilon, tuning_factor, lambda, maxPathLength}, set_lambda_to_one(set_lambda_to_one) {
     }
 
+    ReadGraph::path_to_uembedding operator()(ReadGraph &rg) override {
+        strategy.benchmarking_time = 0;
+        return MultiplePathsEmbeddingStrategy::operator()(rg);
+    }
+
     ReadGraph::unstructured_embedding generatePathEmbedding(ReadGraph &g, const path_info &path) override {
         ReadGraph pathGraph;
+        steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
         double pathCost = ReadGraph::generateGraphFromPath(path.actualPath, pathGraph, g.inv_label_conversion, g.A);
         pathGraph.finalizeEdgesMatrix(g.weight * pathCost);
-        return strategy(pathGraph); //testStrategy
+        steady_clock::time_point vpTreeTransformedEndQuery = steady_clock::now();
+        double transformedQuerySearch = duration_cast<std::chrono::nanoseconds>(vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count()/1000000.0;
+        ReadGraph::unstructured_embedding toReturn = strategy(pathGraph); //testStrategy
+        benchmarking_cost += transformedQuerySearch;
+        benchmarking_cost += strategy.benchmarking_time;
+        return toReturn;
     }
 };
 

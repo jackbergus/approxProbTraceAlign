@@ -40,8 +40,8 @@ PathIterator::PathIterator(Eigen::SparseMatrix<double, Eigen::RowMajor> *a,
         : A(a), inv_label_conversion(invLabelConversion),
           minimumPathCost(minimumPathCost), maxPathLength(maxPathLength == 0 ? a->size()*2 : maxPathLength),
           doNotVisitLoopsTwice(visitLoops), S{} {
-    assert(a);
-    assert(invLabelConversion);
+    ///assert(a);
+    ///assert(invLabelConversion);
 }
 
 void PathIterator::init(size_t currNode, size_t destination, double probabilisticPath) {
