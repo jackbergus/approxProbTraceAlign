@@ -52,6 +52,9 @@ public:
     fixed_bimap(const fixed_bimap<K, V>&) = default;
     fixed_bimap& operator=(const fixed_bimap<K, V>&) = default;
 
+    size_t getSize() const { return map.size()/2; }
+    bool sanityCheck() { return map.size() == elements.size()*2; }
+
     /**
      * Always assumes that the key and the value are always with a bimap.
      * This method is implemented to reduce the amounts of checks for a boolean variable.
@@ -99,6 +102,14 @@ public:
         std::ostringstream oss{};
         oss << "k_" << key;
         return map.find(oss.str()) != map.end();
+    }
+
+    std::pair<K, V>* containsKey2(K key) {
+        std::ostringstream oss{};
+        oss << "k_" << key;
+        auto it = map.find(oss.str());
+        bool test = it != map.end();
+        return (it != map.end()) ? &elements[it->second] : nullptr;
     }
 
     V getValue(K key) const {

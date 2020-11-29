@@ -1,5 +1,5 @@
-input_file_format: Petri_BPMN
-input_file: /home/giacomo/Immagini/split-miner-2.0/sepsis_23000000_out.bpmn
+input_file_format: Petri_PNML
+input_file: /home/giacomo/Immagini/split-miner-2.0/sepsis_23000000.pnml
 is_input_compressed: false
 ith_graph: 0
 trace_file_format: XESLog
@@ -7,14 +7,14 @@ traces_file: /home/giacomo/Immagini/split-miner-2.0/sepsis.xes
 are_traces_compressed: false
 separator_if_any: ";"
 add_traces_to_log: false
-max_length: 20
+max_length: 10
+min_prob: 0.0000000000000000000000000000000000001
 lambda: 0.070000000000000007
 tuning_factor: 0.0001
 use_tuning_factor: true
 use_path_lambda_factor: true
 numberOfTraceAlterations: 10
-use_estimator: true
-estimator_type: W_CONSTANT
+use_estimator: false
 operations:
     -   operation: LogFilterTemporalLength
         factor: 0.0006269891963989805
