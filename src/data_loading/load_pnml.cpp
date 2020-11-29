@@ -161,7 +161,7 @@ std::vector<GenericGraph<size_t>> load_pnml(const std::string &filename, const s
                 // Inserting the edges
                 for (const auto& v : final.outgoingEdges) {
                     for (const auto& vOut : v.second) {
-                        graph.add_edge(v.first, vOut.adjacentVertexId, 1.0);
+                        graph.add_edge(v.first, vOut.dst, vOut.probability);
                     }
                 }
 

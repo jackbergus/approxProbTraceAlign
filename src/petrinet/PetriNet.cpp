@@ -3,6 +3,7 @@
 //
 
 #include "petrinet/PetriNet.h"
+#include "utils/ProgressBar.h"
 
 size_t PetriNet::w_cost(size_t p, size_t t)  {
     auto it = omega.find(p);
@@ -109,76 +110,119 @@ MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Marking &m0,
     size_t eSize_plusOne = 1;
 
     {
-        EClosPhase1 phase1{this, &rg};
+        EClosPhase1 phase1{this, &rg, m0.size()};
 
         /*{
             std::ofstream of{"out/01_rg.txt"};
             rg.print(of, transition_labelling);
         }*/
 
-        std::cerr << "done!" << std::endl << "Generating the Transition Graph from it (1: vertex scan +closure part 1)... " << std::flush;
+
+        {
+
+            progress_bar bar{std::cout, 70u, "Preloading the vectors"};
+            double vecId = 0.0, vecSize = rg.allStates.size();
+            for (const Marking& marking : rg.allStates) {
+                phase1.setNewVectorId(marking);
+                bar.write((++vecId)/vecSize);
+            }
+            assert(rg.allStates.size() == phase1.getMapSizeVectorPreload());
+        }
+
 
         // Defining the vertices and their labelling from the graph's nodes
-        RGEdge<size_t, Marking> tmp;
-        std::vector<RGEdge<size_t, Marking>> edgesToRescan;
-        for (const auto& cp : rg.outgoingEdges) {
-            tmp.source = cp.first;
-            for (const auto& e : cp.second) {
-                tmp.edgeTarget = e;
-                // Adding it as a node if and only if it is a starting node, or if it is a final node, or if it is a non-epsilon node
-                auto it = rg.outgoingEdges.find(tmp.edgeTarget.adjacentVertexId);
-                auto label = transition_labelling.at(tmp.edgeTarget.edgeLabel);
-                if (label == epsilon) {
-                    phase1.eClos(tmp);
+        RGEdge<size_t, Marking> edge_to_vector;
+        {
+            progress_bar bar{std::cout, 70u, "Generating non-e vertices with closure"};
+            double count = 0, size = rg.outgoingEdges.size();
+            for (const auto& vertex_to_outgoingEdges : rg.outgoingEdges) {
+                edge_to_vector.source = vertex_to_outgoingEdges.first;              // | * Vertex
+                for (const auto& outgoingEdge : vertex_to_outgoingEdges.second) {
+                    edge_to_vector.edgeTarget        = outgoingEdge;                // | * Vertex's outgoing edges
+                    // edge_to_vector is now fully characterized as an edge from rg // |--------------------------|
+
+                    std::string label                = transition_labelling.at(outgoingEdge.edgeLabel);
+
+                    // If this edge is an epsilon-labelled one, I want to perform the closure, nevertheles
+                    if (label == epsilon) {
+                        phase1.eClos(edge_to_vector);
+                    }
+
+                    // Adding it as a node if and only if it is a starting node,
+                    // or if it is a final node, or if it is a non-epsilon node
+                    auto outgoingEdge_targetOutgoing = rg.outgoingEdges.find(outgoingEdge.adjacentVertexId);
+                    if ((edge_to_vector.source == m0)                           || // --> starting node
+                        (outgoingEdge_targetOutgoing == rg.outgoingEdges.end()) || // --> 1) final node
+                        (outgoingEdge_targetOutgoing->second.empty())           || // --> 2) final node
+                        (label != epsilon)                                         // --> non-epsilon
+                            )
+                    {
+                        mrg.node_id_assoc.put(eSize_plusOne++, edge_to_vector);    // Storing the edge as a vector!
+                    }
                 }
-                if ((tmp.source == m0) || (it == rg.outgoingEdges.end() || it->second.empty()) || (label != epsilon)) {
-                    mrg.node_id_assoc.put(eSize_plusOne++, tmp);
-                }
+                bar.write(((++count)/size));
             }
         }
-        std::cerr << "done!" << std::endl << "Generating the Transition Graph from it (2: edge scan, +closure part 2)... " << std::flush;
+
+        ///std::cerr << "done!" << std::endl << "Generating the Transition Graph from it (2: edge scan, +closure part 2)... " << std::flush;
 
         // Defining the edges by the two-step edges
-        /**for (const auto& v_out : rg.outgoingEdges) {
-            tmp.source = v_out.first;
-            for (const auto& e : v_out.second) {
-                tmp.edgeTarget = e;*/
-        for (const auto& cp_e : mrg.node_id_assoc.getElements())  {  /// <--
-                const auto tmp = cp_e.second;                        /// <--
-                size_t tmp_key = mrg.node_id_assoc.getKey(tmp);
-                RGEdge<size_t, Marking> tmp2;
-                ///tmp2.source = e.adjacentVertexId;
-                tmp2.source = tmp.edgeTarget.adjacentVertexId;       /// <--  e.adjacentVertexId -> tmp.edgeTarget.adjacentVertexId
-                ///const auto it = rg.outgoingEdges.find(e.adjacentVertexId);
+        {
+            progress_bar bar{std::cout, 70u, "Generating edges among the non-e vertices"};
+            double count = 0, size = mrg.node_id_assoc.getElements().size();
+            for (const auto& nonepsilon_id_with_metaVertex : mrg.node_id_assoc.getElements())  {
+                const RGEdge<size_t, Marking> metaVertex1    = nonepsilon_id_with_metaVertex.second;
+                size_t                        metaVertex1_id = nonepsilon_id_with_metaVertex.first;
 
-                double normalizingCost = phase1.getNormalizingFactor(tmp2.source);
-            const auto it = rg.outgoingEdges.find(tmp.edgeTarget.adjacentVertexId); /// <--
+                // The normalizatioin is epressed over the possible edges that I could reach. Therefore,
+                // it is defined from the outgoing edges from the metavertex's target node
+                double normalizingCost = phase1.getNormalizingFactor(metaVertex1.edgeTarget.adjacentVertexId);
+
+                RGEdge<size_t, Marking>       metaVertex2;                                      // Second vertex to connect via edge:
+                metaVertex2.source = metaVertex1.edgeTarget.adjacentVertexId;                   // 1) From target to source
+
+                // Getting the actual edges from the Reachability Graph
+                const auto it = rg.outgoingEdges.find(metaVertex1.edgeTarget.adjacentVertexId);
                 if (it != rg.outgoingEdges.end()) {
-                    for (const auto& e2 : it->second) {
-                        tmp2.edgeTarget = e2;
+                    for (const auto& rawMetaVertex2 : it->second) {
+                        metaVertex2.edgeTarget = rawMetaVertex2;                                // 2) Finishing towards the new target
+                        // -----------------------------------
 
-                        auto isEdgeIt = phase1.map.find(tmp2);
-                        double p = (normalizingCost != 0.0) ? phase1.getFiringCost(tmp2.edgeTarget.edgeLabel) / normalizingCost : 1.0;
-                        if (isEdgeIt == phase1.map.end()) { // if tmp2 is not an e-edge, and therefore it is not in the e-map
-                            HalfOfEdgeWithCost<Marking, size_t> weightedEdgeTransfer;
-                            weightedEdgeTransfer.halfEdge.edgeLabel        = tmp.edgeTarget.adjacentVertexId;
-                            weightedEdgeTransfer.halfEdge.adjacentVertexId = mrg.node_id_assoc.getKey(tmp2);
-                            weightedEdgeTransfer.cost                      = p;
-                            mrg.outgoingEdges[tmp_key].emplace_back(weightedEdgeTransfer);
+                        auto isMetaVertex2It        = phase1.mapFind(metaVertex2);
+                        bool isMetaVertex2NotClosed = isMetaVertex2It == phase1.mapEnd();
+
+                        double p = (normalizingCost != 0.0)                                                     ?
+                                   (phase1.getFiringCost(metaVertex2.edgeTarget.edgeLabel) / normalizingCost) :
+                                   1.0;
+
+                        if (isMetaVertex2NotClosed) {
+                            // if tmp2 is not an e-edge, and therefore it is not in the e-map, I directly add such
+                            // edge!
+                            /**HalfOfEdgeWithProbability<Marking, size_t> weightedEdgeTransfer;
+                            weightedEdgeTransfer.halfEdge.edgeLabel        = metaVertex2.source;
+                            weightedEdgeTransfer.halfEdge.adjacentVertexId = mrg.node_id_assoc.getKey(metaVertex2);
+                            weightedEdgeTransfer.probability                      = p;*/
+                            mrg.outgoingEdges[metaVertex1_id].emplace(mrg.node_id_assoc.getKey(metaVertex2), p);
+                            ///mrg.outgoingEdges[metaVertex1_id].emplace_back(weightedEdgeTransfer);
                         } else {
-                            // only with clos, phase1
-                            for (const RGEdgeWithCost<size_t, Marking>& weightedEdge : isEdgeIt->second) {
-                                HalfOfEdgeWithCost<Marking, size_t> weightedEdgeTransfer;
-                                weightedEdgeTransfer.halfEdge.edgeLabel        = weightedEdge.edge.edgeTarget.adjacentVertexId;
+                            // I inherit all the outgoing edges that are associated to it via closure
+                            for (const MemoryEfficientRGEdge2& local : isMetaVertex2It->second) {
+                                RGEdgeWithProbability<size_t, Marking> weightedEdge  = phase1.expand(local);
+                                /**HalfOfEdgeWithProbability<Marking, size_t> weightedEdgeTransfer;
+                                weightedEdgeTransfer.halfEdge.edgeLabel        = weightedEdge.edge.source;
                                 weightedEdgeTransfer.halfEdge.adjacentVertexId = mrg.node_id_assoc.getKey(weightedEdge.edge);
-                                weightedEdgeTransfer.cost                      = p * weightedEdge.cost;
-                                mrg.outgoingEdges[tmp_key].emplace_back(weightedEdgeTransfer);
+                                weightedEdgeTransfer.probability                      = p * weightedEdge.probability;*/
+                                mrg.outgoingEdges[metaVertex1_id].emplace(mrg.node_id_assoc.getKey(weightedEdge.edge), p * weightedEdge.probability);
+                                ///mrg.outgoingEdges[metaVertex1_id].emplace_back(weightedEdgeTransfer);
                             }
                         }
 
                     }
                 }
+                bar.write(((++count)/size));
+            }
         }
+
         /**}
 }*/
         if (doAddIState(rg, m0)) { // If I need to add an explicit initial state, because there are many edges starting from the initial node
@@ -189,11 +233,12 @@ MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Marking &m0,
             m0out.source = m0;
             for (const auto& e : rg.outgoingEdges.at(m0)) {
                 m0out.edgeTarget = e;
-                HalfOfEdgeWithCost<Marking, size_t> weightedEdgeTransfer;
+                /*HalfOfEdgeWithProbability<Marking, size_t> weightedEdgeTransfer;
                 weightedEdgeTransfer.halfEdge.edgeLabel        = m0;
                 weightedEdgeTransfer.halfEdge.adjacentVertexId = mrg.node_id_assoc.getKey(m0out);
-                weightedEdgeTransfer.cost                      = (normalizingCost != 0.0) ? phase1.getFiringCost(e.edgeLabel) / normalizingCost : 1.0;
-                mrg.outgoingEdges[0].emplace_back(weightedEdgeTransfer);
+                weightedEdgeTransfer.probability                      = (normalizingCost != 0.0) ? phase1.getFiringCost(e.edgeLabel) / normalizingCost : 1.0;*/
+                mrg.outgoingEdges[0].emplace(mrg.node_id_assoc.getKey(m0out), ((normalizingCost != 0.0) ? phase1.getFiringCost(e.edgeLabel) / normalizingCost : 1.0));
+                ///mrg.outgoingEdges[0].emplace_back(weightedEdgeTransfer);
                         //.emplace( e.adjacentVertexId, mrg.node_id_assoc.getKey({m0, e}));
             }
         } else { // Otherwise, use the first edge
@@ -218,12 +263,13 @@ MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Marking &m0,
     if (fs.size() > 2/*doAddFState(rg, fs)*/) {
         mrg.finalEState = eSize_plusOne;
         mrg.isFinalEStateAddedAfterwards = true;
-        HalfOfEdgeWithCost<Marking, size_t> weightedEdgeTransfer;
-        weightedEdgeTransfer.cost = 1.0;
+        /**HalfOfEdgeWithProbability<Marking, size_t> weightedEdgeTransfer;
+        weightedEdgeTransfer.probability = 1.0;*/
         for (const RGEdge<size_t,Marking> &out : fs) {
-            weightedEdgeTransfer.halfEdge.edgeLabel        = out.edgeTarget.adjacentVertexId;
-            weightedEdgeTransfer.halfEdge.adjacentVertexId = eSize_plusOne;
-            mrg.outgoingEdges[mrg.node_id_assoc.getKey(out)].emplace_back(weightedEdgeTransfer);
+            /**weightedEdgeTransfer.halfEdge.edgeLabel        = out.edgeTarget.adjacentVertexId;
+            weightedEdgeTransfer.halfEdge.adjacentVertexId = eSize_plusOne;*/
+            mrg.outgoingEdges[mrg.node_id_assoc.getKey(out)].emplace(eSize_plusOne, 1.0);
+            ///mrg.outgoingEdges[mrg.node_id_assoc.getKey(out)].emplace_back(weightedEdgeTransfer);
                ///.emplace(out.edgeTarget.adjacentVertexId, eSize_plusOne);
         }
     } else if (fs.size() == 1) {
@@ -241,11 +287,11 @@ MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Marking &m0,
     std::cerr << "(performing assertion)" << std::flush;
     // 1) there should be only one vertex having no ingoing edges
     {
-        std::map<size_t, std::unordered_set<HalfOfEdge<Marking, size_t>>> ingoingEdges2;
+        std::map<size_t, std::unordered_set<size_t>> ingoingEdges2;
         for (const auto& cp: mrg.outgoingEdges) {
             for (const auto& e : cp.second) {
-
-                ingoingEdges2[e.halfEdge.adjacentVertexId].emplace(e.halfEdge.edgeLabel, cp.first);
+                ingoingEdges2[e.dst].emplace(e.dst);
+                ///ingoingEdges2[e.halfEdge.adjacentVertexId].emplace(e.halfEdge.edgeLabel, cp.first);
             }
         }
         size_t toCount = 0;
@@ -267,7 +313,9 @@ MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Marking &m0,
                 std::cout << mrg.finalEState << std::endl;
             }
         }
-        assert(toCount == 1);
+        if(toCount != 1) {
+            std::cerr << "Warning: something seems not ok!" << std::endl;
+        }
     }
 
     std::cerr << "done!" << std::endl;

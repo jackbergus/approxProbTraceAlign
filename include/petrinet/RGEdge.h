@@ -48,34 +48,34 @@ namespace std {
 }
 
 template <typename EdgeLabelType, typename VertexIdType>
-struct RGEdgeWithCost {
+struct RGEdgeWithProbability {
     RGEdge<EdgeLabelType, VertexIdType> edge;
-    double cost;
+    double probability;
 
-    RGEdgeWithCost() {}
-    RGEdgeWithCost(const RGEdge<EdgeLabelType, VertexIdType> &edge, double cost) : edge(edge), cost(cost) {}
-    RGEdgeWithCost(const RGEdgeWithCost&) = default;
-    RGEdgeWithCost& operator=(const RGEdgeWithCost&) = default;
+    RGEdgeWithProbability() {}
+    RGEdgeWithProbability(const RGEdge<EdgeLabelType, VertexIdType> &edge, double cost) : edge(edge), probability(cost) {}
+    RGEdgeWithProbability(const RGEdgeWithProbability&) = default;
+    RGEdgeWithProbability& operator=(const RGEdgeWithProbability&) = default;
 
-    bool operator<(const RGEdgeWithCost &rhs) const {
+    bool operator<(const RGEdgeWithProbability &rhs) const {
         if (edge < rhs.edge) return true;
         if (rhs.edge < edge) return false;
-        return cost < rhs.cost;
+        return probability < rhs.probability;
     }
-    bool operator>(const RGEdgeWithCost &rhs) const  { return rhs < *this;    }
-    bool operator<=(const RGEdgeWithCost &rhs) const { return !(rhs < *this); }
-    bool operator>=(const RGEdgeWithCost &rhs) const { return !(*this < rhs); }
-    bool operator==(const RGEdgeWithCost &rhs) const { return edge == rhs.edge && cost == rhs.cost; }
-    bool operator!=(const RGEdgeWithCost &rhs) const { return !(rhs == *this); }
+    bool operator>(const RGEdgeWithProbability &rhs) const  { return rhs < *this;    }
+    bool operator<=(const RGEdgeWithProbability &rhs) const { return !(rhs < *this); }
+    bool operator>=(const RGEdgeWithProbability &rhs) const { return !(*this < rhs); }
+    bool operator==(const RGEdgeWithProbability &rhs) const { return edge == rhs.edge && probability == rhs.probability; }
+    bool operator!=(const RGEdgeWithProbability &rhs) const { return !(rhs == *this); }
 };
 
 namespace std {
     template <typename EdgeLabelType, typename VertexIdType>
-    struct hash<RGEdgeWithCost<EdgeLabelType,VertexIdType>> {
-        std::size_t operator()(const RGEdgeWithCost<EdgeLabelType,VertexIdType>& k) const {
+    struct hash<RGEdgeWithProbability<EdgeLabelType,VertexIdType>> {
+        std::size_t operator()(const RGEdgeWithProbability<EdgeLabelType,VertexIdType>& k) const {
             std::hash<RGEdge<EdgeLabelType, VertexIdType>> edgeHasher;
             std::hash<double> costHasher;
-            return hash_combine(hash_combine(71, edgeHasher(k.edge)), costHasher(k.cost));
+            return hash_combine(hash_combine(71, edgeHasher(k.edge)), costHasher(k.probability));
         }
     };
 }

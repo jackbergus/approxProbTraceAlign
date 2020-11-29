@@ -19,12 +19,45 @@ MetaReachabilityGraph::print(std::ostream &os, const std::unordered_map<size_t, 
             repr1 = sst.str();
         }
         for (const auto& e: cp.second) {
-            if ((e.adjacentVertexId != 0) && (e.adjacentVertexId != eSize_plusOne)) {
+            if ((e.dst != 0) && (e.dst != eSize_plusOne)) {
                 std::stringstream sst;
-                sst << tl.at(  node_id_assoc.getValue(e.adjacentVertexId).edgeTarget.edgeLabel );
+                sst << tl.at(  node_id_assoc.getValue(e.dst).edgeTarget.edgeLabel );
                 repr2 = sst.str();
             }
-            os << cp.first << '{' << repr1 << "}--[" << e.edgeLabel << "]-->" << repr2 << '{' << e.adjacentVertexId << '}' << std::endl;
+            os << cp.first << '{' << repr1 << "}--[" << e.dst << "]-->" << repr2 << '{' << e.dst << '}' << std::endl;
         }
     }
+}
+
+MetaReachabilityGraphHalfWeightedEdge::MetaReachabilityGraphHalfWeightedEdge(size_t dst, double probability) : dst(dst),
+                                                                                                               probability(
+                                                                                                                       probability) {}
+
+bool MetaReachabilityGraphHalfWeightedEdge::operator==(const MetaReachabilityGraphHalfWeightedEdge &rhs) const {
+    return dst == rhs.dst &&
+           probability == rhs.probability;
+}
+
+bool MetaReachabilityGraphHalfWeightedEdge::operator!=(const MetaReachabilityGraphHalfWeightedEdge &rhs) const {
+    return !(rhs == *this);
+}
+
+bool MetaReachabilityGraphHalfWeightedEdge::operator<(const MetaReachabilityGraphHalfWeightedEdge &rhs) const {
+    if (dst < rhs.dst)
+        return true;
+    if (rhs.dst < dst)
+        return false;
+    return probability < rhs.probability;
+}
+
+bool MetaReachabilityGraphHalfWeightedEdge::operator>(const MetaReachabilityGraphHalfWeightedEdge &rhs) const {
+    return rhs < *this;
+}
+
+bool MetaReachabilityGraphHalfWeightedEdge::operator<=(const MetaReachabilityGraphHalfWeightedEdge &rhs) const {
+    return !(rhs < *this);
+}
+
+bool MetaReachabilityGraphHalfWeightedEdge::operator>=(const MetaReachabilityGraphHalfWeightedEdge &rhs) const {
+    return !(*this < rhs);
 }

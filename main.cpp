@@ -178,10 +178,10 @@ int main(int argc, char* argv[]) {
 
 
     auto graph = load_pnml("/home/giacomo/Immagini/split-miner-2.0/sepsis_23000000.pnml")[0];
-    std::cerr << "Weight transfer" << std::endl;
-    graph.transfer_weight_from_nodes_to_edges();
+    ///std::cerr << "Weight transfer" << std::endl;
+    ///graph.transfer_weight_from_nodes_to_edges();
     std::cerr << "Closure" << std::endl;
-    graph.doClosure(".");
+    //graph.doClosure(".");
     ReadGraph    finalGraph;
     std::cerr << "Loading into the final format" << std::endl;
     finalGraph.init(graph.nodes()+1, graph.countEdges(), graph.getStart(), graph.getEnd());
