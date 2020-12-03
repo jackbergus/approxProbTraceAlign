@@ -43,6 +43,9 @@ struct MultiplePathsEmbeddingStrategy {
 
     virtual ReadGraph::unstructured_embedding generatePathEmbedding(ReadGraph& rg, const path_info& path) = 0;
 
+
+    std::vector<struct path_info> collectPaths(ReadGraph& rg);
+    ReadGraph::path_to_uembedding generateUnstructuredEmbeddingsFromRawPaths(ReadGraph& rg, std::vector<struct path_info>& it);
     ReadGraph::path_to_uembedding operator()(ReadGraph& rg);
 };
 

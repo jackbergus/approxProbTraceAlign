@@ -60,7 +60,7 @@ namespace std {
             /*for(auto& i : k.actualPath) {
                 seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
             }*/
-            return hash_combine<std::string>(/*hash_combine<double>(seed, k.path)*/ seed, k.path);
+            return hash_combine<std::string>(hash_combine<double>(31, std::hash<double>()(k.probability)), k.path);
         }
     };
 

@@ -29,6 +29,24 @@ ReadGraph::path_to_uembedding MultiplePathsEmbeddingStrategy::operator()(ReadGra
     auto it = rg.iterateOverPaths(doNotVisitLoopsTwice, maxPathLength, minimumPathCost);
     ReadGraph::path_to_uembedding result;
     for (const auto& path: it) {
+        std::cerr << path << std::endl;
+        result[path] = (generatePathEmbedding(rg, path));
+    }
+    return result;
+}
+
+std::vector<struct path_info> MultiplePathsEmbeddingStrategy::collectPaths(ReadGraph &rg) {
+    std::vector<struct path_info> result;
+    for (const auto& path: rg.iterateOverPaths(doNotVisitLoopsTwice, maxPathLength, minimumPathCost)) {
+        result.emplace_back(path);
+    }
+    return result;
+}
+
+ReadGraph::path_to_uembedding MultiplePathsEmbeddingStrategy::generateUnstructuredEmbeddingsFromRawPaths(ReadGraph &rg,
+                                                                                                         std::vector<struct path_info> &it) {
+    ReadGraph::path_to_uembedding result;
+    for (const auto& path: it) {
         result[path] = (generatePathEmbedding(rg, path));
     }
     return result;

@@ -63,6 +63,7 @@ GenericGraph<size_t> load_matrix(const std::string &filename) {
             error = (i == EOF || (i != 2));
             if (error) return graph;
             k = std::string(string);
+            std::replace(k.begin(), k.end(), '_', ' ');
             graph.add_node(node_no, k);
         }
 

@@ -18,7 +18,7 @@
  * along with ProbabilisticTraceAlignment. If not, see <http://www.gnu.org/licenses/>.
  */
 
- 
+
 //
 // Created by giacomo on 11/11/20.
 //
@@ -43,9 +43,9 @@ double ConfigurationFile::set_of_path_similarity(const std::vector<path_info> &t
                                                  const std::vector<path_info> &querySet,
                                                  const LevensteinSimilarity &sim) {
     double cost = 0.0;
-    for (const auto& x : tracesSet) {
-        for (const auto& y : querySet) {
-            double val = sim.similarity(x.path, y.path)*(x.probability*y.probability);
+    for (const auto &x : tracesSet) {
+        for (const auto &y : querySet) {
+            double val = sim.similarity(x.path, y.path) * (x.probability * y.probability);
             cost += val;
         }
     }
@@ -54,23 +54,25 @@ double ConfigurationFile::set_of_path_similarity(const std::vector<path_info> &t
 
 
 #include <chrono>
+
 using namespace std::chrono;
 
 struct VpTreeStructDistance {
-    virtual double operator()(const path_info& lhs, const path_info& rhs) const {
-        return lhs.probability*rhs.probability*GeneralizedLevensteinDistance(lhs.path, rhs.path);
+    virtual double operator()(const path_info &lhs, const path_info &rhs) const {
+        return lhs.probability * rhs.probability * GeneralizedLevensteinDistance(lhs.path, rhs.path);
     }
 };
 
 struct VpTreePairPow2Distance {
-    virtual double operator()(const std::pair<double, double>& lhs, const std::pair<double,double>& rhs) const {
-        return (lhs.first-rhs.first)*(lhs.first-rhs.first)+(lhs.second-rhs.second)*(lhs.second-rhs.second);
+    virtual double operator()(const std::pair<double, double> &lhs, const std::pair<double, double> &rhs) const {
+        return (lhs.first - rhs.first) * (lhs.first - rhs.first) +
+               (lhs.second - rhs.second) * (lhs.second - rhs.second);
     }
 };
 
 struct VpTreePairPow2DotProduct {
-    virtual double operator()(const Eigen::VectorXd& lhs, const Eigen::VectorXd& rhs) const {
-        return 1.0-lhs.dot(rhs)/std::sqrt(lhs.dot(lhs)*rhs.dot(rhs));
+    virtual double operator()(const Eigen::VectorXd &lhs, const Eigen::VectorXd &rhs) const {
+        return 1.0 - lhs.dot(rhs) / std::sqrt(lhs.dot(lhs) * rhs.dot(rhs));
     }
 };
 
@@ -78,40 +80,36 @@ struct VpTreePairPow2DotProduct {
 /** Euclidean distance functor.
   * This the same as the L2 minkowski distance but more efficient.
   * @see ManhattenDistance, ChebyshevDistance, MinkowskiDistance */
-template <typename Scalar>
-struct DotProductDistance
-{
+template<typename Scalar>
+struct DotProductDistance {
     /** Compute the unrooted distance between two vectors.
       * @param lhs vector on left hand side
       * @param rhs vector on right hand side */
     template<typename DerivedA, typename DerivedB>
     Scalar operator()(const Eigen::MatrixBase<DerivedA> &lhs,
-                      const Eigen::MatrixBase<DerivedB> &rhs) const
-    {
+                      const Eigen::MatrixBase<DerivedB> &rhs) const {
         static_assert(
-                std::is_same<typename Eigen::MatrixBase<DerivedA>::Scalar,Scalar>::value,
+                std::is_same<typename Eigen::MatrixBase<DerivedA>::Scalar, Scalar>::value,
                 "distance scalar and input matrix A must have same type");
         static_assert(
                 std::is_same<typename Eigen::MatrixBase<DerivedB>::Scalar, Scalar>::value,
                 "distance scalar and input matrix B must have same type");
 
-        return 1.0-lhs.dot(rhs)/std::sqrt(lhs.dot(lhs)*rhs.dot(rhs));
+        return 1.0 - lhs.dot(rhs) / std::sqrt(lhs.dot(lhs) * rhs.dot(rhs));
     }
 
     /** Compute the unrooted distance between two scalars.
       * @param lhs scalar on left hand side
       * @param rhs scalar on right hand side */
     Scalar operator()(const Scalar lhs,
-                      const Scalar rhs) const
-    {
+                      const Scalar rhs) const {
         Scalar diff = lhs - rhs;
         return diff * diff;
     }
 
     /** Compute the root of a unrooted distance value.
       * @param value unrooted distance value */
-    Scalar operator()(const Scalar val) const
-    {
+    Scalar operator()(const Scalar val) const {
         return std::sqrt(val);
     }
 };
@@ -127,7 +125,7 @@ typedef knn::Matrixi Matrixi;
 void ConfigurationFile::run() {
 
     {
-        std::ostringstream  oss;
+        std::ostringstream oss;
         std::time_t t = std::time(nullptr);
         std::tm tm = *std::localtime(&t);
         oss << std::put_time(&tm, "%F %T%z - %a %e %b, %Y") << std::endl;
@@ -140,204 +138,219 @@ void ConfigurationFile::run() {
         serialize((results_folder / "configuration.yaml").c_str());
     }
 
-    GenericGraph<size_t> graph;
-    spd_we::WeightEstimator<size_t> we;
-    we.setVarEpsilon({varepsilon});
     std::vector<Transaction<TimestampedEvent>> logForWeightEstimation, originalLog, logForBenchmarks;
-    admissibleCharList.erase(std::remove(admissibleCharList.begin(), admissibleCharList.end(), varepsilon), admissibleCharList.end());
-    std::string epsilon{this->varepsilon};
     LevensteinSimilarity similarity;
+    double graphCost = 1.0;
+    {
+        GenericGraph<size_t> graph;
+        spd_we::WeightEstimator<size_t> we;
+        we.setVarEpsilon({varepsilon});
+        admissibleCharList.erase(std::remove(admissibleCharList.begin(), admissibleCharList.end(), varepsilon),
+                                 admissibleCharList.end());
+        std::string epsilon{this->varepsilon};
 
-    switch (this->input_file_format) {
-        case Petri_PNML:
-            READ_GRAPH("PNML (Stochastic Petri Net)");
-            graph = load_pnml(this->input_file, epsilon)[this->ith_graph];
-            break;
+        switch (this->input_file_format) {
+            case Petri_PNML:
+                READ_GRAPH("PNML (Stochastic Petri Net)");
+                graph = load_pnml(this->input_file, epsilon)[this->ith_graph];
+                graph.removeSolitaryNodes();
+                break;
 
-        case Petri_BPMN:
-            READ_GRAPH("Simple BPMN (to Stochastic Petri Net)");
-            graph = load_bpmn(this->input_file, epsilon)[this->ith_graph];
-            break;
+            case Petri_BPMN:
+                READ_GRAPH("Simple BPMN (to Stochastic Petri Net)");
+                graph = load_bpmn(this->input_file, epsilon)[this->ith_graph];
+                graph.removeSolitaryNodes();
+                break;
 
-        case PetriMatrix:
-            READ_GRAPH("weighted- and labelled- node matrix");
-            graph = load_petri_matrix(this->input_file);
-            break;
+            case PetriMatrix:
+                READ_GRAPH("weighted- and labelled- node matrix");
+                graph = load_petri_matrix(this->input_file);
+                break;
 
-        case StochasticMatrix: // TODO
-            READ_GRAPH("node-labelled and edge-weigthed (stochastic) matrix");
-            graph = load_matrix(this->input_file);
-            break;
+            case StochasticMatrix: // TODO
+                READ_GRAPH("node-labelled and edge-weigthed (stochastic) matrix");
+                graph = load_matrix(this->input_file);
+                break;
 
-        case ProbRegex: // TODO
-            READ_GRAPH("probabilistic REGEX");
-            graph = load_pregex(this->input_file, epsilon);
-            break;
-    }
-    graph.removeSolitaryNodes();
-    graph.render((this->results_folder / "graph_01_input.pdf").c_str());
-    bool rememberToLog = false;
-    bool useEstimator = false;
+            case ProbRegex: // TODO
+                READ_GRAPH("probabilistic REGEX");
+                graph = load_pregex(this->input_file, epsilon);
+                break;
+        }
+
+        //graph.render((this->results_folder / "graph_01_input.pdf").c_str());
+        bool rememberToLog = false;
+        bool useEstimator = false;
 
 
-    if (isFileFormatPetri(this->input_file_format)) {
-        /*if (!this->use_estimator) {
-            std::cout << "Using no estimator: no traces are going to be loaded!" << std::endl;
-            if (this->trace_file_format != NoLog) {
-                std::cerr << "Ignoring the log file: no estimator is used" << std::endl;
-                this->trace_file_format = NoLog;
+        if (true) {
+            /*if (!this->use_estimator) {
+                std::cout << "Using no estimator: no traces are going to be loaded!" << std::endl;
+                if (this->trace_file_format != NoLog) {
+                    std::cerr << "Ignoring the log file: no estimator is used" << std::endl;
+                    this->trace_file_format = NoLog;
+                }
+            } else*/ {
+                if (this->estimator_type == spd_we::W_CONSTANT) {
+                    std::cout << "Using the constant estimator" << std::endl;
+                    ///std::cerr << "Ignoring the log file: the constant estimator will be used" << std::endl;
+                    ///this->trace_file_format = NoLog;
+                } else {
+                    std::cout << "Using an estimator: a log file will be loaded" << std::endl;
+                    useEstimator = true;
+                }
+
+                switch (this->trace_file_format) {
+                    case XESLog:
+                        logForWeightEstimation = load_xes(this->traces_file);
+                        originalLog = logForWeightEstimation;
+                        performLogOperation(this->operations, logForWeightEstimation);
+                        {
+                            std::set<std::vector<TimestampedEvent>> difference;
+                            for (const auto &x : originalLog) {
+                                difference.emplace(x);
+                            }
+                            for (const auto &x : logForWeightEstimation) {
+                                difference.erase(difference.find(x));
+                            }
+                            for (const auto &x : difference) {
+                                logForBenchmarks.emplace_back(x);
+                            }
+                        }
+                        rememberToLog = true;
+                        break;
+                    case RawLog:
+                        logForWeightEstimation = read_log(this->traces_file, this->separator_if_any);
+                        originalLog = logForWeightEstimation;
+                        performLogOperation(this->operations, logForWeightEstimation);
+                        {
+                            std::set<std::vector<TimestampedEvent>> difference;
+                            for (const auto &x : originalLog) {
+                                difference.emplace(x);
+                            }
+                            for (const auto &x : logForWeightEstimation) {
+                                difference.erase(difference.find(x));
+                            }
+                            for (const auto &x : difference) {
+                                logForBenchmarks.emplace_back(x);
+                            }
+                        }
+                        rememberToLog = true;
+                        break;
+
+                    case NoLog:
+                        std::cerr
+                                << "No trace file is provided: either the a constant weight or the pre-loaded weight will be set"
+                                << std::endl;
+                        break;
+                }
             }
-        } else*/ {
-            if (this->estimator_type == spd_we::W_CONSTANT) {
-                std::cout << "Using the constant estimator" << std::endl;
-                ///std::cerr << "Ignoring the log file: the constant estimator will be used" << std::endl;
-                ///this->trace_file_format = NoLog;
-            } else {
-                std::cout << "Using an estimator: a log file will be loaded" << std::endl;
-                useEstimator = true;
-            }
 
-            switch (this->trace_file_format) {
-                case XESLog:
-                    logForWeightEstimation = load_xes(this->traces_file);
-                    originalLog = logForWeightEstimation;
-                    performLogOperation(this->operations, logForWeightEstimation);
-                    {
-                        std::set<std::vector<TimestampedEvent>> difference;
-                        for (const auto& x : originalLog) {
-                            difference.emplace(x);
-                        }
-                        for (const auto& x : logForWeightEstimation) {
-                            difference.erase(difference.find(x));
-                        }
-                        for (const auto& x : difference) {
-                            logForBenchmarks.emplace_back(x);
-                        }
-                    }
-                    rememberToLog = true;
-                    break;
-                case RawLog:
-                    logForWeightEstimation = read_log(this->traces_file, this->separator_if_any);
-                    originalLog = logForWeightEstimation;
-                    performLogOperation(this->operations, logForWeightEstimation);
-                    {
-                        std::set<std::vector<TimestampedEvent>> difference;
-                        for (const auto& x : originalLog) {
-                            difference.emplace(x);
-                        }
-                        for (const auto& x : logForWeightEstimation) {
-                            difference.erase(difference.find(x));
-                        }
-                        for (const auto& x : difference) {
-                            logForBenchmarks.emplace_back(x);
-                        }
-                    }
-                    rememberToLog = true;
-                    break;
 
-                case NoLog:
-                    std::cerr << "No trace file is provided: either the a constant weight or the pre-loaded weight will be set"  << std::endl;
-                    break;
+            std::cout
+                    << "Trasforming the PetriNet (IS) into a Thompson automaton [transferring the edges from the nodes to the transitions]... "
+                    << std::flush;
+            {
+                auto t1 = std::chrono::steady_clock::now();
+                graph.transfer_weight_from_nodes_to_edges();
+                auto now = std::chrono::steady_clock::now();
+                std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now - t1).count()
+                          << " ns)" << std::endl;
+                //graph.render((this->results_folder / "graph_02_weight_transfer.pdf").c_str());
             }
         }
 
-
-        std::cout << "Trasforming the PetriNet (IS) into a Thompson automaton [transferring the edges from the nodes to the transitions]... " << std::flush;
+        std::cout << "Performing the varepsilon-closure... " << std::flush;
         {
             auto t1 = std::chrono::steady_clock::now();
-            graph.transfer_weight_from_nodes_to_edges();
+            graph.doClosure(epsilon);
             auto now = std::chrono::steady_clock::now();
-            std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
-            graph.render((this->results_folder / "graph_02_weight_transfer.pdf").c_str());
+            std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now - t1).count() << " ns)"
+                      << std::endl;
+            //graph.render((this->results_folder / "graph_03_e-closed.pdf").c_str());
         }
-    }
-
-    std::cout << "Performing the varepsilon-closure... " << std::flush;
-    {
-        auto t1 = std::chrono::steady_clock::now();
-        graph.doClosure(epsilon);
-        auto now = std::chrono::steady_clock::now();
-        std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
-        graph.render((this->results_folder / "graph_03_e-closed.pdf").c_str());
-    }
 
 
-    if (rememberToLog && useEstimator) {
-        auto t1 = std::chrono::steady_clock::now();
-        std::cout << "Retrieving the estimator phase after the varepsilon closure... " << std::flush;
-        we.setGraph(&graph);
-        we.setLog(logForWeightEstimation);
-        for (const auto& id : graph.getNodes()) {
-            graph.updateNodeWeight(id, we.getNodeWeight(id, this->estimator_type));
+        if (rememberToLog && useEstimator) {
+            auto t1 = std::chrono::steady_clock::now();
+            std::cout << "Retrieving the estimator phase after the varepsilon closure... " << std::flush;
+            we.setGraph(&graph);
+            we.setLog(logForWeightEstimation);
+            for (const auto &id : graph.getNodes()) {
+                graph.updateNodeWeight(id, we.getNodeWeight(id, this->estimator_type));
+            }
+            //graph.render((this->results_folder / "graph_04_estimator.pdf").c_str());
+            graph.transfer_weight_from_nodes_to_edges();
+            //graph.render((this->results_folder / "graph_04_estimator_transfer.pdf").c_str());
+            auto now = std::chrono::steady_clock::now();
+            std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now - t1).count() << " ns)"
+                      << std::endl;
         }
-        graph.render((this->results_folder / "graph_04_estimator.pdf").c_str());
-        graph.transfer_weight_from_nodes_to_edges();
-        graph.render((this->results_folder / "graph_04_estimator_transfer.pdf").c_str());
-        auto now = std::chrono::steady_clock::now();
-        std::cout << " done (" << std::chrono::duration_cast<std::chrono::nanoseconds>(now-t1).count() << " ns)" << std::endl;
-    }
 
-    std::cout << "Converting to the simple benchmark graph" << std::endl;
-    std::cout << " 1) Initializing the final graph" << std::endl;
-    finalGraph.init(graph.nodes()+1, graph.countEdges(), graph.getStart(), graph.getEnd());
-    finalGraph.name = graph.getName();
+        std::cout << "Converting to the simple benchmark graph" << std::endl;
+        std::cout << " 1) Initializing the final graph" << std::endl;
+        finalGraph.init(graph.nodes() + 1, graph.countEdges(), graph.getStart(), graph.getEnd());
+        finalGraph.name = graph.getName();
 
-    std::cout << " 2) Generating the correspondence full_action_name <-> char" << std::endl;
-    action_to_single_char.put(epsilon, varepsilon);
-    graph.generateBimapLabels(this->action_to_single_char, this->admissibleCharList, epsilon);
-    std::cout << "The map was generated as follows: " <<std::endl;
-    {
-        std::string newAdmissibleCharList; // Avoiding to insert some chars that are not within the trace
-        for (const auto& cp : action_to_single_char.getElements()) {
-            newAdmissibleCharList += cp.second;
-            std::cout<< "  - " << cp.first << " <-> " << cp.second << std::endl;
+        std::cout << " 2) Generating the correspondence full_action_name <-> char" << std::endl;
+        action_to_single_char.put(epsilon, varepsilon);
+        graph.generateBimapLabels(this->action_to_single_char, this->admissibleCharList, epsilon);
+        std::cout << "The map was generated as follows: " << std::endl;
+        {
+            std::string newAdmissibleCharList; // Avoiding to insert some chars that are not within the trace
+            for (const auto &cp : action_to_single_char.getElements()) {
+                newAdmissibleCharList += cp.second;
+                std::cout << "  - " << cp.first << " <-> " << cp.second << std::endl;
+            }
+            std::swap(admissibleCharList, newAdmissibleCharList);
         }
-        std::swap(admissibleCharList, newAdmissibleCharList);
-    }
-    traceNoiser.clear();
-    for (const auto& dbl : noiseThreshold) {
-        traceNoiser.emplace_back(admissibleCharList, dbl, seedError);
-    }
-
-    std::cout << " 3) Filling up the elements" << std::endl;
-    for (const auto& n : graph.getNodes()) {
-        finalGraph.addNode(n, {this->action_to_single_char.getValue(graph.getNodeLabel(n))});
-        for (const auto& e : graph.outgoing(n)) {
-            finalGraph.addEdge(n, e.first, e.second);
+        traceNoiser.clear();
+        for (const auto &dbl : noiseThreshold) {
+            traceNoiser.emplace_back(admissibleCharList, dbl, seedError);
         }
+
+        std::cout << " 3) Filling up the elements" << std::endl;
+        for (const auto &n : graph.getNodes()) {
+            finalGraph.addNode(n, {this->action_to_single_char.getValue(graph.getNodeLabel(n))});
+            for (const auto &e : graph.outgoing(n)) {
+                finalGraph.addEdge(n, e.first, e.second);
+            }
+        }
+        graphCost = graph.getCost();
     }
-    finalGraph.finalizeEdgesMatrix(graph.getCost());
+    finalGraph.finalizeEdgesMatrix(graphCost);
 
     std::cout << " 4) Converting the traces to single strings via correspondence" << std::endl;
     convertLog(logForBenchmarks, finalLog);
     convertLog(originalLog, finalOriginalLog);
 
     if (this->add_traces_to_log) {
-        std::cout << "5) Adding some further traces to the log from the generated paths. Settings: maxLength = " << this->max_length << " minProb = " << this->min_prob << std::endl;
-        for (const auto& path : finalGraph.iterateOverPaths(false, max_length, min_prob)) {
+        std::cout << "5) Adding some further traces to the log from the generated paths. Settings: maxLength = "
+                  << this->max_length << " minProb = " << this->min_prob << std::endl;
+        for (const auto &path : finalGraph.iterateOverPaths(false, max_length, min_prob)) {
             std::cout << " New trace = '" << path.path << "' with probability = " << path.probability << std::endl;
             finalLog.emplace_back(path);
         }
+    } else {
+        std::cout << "6) Sampling some traces, just for limiting the execution time (for the moment)" << std::endl;
+        size_t N = 3;
+        {
+            std::mt19937 sd(std::default_random_engine{}());
+            std::map<size_t, std::unordered_set<struct path_info>> selectionMap; // Selecting some traces, while removing the duplicate traces
+            for (const struct path_info &v : finalLog) {
+                selectionMap[v.path.size()].emplace(v);
+            }
+            finalLog.clear();
+            for (auto &cp : selectionMap) {
+                std::vector<struct path_info> sampled;
+                std::sample(cp.second.begin(), cp.second.end(), std::back_inserter(finalLog), N, sd);
+            }
+            /*max_length = selectionMap.rbegin()->first;
+            std::cout << "The maximum value has been changed to " << max_length;*/
+        }
     }
 
-    std::cout << "6) Sampling some traces, just for limiting the execution time (for the moment)" << std::endl;
-    size_t N = 3;
-    {
-        std::mt19937 sd(std::default_random_engine{}());
-        std::map<size_t, std::unordered_set<struct path_info>> selectionMap; // Selecting some traces, while removing the duplicate traces
-        for (const struct path_info& v : finalLog) {
-            selectionMap[v.path.size()].emplace(v);
-        }
-        finalLog.clear();
-        for (auto& cp : selectionMap) {
-            std::vector<struct path_info> sampled;
-            std::sample(cp.second.begin(), cp.second.end(), std::back_inserter(finalLog), N, sd);
-        }
-        /*max_length = selectionMap.rbegin()->first;
-        std::cout << "The maximum value has been changed to " << max_length;*/
-    }
-
-    constexpr auto& color_entries =  magic_enum::enum_entries<PathEmbeddingStrategy>();
+    constexpr auto &color_entries = magic_enum::enum_entries<PathEmbeddingStrategy>();
     constexpr std::size_t color_count = magic_enum::enum_count<PathEmbeddingStrategy>();
     ///DistanceExpressionEvaluator *localMetric = fileStrategyMap_loaded[UnterstuetzenStrategie::ProbabilitySimilarity];
     bool isMultiThreaded = true;
@@ -345,10 +358,10 @@ void ConfigurationFile::run() {
     /*MultithreadWrap<std::pair<std::vector<record_element_per_query>, std::vector<additional_benchmarks_per_log>>> pool{(unsigned int)std::thread::hardware_concurrency(), isMultiThreaded};
     std::vector<MultithreadedBenchmarkForPooling> toMultiThread;
     size_t id = 0;*/
-    std::vector<std::pair<std::string, std::vector<std::pair<std::string,double>>>> V;
-    for (const auto& query : finalLog) {
-        std::pair<std::string, std::vector<std::pair<std::string,double>>> cp{query.path, {}};
-        for (auto& noiser : traceNoiser) {
+    std::vector<std::pair<std::string, std::vector<std::pair<std::string, double>>>> V;
+    for (const auto &query : finalLog) {
+        std::pair<std::string, std::vector<std::pair<std::string, double>>> cp{query.path, {}};
+        for (auto &noiser : traceNoiser) {
             std::string alteredQuery;
             do {
                 alteredQuery = noiser.alter(query.path);
@@ -361,29 +374,34 @@ void ConfigurationFile::run() {
 
     std::string logFile1 = (results_folder / "log_proposed_main.csv").string();
     std::ofstream log1(logFile1, std::ofstream::out);
-    std::string logFile2= (results_folder / "log_proposed_time.csv").string();
+    std::string logFile2 = (results_folder / "log_proposed_time.csv").string();
     std::ofstream log2(logFile2, std::ofstream::out);
 
-    for (size_t i = 0; i<color_count; i++) {
-        std::set<std::pair<std::string,std::string>> embedding_space;
-        std::cout << "Strategy " << (i+1) << " of " << color_count << ": " << color_entries[i].second.data() << std::endl;
+    for (size_t i = 0; i < color_count; i++) {
+        std::set<std::pair<std::string, std::string>> embedding_space;
+        std::cout << "Strategy " << (i + 1) << " of " << color_count << ": " << color_entries[i].second.data()
+                  << std::endl;
         PathEmbeddingStrategy strategy = color_entries[i].first;
         std::string strategyName{magic_enum::enum_name(strategy).data()};
 
-        MultiplePathsEmbeddingStrategy* pathstrategy  = generatePathEmbeddingStrategyFromParameters(strategy);
-        GraphEmbeddingStrategy *        graphStrategy = generateGraphEmbeddingStrategyFromParameters(strategy);
+        MultiplePathsEmbeddingStrategy *pathstrategy = generatePathEmbeddingStrategyFromParameters(strategy);
+        GraphEmbeddingStrategy *graphStrategy = generateGraphEmbeddingStrategyFromParameters(strategy);
 
 
         std::cout << " * generating embeddings... " << std::flush;
         ReadGraph::path_to_uembedding ptg;
+        std::vector<struct path_info> paths = pathstrategy->collectPaths(finalGraph);
+        std::cout << " [paths generated, now, generating embeddings!]" << std::flush;
         steady_clock::time_point generateEmbeddingStart = steady_clock::now();
-        ReadGraph::path_to_uembedding ptu = (*pathstrategy)(finalGraph);
+        ReadGraph::path_to_uembedding ptu = pathstrategy->generateUnstructuredEmbeddingsFromRawPaths(finalGraph, paths);
+        double embeddingWholeTraces =
+                duration_cast<std::chrono::nanoseconds>(steady_clock::now() - generateEmbeddingStart).count() /
+                1000000.0;
         ReadGraph::extractEmbeddingSpace(embedding_space, ptu);
         auto map = ReadGraph::generateStructuredEmbeddings(embedding_space, ptu);
-        double embeddingWholeTraces = duration_cast<std::chrono::nanoseconds>(steady_clock::now() - generateEmbeddingStart).count()/1000000.0;
         std::vector<struct path_info> mapPath;
         std::vector<Eigen::VectorXd> mapVecs;
-        for (const auto& path : map) {
+        for (const auto &path : map) {
             std::cout << " ~~~~ " << path.first << std::endl;
             mapPath.emplace_back(path.first);
             mapVecs.emplace_back(path.second);
@@ -393,12 +411,13 @@ void ConfigurationFile::run() {
         steady_clock::time_point vpTreeActualDistanceStartLoad = steady_clock::now();
         vp_tree<struct path_info, VpTreeStructDistance> vptreeActualMetric{mapPath};
         steady_clock::time_point vpTreeActualDistanceEndLoad = steady_clock::now();
-        double actualMetricLoading = duration_cast<std::chrono::nanoseconds>(vpTreeActualDistanceEndLoad - vpTreeActualDistanceStartLoad).count()/1000000.0;
+        double actualMetricLoading = duration_cast<std::chrono::nanoseconds>(
+                vpTreeActualDistanceEndLoad - vpTreeActualDistanceStartLoad).count() / 1000000.0;
         std::cout << "VPTree loading time with to-be-recomputed metric: (ns) " << actualMetricLoading << std::endl;
         log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
-             << traces_file.substr(traces_file.find_last_of("/\\") + 1)<< ','
-             <<  ','
-             <<  ','
+             << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
+             << ','
+             << ','
              << strategyName << ','
              << 0.0 << ','
              << "VPTreeLoading+Metric," << actualMetricLoading << ",,0" << std::endl;
@@ -406,21 +425,23 @@ void ConfigurationFile::run() {
         steady_clock::time_point vpTreeProposedStartLoad = steady_clock::now();
         vp_tree<Eigen::VectorXd, VpTreePairPow2DotProduct> vpTreeProposed{mapVecs};
         steady_clock::time_point vpTreeProposedEndLoad = steady_clock::now();
-        double proposedLoading = duration_cast<std::chrono::nanoseconds>(vpTreeProposedEndLoad - vpTreeProposedStartLoad).count()/1000000.0;
+        double proposedLoading =
+                duration_cast<std::chrono::nanoseconds>(vpTreeProposedEndLoad - vpTreeProposedStartLoad).count() /
+                1000000.0;
         std::cout << "VPTree loading time with Embedding: (ns) " << proposedLoading << std::endl;
         log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
-             << traces_file.substr(traces_file.find_last_of("/\\") + 1)<< ','
-             <<   ','
-             <<   ','
+             << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
+             << ','
+             << ','
              << strategyName << ','
              << 0.0 << ','
-             << "VPTreeLoading+Embedding," << embeddingWholeTraces+proposedLoading << ",,0" << std::endl;
+             << "VPTreeLoading+Embedding," << embeddingWholeTraces + proposedLoading << ",,0" << std::endl;
 
 
         steady_clock::time_point knnProposedStartLoad = steady_clock::now();
         Matrix dataPoints(embedding_space.size(), map.size());
         size_t j = 0;
-        for (const auto& path : map) {
+        for (const auto &path : map) {
             dataPoints.col(j) = path.second;
             j++;
         }
@@ -433,65 +454,71 @@ void ConfigurationFile::run() {
         kdtreeProposed.setThreads(1);
         kdtreeProposed.build();
         steady_clock::time_point knnProposedEndLoad = steady_clock::now();
-        double proposedLoadingKNN = duration_cast<std::chrono::nanoseconds>(knnProposedEndLoad - knnProposedStartLoad).count()/1000000.0;
+        double proposedLoadingKNN =
+                duration_cast<std::chrono::nanoseconds>(knnProposedEndLoad - knnProposedStartLoad).count() / 1000000.0;
         std::cout << "KDTree loading time with to-be-recomputed metric: (ns) " << proposedLoadingKNN << std::endl;
         log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
-             << traces_file.substr(traces_file.find_last_of("/\\") + 1)<< ','
-             <<   ','
-             <<   ','
+             << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
+             << ','
+             << ','
              << strategyName << ','
              << 0.0 << ','
-             << "VPKDTreeMinkowski+Embedding," << embeddingWholeTraces+proposedLoadingKNN << ",,0" << std::endl;
+             << "VPKDTreeMinkowski+Embedding," << embeddingWholeTraces + proposedLoadingKNN << ",,0" << std::endl;
 
 
         std::cout << " * generation precision metric" << std::flush;
-        double precision_normalization = std::sqrt(set_of_path_similarity(mapPath, mapPath, similarity)*set_of_path_similarity(finalOriginalLog, finalOriginalLog, similarity));
-        double precision = set_of_path_similarity(mapPath, finalOriginalLog, similarity)/precision_normalization;
+        double precision_normalization = std::sqrt(set_of_path_similarity(mapPath, mapPath, similarity) *
+                                                   set_of_path_similarity(finalOriginalLog, finalOriginalLog,
+                                                                          similarity));
+        double precision = set_of_path_similarity(mapPath, finalOriginalLog, similarity) / precision_normalization;
         std::cout << "... done" << std::endl;
 
         log1 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
-                    << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ",,0,"
-                    << color_entries[i].second.data()
-                    << ",0.0,F,"
-                    << tuning_factor << ','
-                    << (use_path_lambda_factor ? "T," : "F,")
-                    << lambda << ','
-                    << max_length << ','
-                    << min_prob
-                    << ",Pecision," << precision << ",,0" << std::endl;
+             << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ",,0,"
+             << color_entries[i].second.data()
+             << ",0.0,F,"
+             << tuning_factor << ','
+             << (use_path_lambda_factor ? "T," : "F,")
+             << lambda << ','
+             << max_length << ','
+             << min_prob
+             << ",Pecision," << precision << ",,0" << std::endl;
 
         std::cout << " * starting with query analysis!" << std::endl;
-        for (auto& query : V) {
+        for (auto &query : V) {
             std::string actualQuery = query.first;
             {
                 struct path_info forQuery{1.0, actualQuery, {}};
                 steady_clock::time_point vpTreeActualDistanceStartQuery = steady_clock::now();
                 vptreeActualMetric.topkSearch(forQuery, 20);
                 steady_clock::time_point vpTreeActualDistanceEndQuery = steady_clock::now();
-                double actualMetricQuery = duration_cast<std::chrono::nanoseconds>(vpTreeActualDistanceEndLoad - vpTreeActualDistanceStartLoad).count()/1000000.0;
+                double actualMetricQuery = duration_cast<std::chrono::nanoseconds>(
+                        vpTreeActualDistanceEndLoad - vpTreeActualDistanceStartLoad).count() / 1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                      << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
-                        << query.first << ','
-                        << query.first.size() << ','
-                        << strategyName << ','
-                        << 0.0 << ','
-                     << "VPTree+Metric," <<  ( actualMetricQuery) << ",,0" << std::endl;
+                     << query.first << ','
+                     << query.first.size() << ','
+                     << strategyName << ','
+                     << 0.0 << ','
+                     << "VPTree+Metric," << (actualMetricQuery) << ",,0" << std::endl;
             }
 
             {
                 // Transformed space
-                std::vector<std::pair<double,double>> transformedSpace;
+                std::vector<std::pair<double, double>> transformedSpace;
                 steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
-                for (const auto& path : map) {
-                    double similarity = 1.0/((GeneralizedLevensteinDistance(actualQuery, path.first.path)/5.0+1.0));
+                for (const auto &path : map) {
+                    double similarity =
+                            1.0 / ((GeneralizedLevensteinDistance(actualQuery, path.first.path) / 5.0 + 1.0));
                     double probability = path.first.probability;
-                    double sqrt = std::sqrt(similarity*similarity+probability*probability);
-                    transformedSpace.emplace_back((1.0/(similarity*sqrt)), (1.0/(probability*sqrt)));
+                    double sqrt = std::sqrt(similarity * similarity + probability * probability);
+                    transformedSpace.emplace_back((1.0 / (similarity * sqrt)), (1.0 / (probability * sqrt)));
                 }
-                vp_tree<std::pair<double,double>, VpTreePairPow2Distance> transformed_tree{transformedSpace};
-                transformed_tree.topkSearch(std::make_pair(0,0), 10);
+                vp_tree<std::pair<double, double>, VpTreePairPow2Distance> transformed_tree{transformedSpace};
+                transformed_tree.topkSearch(std::make_pair(0, 0), 10);
                 steady_clock::time_point vpTreeTransformedEndQuery = steady_clock::now();
-                double transformedQuery = duration_cast<std::chrono::nanoseconds>(vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count()/1000000.0;
+                double transformedQuery = duration_cast<std::chrono::nanoseconds>(
+                        vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count() / 1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                      << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
                      << query.first << ','
@@ -505,12 +532,13 @@ void ConfigurationFile::run() {
                 steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
                 Matrix dataPoints(2, map.size());
                 size_t j = 0;
-                for (const auto& path : map) {
-                    double similarity = 1.0/((GeneralizedLevensteinDistance(actualQuery, path.first.path)/5.0+1.0));
+                for (const auto &path : map) {
+                    double similarity =
+                            1.0 / ((GeneralizedLevensteinDistance(actualQuery, path.first.path) / 5.0 + 1.0));
                     double probability = path.first.probability;
-                    double sqrt = std::sqrt(similarity*similarity+probability*probability);
-                    dataPoints(0,j) = (1.0/(similarity*sqrt));
-                    dataPoints(1,j) = (1.0/(probability*sqrt));
+                    double sqrt = std::sqrt(similarity * similarity + probability * probability);
+                    dataPoints(0, j) = (1.0 / (similarity * sqrt));
+                    dataPoints(1, j) = (1.0 / (probability * sqrt));
                     j++;
                 }
                 knn::KDTreeMinkowski<double, knn::EuclideanDistance<double>> kdtree(dataPoints);
@@ -522,12 +550,13 @@ void ConfigurationFile::run() {
                 kdtree.setThreads(1);
                 kdtree.build();
                 Matrix queryPoints(2, 1);
-                queryPoints << 0,  0;
+                queryPoints << 0, 0;
                 Matrixi indices;
                 Matrix distances;
                 kdtree.query(queryPoints, 10, indices, distances);
                 steady_clock::time_point vpTreeTransformedEndQuery = steady_clock::now();
-                double transformedQuery = duration_cast<std::chrono::nanoseconds>(vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count()/1000000.0;
+                double transformedQuery = duration_cast<std::chrono::nanoseconds>(
+                        vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count() / 1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                      << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
                      << query.first << ','
@@ -543,22 +572,23 @@ void ConfigurationFile::run() {
                 steady_clock::time_point embeddingGenerationStart = steady_clock::now();
                 ReadGraph g = ReadGraph::fromString(actualQuery, 1.0);
                 auto tmp = (*graphStrategy)(g);
-                double toAdd = duration_cast<std::chrono::nanoseconds>(steady_clock::now() - embeddingGenerationStart).count()/1000000.0;
+                double toAdd = duration_cast<std::chrono::nanoseconds>(
+                        steady_clock::now() - embeddingGenerationStart).count() / 1000000.0;
                 auto x = ReadGraph::generateStructuredEmbedding(embedding_space, tmp);
 
 
                 steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
                 vpTreeProposed.topkSearch(x, 10);
                 steady_clock::time_point vpTreeTransformedEndQuery = steady_clock::now();
-                double transformedQuery = duration_cast<std::chrono::nanoseconds>(vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count()/1000000.0;
+                double transformedQuery = duration_cast<std::chrono::nanoseconds>(
+                        vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count() / 1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                      << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
-                        << query.first << ','
-                        << query.first.size() << ','
-                        << strategyName << ','
-                        << 0.0 << ','
-                     << "VPTree+Embedding," << toAdd+transformedQuery << ",,0" << std::endl;
-
+                     << query.first << ','
+                     << query.first.size() << ','
+                     << strategyName << ','
+                     << 0.0 << ','
+                     << "VPTree+Embedding," << toAdd + transformedQuery << ",,0" << std::endl;
 
 
                 Matrix queryPoints(embedding_space.size(), 1);
@@ -569,24 +599,28 @@ void ConfigurationFile::run() {
                 kdtreeProposed.query(queryPoints, 10, indices, distances);
                 steady_clock::time_point vpTreeTransformedEndQueryProposed = steady_clock::now();
 
-                double transformedQueryProposed = duration_cast<std::chrono::nanoseconds>(vpTreeTransformedEndQueryProposed - vpTreeTransformedStartQueryProposed).count()/1000000.0;
+                double transformedQueryProposed = duration_cast<std::chrono::nanoseconds>(
+                        vpTreeTransformedEndQueryProposed - vpTreeTransformedStartQueryProposed).count() / 1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                      << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
                      << query.first << ','
                      << query.first.size() << ','
                      << strategyName << ','
                      << 0.0 << ','
-                     << "VPKDTreeMinkowski+Embedding," << toAdd+transformedQueryProposed << ",,0" << std::endl;
+                     << "VPKDTreeMinkowski+Embedding," << toAdd + transformedQueryProposed << ",,0" << std::endl;
             }
 
 
             double noise = 0.0;
             std::cout << "    - trace: " << actualQuery << std::endl;
-            Ranking<size_t> precomputedTraceRanking = performBenchmark(similarity, embedding_space, strategy, graphStrategy, map, actualQuery, noise, mapPath, log1);
+            Ranking<size_t> precomputedTraceRanking = performBenchmark(similarity, embedding_space, strategy,
+                                                                       graphStrategy, map, actualQuery, noise, mapPath,
+                                                                       log1);
 
-            for (auto& noiser : query.second) {
+            for (auto &noiser : query.second) {
                 std::cout << "     - changed: " << noiser.first << std::endl;
-                performBenchmark(similarity, embedding_space, strategy, graphStrategy, map, noiser.first, noiser.second, mapPath, log1, &precomputedTraceRanking);
+                performBenchmark(similarity, embedding_space, strategy, graphStrategy, map, noiser.first, noiser.second,
+                                 mapPath, log1, &precomputedTraceRanking);
             }
             log1 << std::flush;
         }
@@ -596,7 +630,6 @@ void ConfigurationFile::run() {
         delete graphStrategy;
         delete pathstrategy;
     }
-
 
 
 #if MULTITHREADED_IMPL
@@ -699,10 +732,10 @@ void ConfigurationFile::run() {
 }
 
 void ConfigurationFile::convertLog(const std::vector<Transaction<TimestampedEvent>> &currentLog,
-                                   std::vector<struct path_info> &final)  {
-    for (const auto& trace : currentLog) {
+                                   std::vector<struct path_info> &final) {
+    for (const auto &trace : currentLog) {
         std::string stringBuilder;
-        for (const auto& str : trace) {
+        for (const auto &str : trace) {
             stringBuilder += action_to_single_char.getValue(str.event_name);
         }
         final.emplace_back(1.0, stringBuilder, std::vector<size_t>{});
@@ -724,16 +757,18 @@ std::pair<size_t, double> getProposed(Ranking<size_t>& expectedRanking, Ranking<
 
 
 Ranking<size_t>
-ConfigurationFile::performBenchmark(const LevensteinSimilarity &similarity/*, DistanceExpressionEvaluator *probSimDistance*/,
-                                    std::set<std::pair<std::string, std::string>> &embedding_space,
-                                    PathEmbeddingStrategy &strategy, GraphEmbeddingStrategy *graphStrategy,
-                                    const std::unordered_map<struct path_info, Eigen::VectorXd> &map,
-                                    std::string &query, double noise,
-                                    std::vector<struct path_info>& pathsOrder, std::ostream& log_quality, Ranking<size_t>* precomputedTraceRanking)  {
-    assert((noise == 0.0) || precomputedTraceRanking );
+ConfigurationFile::performBenchmark(
+        const LevensteinSimilarity &similarity/*, DistanceExpressionEvaluator *probSimDistance*/,
+        std::set<std::pair<std::string, std::string>> &embedding_space,
+        PathEmbeddingStrategy &strategy, GraphEmbeddingStrategy *graphStrategy,
+        const std::unordered_map<struct path_info, Eigen::VectorXd> &map,
+        std::string &query, double noise,
+        std::vector<struct path_info> &pathsOrder, std::ostream &log_quality,
+        Ranking<size_t> *precomputedTraceRanking) {
+    assert((noise == 0.0) || precomputedTraceRanking);
     std::string strategyName{magic_enum::enum_name(strategy).data()};
     unsigned int threadExperiment = (noise != 0.0) ? 3 : 2;
-    size_t  querySize = query.size();
+    size_t querySize = query.size();
     ReadGraph g = ReadGraph::fromString(query, 1.0);
     auto tmp = (*graphStrategy)(g);
     auto x = ReadGraph::generateStructuredEmbedding(embedding_space, tmp);
@@ -742,23 +777,24 @@ ConfigurationFile::performBenchmark(const LevensteinSimilarity &similarity/*, Di
     size_t j = 0;
     double forGeneralization = -1.0;
     size_t genIdx = 0;
-    for (const auto& paths : map) {
+    for (const auto &paths : map) {
         double sc = x.dot(paths.second);
         pathRanking.addScore(j, sc);
-        double similarity = 1.0/(GeneralizedLevensteinDistance(paths.first.path, query) / 5.0 + 1.0);
+        double similarity = 1.0 / (GeneralizedLevensteinDistance(paths.first.path, query) / 5.0 + 1.0);
         if (similarity > forGeneralization) {
             genIdx = j;
             forGeneralization = similarity;
         }
 
-        double finalScore = (paths.first.probability* similarity);
+        double finalScore = (paths.first.probability * similarity);
         expectedRanking.addScore(j, finalScore);
         ///rankingMap[finalScore].emplace_back(j);
 
         j++;
     }
 
-    log_ranking(query, noise, log_quality, precomputedTraceRanking, strategyName, querySize, pathRanking, expectedRanking, forGeneralization, false);
+    log_ranking(query, noise, log_quality, precomputedTraceRanking, strategyName, querySize, pathRanking,
+                expectedRanking, forGeneralization, false);
     {
         auto localE = doDulcior(expectedRanking, pathsOrder.size());
         auto localP = doDulcior(pathRanking, pathsOrder.size());
@@ -766,7 +802,8 @@ ConfigurationFile::performBenchmark(const LevensteinSimilarity &similarity/*, Di
         if (precomputedTraceRanking) {
             localTR = doDulcior(*precomputedTraceRanking, pathsOrder.size());
         }
-        log_ranking(query, noise, log_quality, precomputedTraceRanking ? &localTR : nullptr, strategyName, querySize, localP, localE, forGeneralization, true);
+        log_ranking(query, noise, log_quality, precomputedTraceRanking ? &localTR : nullptr, strategyName, querySize,
+                    localP, localE, forGeneralization, true);
     }
 
 
@@ -821,17 +858,17 @@ ConfigurationFile::performBenchmark(const LevensteinSimilarity &similarity/*, Di
 }
 
 void ConfigurationFile::log_ranking(const std::string &query, double noise, std::ostream &log_quality,
-                                                Ranking<size_t> *precomputedTraceRanking,
-                                                const std::string &strategyName, size_t querySize,
-                                                Ranking<size_t> &pathRanking, Ranking<size_t> &expectedRanking,
-                                                double forGeneralization, double dulcior) const {
+                                    Ranking<size_t> *precomputedTraceRanking,
+                                    const std::string &strategyName, size_t querySize,
+                                    Ranking<size_t> &pathRanking, Ranking<size_t> &expectedRanking,
+                                    double forGeneralization, double dulcior) const {
     log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                 << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
                 << query << ','
                 << querySize << ','
                 << strategyName << ','
                 << noise << ','
-            << (dulcior ? "T," : "F,")
+                << (dulcior ? "T," : "F,")
                 << tuning_factor << ','
                 << (use_path_lambda_factor ? "T," : "F,")
                 << lambda << ','
@@ -845,7 +882,7 @@ void ConfigurationFile::log_ranking(const std::string &query, double noise, std:
                 << querySize << ','
                 << strategyName << ','
                 << noise << ','
-                         << (dulcior ? "T," : "F,")
+                << (dulcior ? "T," : "F,")
                 << tuning_factor << ','
                 << (use_path_lambda_factor ? "T," : "F,")
                 << lambda << ','
@@ -853,27 +890,28 @@ void ConfigurationFile::log_ranking(const std::string &query, double noise, std:
                 << min_prob
                 << ",Spearman," << expectedRanking.SpearmanCorrelationIndex(pathRanking, 1.0) << ",,0" << std::endl;
 
-    log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
+    /*log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                 << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
                 << query << ','
                 << querySize << ','
                 << strategyName << ','
                 << noise << ','
-                         << (dulcior ? "T," : "F,")
+                << (dulcior ? "T," : "F,")
                 << tuning_factor << ','
                 << (use_path_lambda_factor ? "T," : "F,")
                 << lambda << ','
                 << max_length << ','
                 << min_prob
-                << ",ProposedMetric," << minimum_edit_maximum_substring(pathRanking, expectedRanking) << ",,0" << std::endl;
+                << ",ProposedMetric," << minimum_edit_maximum_substring(pathRanking, expectedRanking) << ",,0"
+                << std::endl;*/
 
     if (noise != 0.0) {
         double noise1 = precomputedTraceRanking->SpearmanCorrelationIndex(pathRanking, 1.0);
-        double noise2 = minimum_edit_maximum_substring(pathRanking, *precomputedTraceRanking);
+        ///double noise2 = minimum_edit_maximum_substring(pathRanking, *precomputedTraceRanking);
         if (std::isinf(noise1)) {
             std::cerr << "ERROR!" << std::endl;
             double noise1 = precomputedTraceRanking->SpearmanCorrelationIndex(pathRanking, 1.0);
-            double noise2 = minimum_edit_maximum_substring(pathRanking, *precomputedTraceRanking);
+            ///double noise2 = minimum_edit_maximum_substring(pathRanking, *precomputedTraceRanking);
         }
         ///assert(precomputedTraceRanking);
         log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
@@ -882,27 +920,29 @@ void ConfigurationFile::log_ranking(const std::string &query, double noise, std:
                     << querySize << ','
                     << strategyName << ','
                     << noise << ','
-                             << (dulcior ? "T," : "F,")
+                    << (dulcior ? "T," : "F,")
                     << tuning_factor << ','
                     << (use_path_lambda_factor ? "T," : "F,")
                     << lambda << ','
                     << max_length << ','
                     << min_prob
-                    << ",WithNoiseDistanceSpearman," <<  precomputedTraceRanking->SpearmanCorrelationIndex(pathRanking, 1.0) << ",,0" << std::endl;
+                    << ",WithNoiseDistanceSpearman,"
+                    << precomputedTraceRanking->SpearmanCorrelationIndex(pathRanking, 1.0) << ",,0" << std::endl;
 
-        log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
+        /*log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                     << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
                     << query << ','
                     << querySize << ','
                     << strategyName << ','
                     << noise << ','
-                             << (dulcior ? "T," : "F,")
+                    << (dulcior ? "T," : "F,")
                     << tuning_factor << ','
                     << (use_path_lambda_factor ? "T," : "F,")
                     << lambda << ','
                     << max_length << ','
                     << min_prob
-                    << ",WithNoiseDistanceProposedMetric," <<  minimum_edit_maximum_substring(pathRanking, *precomputedTraceRanking) << ",,0" << std::endl;
+                    << ",WithNoiseDistanceProposedMetric,"
+                    << minimum_edit_maximum_substring(pathRanking, *precomputedTraceRanking) << ",,0" << std::endl;*/
     }
 }
 
@@ -981,7 +1021,7 @@ ConfigurationFile::log_stats(const std::unordered_map<struct path_info, Eigen::V
 #define INT_SERIALIZE(arg)              SIMPLE_SERIALIZE(arg)
 #define DBL_SERIALIZE(arg)              SIMPLE_SERIALIZE(arg)
 
-void ConfigurationFile::serialize(const std::string& filename) {
+void ConfigurationFile::serialize(const std::string &filename) {
     YAML::Emitter out;
     out.SetIndent(4);
     out << YAML::BeginMap;
@@ -1013,9 +1053,9 @@ void ConfigurationFile::serialize(const std::string& filename) {
     if (!operations.empty()) {
         out << YAML::Key << "operations" << YAML::Value;
         out << YAML::BeginSeq;
-        for (const auto& arg : operations) {
+        for (const auto &arg : operations) {
             const auto operation = arg.operation;
-            const auto factor    = arg.factor;
+            const auto factor = arg.factor;
             const auto keep_low_up_otherwise = arg.keep_low_up_otherwise;
             out << YAML::BeginMap;
             out << ENUM_SERIALIZE(operation);
@@ -1028,7 +1068,7 @@ void ConfigurationFile::serialize(const std::string& filename) {
     if (!fileStrategyMap.empty()) {
         out << YAML::Key << "fileStrategyMap" << YAML::Value;
         out << YAML::BeginMap;
-        for (const auto& cp : fileStrategyMap) {
+        for (const auto &cp : fileStrategyMap) {
             out << YAML::Key << (magic_enum::enum_name(cp.first).data()) << YAML::Value << cp.second;
         }
         out << YAML::EndMap;
@@ -1038,7 +1078,7 @@ void ConfigurationFile::serialize(const std::string& filename) {
     out << STRING_SERIALIZE(admissibleCharList);
     if (!noiseThreshold.empty()) {
         out << YAML::Key << "noiseThreshold" << YAML::Value << YAML::BeginSeq;
-        for (const auto& x: noiseThreshold) {
+        for (const auto &x: noiseThreshold) {
             out << x;
         }
         out << YAML::EndSeq;
@@ -1063,9 +1103,9 @@ void ConfigurationFile::serialize(const std::string& filename) {
 #include <sys/stat.h>
 #include <embeddings/labelled_paths/NodesWithTransitiveEdgeCost.h>
 
-inline bool exists_test3 (const std::string& name) {
+inline bool exists_test3(const std::string &name) {
     struct stat buffer;
-    return (stat (name.c_str(), &buffer) == 0);
+    return (stat(name.c_str(), &buffer) == 0);
 }
 
 #define PARSE_ENUM_EXT(str, arg, etype)                                                              \
@@ -1078,7 +1118,6 @@ inline bool exists_test3 (const std::string& name) {
             }                                                                               \
         }                                                                                   \
     }
-
 
 
 #define PARSE_ENUM(arg, etype)         PARSE_ENUM_EXT( #arg, arg, etype)                                                  /*   \
@@ -1170,7 +1209,7 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
             auto it = config["noiseThreshold"];
             noiseThreshold.clear();
             if ((it) && (it.IsSequence())) {
-                for (const auto& x : it) {
+                for (const auto &x : it) {
                     noiseThreshold.emplace_back(x.as<double>());
                 }
             }
@@ -1183,8 +1222,8 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
         {
             const auto operationList = config["operations"];
             if ((operationList) && (operationList.IsSequence())) {
-                for (const auto & i : operationList) {
-                    const auto& config = i;
+                for (const auto &i : operationList) {
+                    const auto &config = i;
 
                     LogOperationConfiguration arg;
                     PARSE_ENUM_EXT("operation", arg.operation, LogOperations);
@@ -1198,7 +1237,7 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
         {
             const auto strategy = config["fileStrategyMap"];
             if ((strategy) && (strategy.IsMap())) {
-                for (auto& kv : strategy) {
+                for (auto &kv : strategy) {
                     assert(kv.first.IsScalar() && kv.second.IsScalar());
                     UnterstuetzenStrategie arg;
                     auto tentativeEnum = magic_enum::enum_cast<UnterstuetzenStrategie>(kv.first.as<std::string>());
@@ -1228,13 +1267,19 @@ ConfigurationFile::generatePathEmbeddingStrategyFromParameters(enum PathEmbeddin
     std::string epsilon{varepsilon};
     switch (casus) {
         case ONLY_EDGE_INFORMATION_PROPOSED:
-            return new EmbedPathsOverSingleGraphStrategy<OnlyTransitiveEdgesCost<true>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, false, max_length, min_prob);
+            return new EmbedPathsOverSingleGraphStrategy<OnlyTransitiveEdgesCost<true>>(this->use_path_lambda_factor,
+                                                                                        epsilon, tuning_factor, lambda,
+                                                                                        false, max_length, min_prob);
         case EDGE_WITH_NODE_INFORMATION_PROPOSED:
-            return new EmbedPathsOverSingleGraphStrategy<NodesWithTransitiveEdgeCost<true>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, false, max_length, min_prob);
+            return new EmbedPathsOverSingleGraphStrategy<NodesWithTransitiveEdgeCost < true>>
+            (this->use_path_lambda_factor, epsilon, tuning_factor, lambda, false, max_length, min_prob);
         case ONLY_EDGE_INFORMATION_PREVIOUS:
-            return new EmbedPathsOverSingleGraphStrategy<OnlyTransitiveEdgesCost<false>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, false, max_length, min_prob);
+            return new EmbedPathsOverSingleGraphStrategy<OnlyTransitiveEdgesCost<false>>(this->use_path_lambda_factor,
+                                                                                         epsilon, tuning_factor, lambda,
+                                                                                         false, max_length, min_prob);
         case EDGE_WITH_NODE_INFORMATION_PREVIOUS:
-            return new EmbedPathsOverSingleGraphStrategy<NodesWithTransitiveEdgeCost<false>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, false, max_length, min_prob);
+            return new EmbedPathsOverSingleGraphStrategy<NodesWithTransitiveEdgeCost < false>>
+            (this->use_path_lambda_factor, epsilon, tuning_factor, lambda, false, max_length, min_prob);
     }
 }
 
@@ -1243,13 +1288,19 @@ ConfigurationFile::generateGraphEmbeddingStrategyFromParameters(enum PathEmbeddi
     std::string epsilon{varepsilon};
     switch (casus) {
         case ONLY_EDGE_INFORMATION_PROPOSED:
-            return new TransitiveClosureGraphStrategy<OnlyTransitiveEdgesCost<true>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, max_length);
+            return new TransitiveClosureGraphStrategy<OnlyTransitiveEdgesCost<true>>(this->use_path_lambda_factor,
+                                                                                     epsilon, tuning_factor, lambda,
+                                                                                     max_length);
         case EDGE_WITH_NODE_INFORMATION_PROPOSED:
-            return new TransitiveClosureGraphStrategy<NodesWithTransitiveEdgeCost<true>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, max_length);
+            return new TransitiveClosureGraphStrategy<NodesWithTransitiveEdgeCost < true>>
+            (this->use_path_lambda_factor, epsilon, tuning_factor, lambda, max_length);
         case ONLY_EDGE_INFORMATION_PREVIOUS:
-            return new TransitiveClosureGraphStrategy<OnlyTransitiveEdgesCost<false>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda,  max_length);
+            return new TransitiveClosureGraphStrategy<OnlyTransitiveEdgesCost<false>>(this->use_path_lambda_factor,
+                                                                                      epsilon, tuning_factor, lambda,
+                                                                                      max_length);
         case EDGE_WITH_NODE_INFORMATION_PREVIOUS:
-            return new TransitiveClosureGraphStrategy<NodesWithTransitiveEdgeCost<false>>(this->use_path_lambda_factor, epsilon, tuning_factor, lambda, max_length);
+            return new TransitiveClosureGraphStrategy<NodesWithTransitiveEdgeCost < false>>
+            (this->use_path_lambda_factor, epsilon, tuning_factor, lambda, max_length);
     }
 }
 

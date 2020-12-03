@@ -310,7 +310,7 @@ public:
     }
 
 
-    bool render(const std::string& filename = "rendertest.pdf") {
+    bool render(const std::string& filename) {
         std::string str;
         {
             std::ostringstream oss;
