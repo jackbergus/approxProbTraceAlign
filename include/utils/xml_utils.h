@@ -31,6 +31,7 @@
 #include <vector>
 
 #define SIBLING_ITERATE(curr, root, name, cs)       for (rapidxml::xml_node<> * curr = (root)->first_node(name, 0, cs); curr; curr = curr->next_sibling())
+#define SIBLING_ITERATE_CHECK(curr, root, __name, cs)       for (rapidxml::xml_node<> * curr = (root)->first_node(__name, 0, cs); curr; curr = curr->next_sibling()) if (strncmp(curr->name(), __name, curr->name_size())==0)
 #define GET_ATTRIBUTE(spn, attr)                    ((spn)->first_attribute(attr)->value())
 #define GET_FIRST_CHILD(spn, attr)                  ((spn)->first_node((attr),0,false))
 #define STRING_STARTS_WITH(s,with)                  ((s).rfind((with), 0) == 0)
