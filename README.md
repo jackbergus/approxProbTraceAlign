@@ -23,7 +23,7 @@ After doing so, you can create a new folder, where all the generated binaries wi
 mkdir build 
 cd build
 cmake .. 
-make -j8
+make -j8 fuzzyStringMatching2
 ```
 
 
