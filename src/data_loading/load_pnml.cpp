@@ -138,7 +138,7 @@ std::vector<GenericGraph<size_t>> load_pnml(const std::string &filename, const s
                         //}
                     }
 
-                const auto final = pn.generateMetaReachabilityGraph(marking);
+                auto final = pn.generateMetaReachabilityGraph(marking);
                 // Inserting the nodes
                 if (final.isFinalEStateAddedAfterwards) {
                     graph.add_node(final.finalEState, epsilon, 1.0);

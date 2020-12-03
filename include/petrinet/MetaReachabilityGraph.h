@@ -49,7 +49,7 @@ struct MetaReachabilityGraph {
     MetaReachabilityGraph(const MetaReachabilityGraph&) = default;
     MetaReachabilityGraph& operator=(const MetaReachabilityGraph&) = default;
 
-    size_t getTransitionIdAssociatedToMetaNodeId(size_t metaNodeId) const;
+    size_t getTransitionIdAssociatedToMetaNodeId(size_t metaNodeId) ;
     void  print(std::ostream &os, const std::unordered_map<size_t, std::string>& tl, size_t eSize_plusOne);
 };
 

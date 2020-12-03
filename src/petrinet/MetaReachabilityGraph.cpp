@@ -4,7 +4,7 @@
 
 #include "petrinet/MetaReachabilityGraph.h"
 
-size_t MetaReachabilityGraph::getTransitionIdAssociatedToMetaNodeId(size_t metaNodeId) const {
+size_t MetaReachabilityGraph::getTransitionIdAssociatedToMetaNodeId(size_t metaNodeId)  {
     return node_id_assoc.getValue(metaNodeId).edgeTarget.edgeLabel;
 }
 

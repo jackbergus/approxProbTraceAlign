@@ -77,7 +77,7 @@ void EClosPhase1::eClos(const RGEdge<size_t, Marking> &e1) {
     }
 }
 
-Marking EClosPhase1::getVectorFromId(size_t id) const {
+Marking EClosPhase1::getVectorFromId(size_t id) {
     return fromSVector(vectorCorrespondance.getKey(id));
 }
 

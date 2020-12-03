@@ -136,7 +136,7 @@ class EClosPhase1 {
 public:
 
     size_t getMapSizeVectorPreload() {
-        assert(vectorCorrespondance.sanityCheck());
+        ///assert(vectorCorrespondance.sanityCheck());
         return vectorCorrespondance.getSize();
     }
 
@@ -184,7 +184,7 @@ public:
     double getFiringCost(size_t transitionId) const;
     double getNormalizingFactor(const Marking& mark) const;
     bool isEpsilon(size_t transitionId) const;
-    Marking getVectorFromId(size_t id) const;
+    Marking getVectorFromId(size_t id);
 
 
     bool hasBeenVisited(const RGEdge<size_t, Marking>& edge);

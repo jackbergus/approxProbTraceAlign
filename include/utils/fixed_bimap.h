@@ -48,6 +48,8 @@ template <typename K, typename V> class fixed_bimap {
     size_t size = 0;
 
 public:
+    size_t getSize() const { return size; }
+
     /**
      * Always assumes that the key and the value are always with a bimap.
      * This method is implemented to reduce the amounts of checks for a boolean variable.
@@ -83,6 +85,14 @@ public:
             map[vos.str()] = size;
             size++;
         }
+    }
+
+    std::pair<K, V>* containsKey2(K key) {
+        std::ostringstream oss{};
+        oss << "k_" << key;
+        auto it = map.find(oss.str());
+        bool test = it != map.end();
+        return (it != map.end()) ? &elements[it->second] : nullptr;
     }
 
     V getValue(K key) {
