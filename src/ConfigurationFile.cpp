@@ -391,7 +391,7 @@ void ConfigurationFile::run() {
         std::cout << " * generating embeddings... " << std::flush;
         ReadGraph::path_to_uembedding ptg;
         std::vector<struct path_info> paths = pathstrategy->collectPaths(finalGraph);
-        std::cout << " [paths generated, now, generating embeddings!]" << std::flush;
+        std::cout << '[' << paths.size() << " paths generated, now, generating embeddings!]" << std::flush;
         steady_clock::time_point generateEmbeddingStart = steady_clock::now();
         ReadGraph::path_to_uembedding ptu = pathstrategy->generateUnstructuredEmbeddingsFromRawPaths(finalGraph, paths);
         double embeddingWholeTraces =
