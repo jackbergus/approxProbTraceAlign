@@ -12,3 +12,12 @@ dist/
 dist/*
 data/sepsis
 /data/sepsis/*
+data/log_proposed_time_tmp.csv
+data/sm2/*
+out/*
+configuration_newpetri/*
+configuration_old/*
+configuration/*
+build_release/
+build_release/*
+data/sm.zip
