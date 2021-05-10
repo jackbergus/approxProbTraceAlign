@@ -38,7 +38,9 @@ ReadGraph::path_to_uembedding MultiplePathsEmbeddingStrategy::operator()(ReadGra
 std::vector<struct path_info> MultiplePathsEmbeddingStrategy::collectPaths(ReadGraph &rg) {
     std::vector<struct path_info> result;
     for (const auto& path: rg.iterateOverPaths(doNotVisitLoopsTwice, maxPathLength, minimumPathCost)) {
-        if (!(result.size() % 1000)) std::cout << result.size() << "... " <<  std::flush;
+        if (!(result.size() % 100000)) {
+            std::cout << result.size() << "... [" << path.path << "]" <<   std::flush;
+        }
         result.emplace_back(path);
     }
     return result;
