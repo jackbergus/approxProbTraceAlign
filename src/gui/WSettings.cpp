@@ -90,6 +90,7 @@ WSettings::WSettings(const std::string& conf, QWidget *parent) : QWidget(parent)
         input_file_format = addDropdownMenuFromEnum<FileFormat>(echoGrid, rowid, "Format:", this->conf.input_file_format);
         input_file = addTextField(echoGrid, rowid, "Filename:", this->conf.input_file, 0);
         is_input_compressed = addCheckBox(echoGrid, rowid, "Decompress graph", this->conf.is_input_compressed);
+        is_input_compressed->setDisabled(true);
         ith_graph = addNumericBox(echoGrid, rowid, "Get i-th graph from file (counting from 0):", this->conf.ith_graph);
         echoGroup->setLayout(echoGrid);
         grid->addWidget(echoGroup, 0, 0);
@@ -102,6 +103,7 @@ WSettings::WSettings(const std::string& conf, QWidget *parent) : QWidget(parent)
         trace_file_format = addDropdownMenuFromEnum<TracesFormat>(echoGrid, rowid, "Format:", this->conf.trace_file_format);
         traces_file = addTextField(echoGrid, rowid, "Filename:", this->conf.traces_file, 0);
         are_traces_compressed = addCheckBox(echoGrid, rowid, "Decompress traces", this->conf.are_traces_compressed);
+        are_traces_compressed->setDisabled(true);
         separator_if_any = addTextField(echoGrid, rowid, "Action separator (if required):", {this->conf.separator_if_any}, 1);
         echoGroup->setLayout(echoGrid);
         grid->addWidget(echoGroup, 1, 0);
@@ -249,6 +251,10 @@ WSettings::WSettings(const std::string& conf, QWidget *parent) : QWidget(parent)
             fileStrategyMap.emplace_back(addTextField(echoGrid, rowid, color_entries[i].second.data(), label, 0));
             rowid++;
         }
+        for (size_t i = 0; i<color_count; i++) {
+            fileStrategyMap[i]->setDisabled(true);
+        }
+
         echoGroup->setLayout(echoGrid);
         grid->addWidget(echoGroup, 1, 1, 1, 2);
 

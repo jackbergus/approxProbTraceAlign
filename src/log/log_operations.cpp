@@ -51,25 +51,43 @@ void performLogOperation(const std::vector<LogOperationConfiguration> &vconf,
 
             case LogFilterFrequency: {
                 std::vector<Transaction<TimestampedEvent>> output;
-                std::map<double, std::vector<size_t>> ordering;
+                std::unordered_map<std::string, size_t> instanced;
+                std::unordered_map<size_t, size_t> id_to_count;
+                std::map<size_t, std::vector<size_t>> count_to_traceid;
+                size_t id = 0;
+                for (const auto& ref : log) {
+                    std::string result;
+                    for (const auto& item : ref) {
+                        result += item.event_name;
+                        result += "§";
+                    }
+                    auto it2 = instanced.emplace(result, id);
+                    if (!it2.second) {
+                        id_to_count[it2.first->second]++;
+                    } else {
+                        auto it = id_to_count.emplace(id, 1);
+                        assert(it.second);
+                    }
+                    id++;
+                }
+                for (const auto& c: id_to_count) {
+                    count_to_traceid[c.second].emplace_back(c.first);
+                }
                 double N = log.size();
                 std::cout << "LogSample: histogramming. Keep Low = " << conf.keep_low_up_otherwise << std::endl;
-                for (size_t i = 0, n = log.size(); i < n; i++) {
-                    ordering[log[i].size()].emplace_back(i);
-                }
                 if (conf.keep_low_up_otherwise) {
-                    for (auto it = ordering.begin(), en = ordering.end(); it != en; it++) {
+                    for (auto it = count_to_traceid.begin(), en = count_to_traceid.end(); it != en; it++) {
                         for (const auto &i : it->second) {
                             output.emplace_back(log[i]);
                         }
-                        if (conf.factor <= ((double) ordering.size()) / N) break;
+                        if (conf.factor <= ((double) output.size()) / N) break;
                     }
                 } else {
-                    for (auto it = ordering.rbegin(), en = ordering.rend(); it != en; it++) {
+                    for (auto it = count_to_traceid.rbegin(), en = count_to_traceid.rend(); it != en; it++) {
                         for (const auto &i : it->second) {
                             output.emplace_back(log[i]);
                         }
-                        if (conf.factor <= ((double) ordering.size()) / N) break;
+                        if (conf.factor > ((double) output.size()) / N) break;
                     }
                 }
                 std::cout << "Reduced size, from " << log.size() << " to " << output.size() << std::endl;

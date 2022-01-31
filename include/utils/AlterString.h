@@ -61,6 +61,50 @@ struct AlterString {
      */
     std::string alter(std::string toAlter);
 
+    std::string alter(std::string toAlter, size_t maxRemoves, size_t maxInsertions) {
+        auto it = toAlter.begin();
+        size_t originalSize = toAlter.size();
+        size_t i = 0;
+
+        while (((maxRemoves != 0) || (maxInsertions != 0))) {
+            int casus = doNoise();
+            if (toAlter.empty() && (casus != 1)) casus = 1;
+            if (casus == 1) {
+                // Add character
+                if (maxInsertions > 0 ) {
+                    char c = (char)chrs[pick(mersenneValue)];
+                    it = toAlter.insert(it, c);
+                    originalSize++;
+                    maxInsertions--;
+                }
+            } if (casus == 2) {
+                // Remove character
+                if (maxRemoves > 0) {
+                    it = toAlter.erase(it);
+                    originalSize--;
+                    maxRemoves--;
+                }
+            } if (casus == 3) {
+                // Replace character
+                if ((maxRemoves> 0 ) && (maxInsertions> 0)) {
+                    std::uniform_int_distribution<size_t> randomPosition{0UL, (size_t)std::distance(toAlter.begin(), it)};
+                    size_t j = randomPosition(mersennePosition);
+                    std::iter_swap(it, toAlter.begin()+j);
+                    it++;
+                    maxRemoves--;
+                    maxInsertions--;
+                }
+            } else {
+                it++;
+            }
+            if ((it == toAlter.end()) && ((maxRemoves != 0) || (maxInsertions != 0))) {
+                it = toAlter.begin();
+                originalSize = toAlter.size();
+            }
+        }
+        return toAlter;
+    }
+
 private:
     int doNoise() {
         double randomNumber =  errorType(mersenneError);

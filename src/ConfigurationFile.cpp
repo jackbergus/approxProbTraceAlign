@@ -120,7 +120,20 @@ struct DotProductDistance {
 
 typedef Eigen::MatrixXd Matrix;
 typedef knn::Matrixi Matrixi;
+                struct record_opt_ranking {
+                    std::string actualQuery;
+                    std::string pathToRank;
+                    double similarity;
+                    double probability;
 
+
+                    record_opt_ranking(const std::string& aq, const std::string& pr, double sim, double prob): actualQuery{aq}, pathToRank{pr}, similarity{sim}, probability{prob} {}
+                    record_opt_ranking() = default;
+                    record_opt_ranking(record_opt_ranking&& ) = default;
+                    record_opt_ranking(const record_opt_ranking& ) = default;
+                    record_opt_ranking& operator=(record_opt_ranking&& ) = default;
+                    record_opt_ranking& operator=(const record_opt_ranking& ) = default;
+                };
 
 void ConfigurationFile::run() {
 
@@ -205,36 +218,14 @@ void ConfigurationFile::run() {
                         logForWeightEstimation = load_xes(this->traces_file);
                         originalLog = logForWeightEstimation;
                         performLogOperation(this->operations, logForWeightEstimation);
-                        {
-                            std::set<std::vector<TimestampedEvent>> difference;
-                            for (const auto &x : originalLog) {
-                                difference.emplace(x);
-                            }
-                            for (const auto &x : logForWeightEstimation) {
-                                difference.erase(difference.find(x));
-                            }
-                            for (const auto &x : difference) {
-                                logForBenchmarks.emplace_back(x);
-                            }
-                        }
+                        logForBenchmarks = logForWeightEstimation;
                         rememberToLog = true;
                         break;
                     case RawLog:
                         logForWeightEstimation = read_log(this->traces_file, this->separator_if_any);
                         originalLog = logForWeightEstimation;
                         performLogOperation(this->operations, logForWeightEstimation);
-                        {
-                            std::set<std::vector<TimestampedEvent>> difference;
-                            for (const auto &x : originalLog) {
-                                difference.emplace(x);
-                            }
-                            for (const auto &x : logForWeightEstimation) {
-                                difference.erase(difference.find(x));
-                            }
-                            for (const auto &x : difference) {
-                                logForBenchmarks.emplace_back(x);
-                            }
-                        }
+                        logForBenchmarks = logForWeightEstimation;
                         rememberToLog = true;
                         break;
 
@@ -361,13 +352,43 @@ void ConfigurationFile::run() {
     std::vector<std::pair<std::string, std::vector<std::pair<std::string, double>>>> V;
     for (const auto &query : finalLog) {
         std::pair<std::string, std::vector<std::pair<std::string, double>>> cp{query.path, {}};
-        for (auto &noiser : traceNoiser) {
-            std::string alteredQuery;
-            do {
-                alteredQuery = noiser.alter(query.path);
-            } while ((alteredQuery == query.path) || (alteredQuery.empty()));
-            cp.second.emplace_back(alteredQuery, noiser.noiseThreshold);
+
+#ifndef OLD_EXPERIMENT
+        for (size_t i = 1; i<=4; i++) {
+            size_t maxRemove = 0;
+            size_t maxAdd = 0;
+            if (i == 1) {
+                maxRemove = 1;
+            } else if (i == 2) {
+                maxRemove = 2;
+            } /*else if (i == 3) {
+                maxRemove = 3;
+            }*/ else if (i == 3) {
+                maxRemove = 1;
+                maxAdd = 1;
+            } else if (i == 4) {
+                maxRemove = 2;
+                maxAdd = 2;
+            }
+#endif
+            for (auto &noiser : traceNoiser) {
+                std::string alteredQuery;
+                do {
+#ifdef OLD_EXPERIMENT
+                    alteredQuery = noiser.alter(query.path);
+#else
+                    alteredQuery = noiser.alter(query.path, maxRemove, maxAdd);
+#endif
+                } while ((alteredQuery == query.path) || (alteredQuery.empty()));
+#ifdef OLD_EXPERIMENT
+                cp.second.emplace_back(alteredQuery, noiser.noiseThreshold);
+#else
+                cp.second.emplace_back(alteredQuery, i);
+#endif
+            }
+#ifndef OLD_EXPERIMENT
         }
+#endif
         V.emplace_back(cp);
     }
     std::cout << std::endl << "V map loaded" << std::endl;
@@ -377,11 +398,27 @@ void ConfigurationFile::run() {
     std::string logFile2 = (results_folder / "log_proposed_time.csv").string();
     std::ofstream log2(logFile2, std::ofstream::out);
 
+    log1 << "input_file" << ','
+                << "traces_file" << ','
+                << "query" << ','
+                << "querySize" << ','
+                << "strategyName" << ','
+                << "noise" << ','
+                << "dulcior"<< ','
+                << "tuning_factor" << ','
+                << "use_path_lambda_factor"<< ','
+                << "lambda" << ','
+                << "max_length" << ','
+                << "min_prob"
+                << ",LogGeneralizationMetric," << "forGeneralization" << ",,0" << std::endl;
+
     for (size_t i = 0; i < color_count; i++) {
         std::set<std::pair<std::string, std::string>> embedding_space;
         std::cout << "Strategy " << (i + 1) << " of " << color_count << ": " << color_entries[i].second.data()
                   << std::endl;
         PathEmbeddingStrategy strategy = color_entries[i].first;
+        if (strategy == EDGE_WITH_NODE_INFORMATION_PREVIOUS) continue;
+        if (strategy == EDGE_WITH_NODE_INFORMATION_PROPOSED) continue;
         std::string strategyName{magic_enum::enum_name(strategy).data()};
 
         MultiplePathsEmbeddingStrategy *pathstrategy = generatePathEmbeddingStrategyFromParameters(strategy);
@@ -408,12 +445,14 @@ void ConfigurationFile::run() {
         }
         std::cout << " done" << std::endl;
 
+
         steady_clock::time_point vpTreeActualDistanceStartLoad = steady_clock::now();
         vp_tree<struct path_info, VpTreeStructDistance> vptreeActualMetric{mapPath};
         steady_clock::time_point vpTreeActualDistanceEndLoad = steady_clock::now();
         double actualMetricLoading = duration_cast<std::chrono::nanoseconds>(
                 vpTreeActualDistanceEndLoad - vpTreeActualDistanceStartLoad).count() / 1000000.0;
         std::cout << "VPTree loading time with to-be-recomputed metric: (ns) " << actualMetricLoading << std::endl;
+#ifdef OLD_PIPELINE
         log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
              << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
              << ','
@@ -421,7 +460,7 @@ void ConfigurationFile::run() {
              << strategyName << ','
              << 0.0 << ','
              << "VPTreeLoading+Metric," << actualMetricLoading << ",,0" << std::endl;
-
+#endif
         steady_clock::time_point vpTreeProposedStartLoad = steady_clock::now();
         vp_tree<Eigen::VectorXd, VpTreePairPow2DotProduct> vpTreeProposed{mapVecs};
         steady_clock::time_point vpTreeProposedEndLoad = steady_clock::now();
@@ -429,6 +468,10 @@ void ConfigurationFile::run() {
                 duration_cast<std::chrono::nanoseconds>(vpTreeProposedEndLoad - vpTreeProposedStartLoad).count() /
                 1000000.0;
         std::cout << "VPTree loading time with Embedding: (ns) " << proposedLoading << std::endl;
+
+
+
+#ifdef OLD_PIPELINE
         log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
              << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
              << ','
@@ -436,8 +479,7 @@ void ConfigurationFile::run() {
              << strategyName << ','
              << 0.0 << ','
              << "VPTreeLoading+Embedding," << embeddingWholeTraces + proposedLoading << ",,0" << std::endl;
-
-
+#endif
         steady_clock::time_point knnProposedStartLoad = steady_clock::now();
         Matrix dataPoints(embedding_space.size(), map.size());
         size_t j = 0;
@@ -453,6 +495,8 @@ void ConfigurationFile::run() {
         kdtreeProposed.setMaxDistance(2.5);
         kdtreeProposed.setThreads(1);
         kdtreeProposed.build();
+
+#ifdef OLD_PIPELINE
         steady_clock::time_point knnProposedEndLoad = steady_clock::now();
         double proposedLoadingKNN =
                 duration_cast<std::chrono::nanoseconds>(knnProposedEndLoad - knnProposedStartLoad).count() / 1000000.0;
@@ -483,6 +527,7 @@ void ConfigurationFile::run() {
              << max_length << ','
              << min_prob
              << ",Pecision," << precision << ",,0" << std::endl;
+#endif
 
         std::cout << " * starting with query analysis!" << std::endl;
         for (auto &query : V) {
@@ -503,17 +548,41 @@ void ConfigurationFile::run() {
                      << "VPTree+Metric," << (actualMetricQuery) << ",,0" << std::endl;
             }
 
+
+
             {
                 // Transformed space
                 std::vector<std::pair<double, double>> transformedSpace;
                 steady_clock::time_point vpTreeTransformedStartQuery = steady_clock::now();
+
+                std::string optimal_ranking_file = (results_folder / "opt_ranking.csv").string();
+                std::map<double, std::vector<record_opt_ranking>> M;
+
                 for (const auto &path : map) {
                     double similarity =
                             1.0 / ((GeneralizedLevensteinDistance(actualQuery, path.first.path) / 5.0 + 1.0));
                     double probability = path.first.probability;
+
+                    M[similarity * probability].emplace_back(actualQuery, path.first.path, similarity, probability);
+                    //std::cout << "Similarity of: " << actualQuery << " vs. " << path.first.path << " = " << similarity <<std::endl;
+                    //std::cout << "Probability of: " << path.first.path << " = " << probability<<std::endl;
                     double sqrt = std::sqrt(similarity * similarity + probability * probability);
                     transformedSpace.emplace_back((1.0 / (similarity * sqrt)), (1.0 / (probability * sqrt)));
                 }
+                {
+                    bool header = (!std::filesystem::exists(std::filesystem::path{optimal_ranking_file}));
+                    std::ofstream file{optimal_ranking_file, std::ios_base::app};
+                    if (header) {
+                        file << "query_trace,model_trace,sim,prob,rank" << std::endl;
+                    }
+                    for (auto it = M.rbegin(); it != M.rend(); it++) {
+                        for (const auto& rec : it->second) {
+                            file << rec.actualQuery << ',' << rec.pathToRank << ',' << rec.similarity << ','  << rec.probability << ',' << it->first << std::endl;
+                        }
+                    }
+                    M.clear();
+                }
+
                 vp_tree<std::pair<double, double>, VpTreePairPow2Distance> transformed_tree{transformedSpace};
                 transformed_tree.topkSearch(std::make_pair(0, 0), 10);
                 steady_clock::time_point vpTreeTransformedEndQuery = steady_clock::now();
@@ -568,7 +637,6 @@ void ConfigurationFile::run() {
 
 
             {
-
                 steady_clock::time_point embeddingGenerationStart = steady_clock::now();
                 ReadGraph g = ReadGraph::fromString(actualQuery, 1.0);
                 auto tmp = (*graphStrategy)(g);
@@ -609,7 +677,6 @@ void ConfigurationFile::run() {
                      << 0.0 << ','
                      << "VPKDTreeMinkowski+Embedding," << toAdd + transformedQueryProposed << ",,0" << std::endl;
             }
-
 
             double noise = 0.0;
             std::cout << "    - trace: " << actualQuery << std::endl;
@@ -777,6 +844,11 @@ ConfigurationFile::performBenchmark(
     size_t j = 0;
     double forGeneralization = -1.0;
     size_t genIdx = 0;
+
+    std::string optimal_ranking_file2 = (results_folder / "opt_ranking2.csv").string();
+    std::string ap_ranking_file2 = (results_folder / "ap_ranking2.csv").string();
+    std::map<double, std::vector<record_opt_ranking>> M, AP;
+
     for (const auto &paths : map) {
         double sc = x.dot(paths.second);
         pathRanking.addScore(j, sc);
@@ -787,14 +859,44 @@ ConfigurationFile::performBenchmark(
         }
 
         double finalScore = (paths.first.probability * similarity);
+        M[finalScore].emplace_back(query, paths.first.path, similarity, paths.first.probability);
+        AP[sc].emplace_back(query, paths.first.path, similarity, paths.first.probability);
         expectedRanking.addScore(j, finalScore);
-        ///rankingMap[finalScore].emplace_back(j);
 
         j++;
     }
 
-    log_ranking(query, noise, log_quality, precomputedTraceRanking, strategyName, querySize, pathRanking,
-                expectedRanking, forGeneralization, false);
+    {
+        bool header = (!std::filesystem::exists(std::filesystem::path{ap_ranking_file2}));
+        std::ofstream file{ap_ranking_file2, std::ios_base::app};
+        if (header) {
+            file << "query_trace,model_trace,sim,prob,rank" << std::endl;
+        }
+        for (auto it = AP.rbegin(); it != AP.rend(); it++) {
+            for (const auto &rec: it->second) {
+                file << rec.actualQuery << ',' << rec.pathToRank << ',' << rec.similarity << ',' << rec.probability
+                     << ',' << it->first << std::endl;
+            }
+        }
+        AP.clear();
+    }
+    {
+        bool header = (!std::filesystem::exists(std::filesystem::path{optimal_ranking_file2}));
+        std::ofstream file{optimal_ranking_file2, std::ios_base::app};
+        if (header) {
+            file << "query_trace,model_trace,sim,prob,rank" << std::endl;
+        }
+        for (auto it = M.rbegin(); it != M.rend(); it++) {
+            for (const auto &rec: it->second) {
+                file << rec.actualQuery << ',' << rec.pathToRank << ',' << rec.similarity << ',' << rec.probability
+                     << ',' << it->first << std::endl;
+            }
+        }
+        M.clear();
+    }
+
+    /*log_ranking(query, noise, log_quality, precomputedTraceRanking, strategyName, querySize, pathRanking,
+                expectedRanking, forGeneralization, false);*/
     {
         auto localE = doDulcior(expectedRanking, pathsOrder.size());
         auto localP = doDulcior(pathRanking, pathsOrder.size());
@@ -862,19 +964,19 @@ void ConfigurationFile::log_ranking(const std::string &query, double noise, std:
                                     const std::string &strategyName, size_t querySize,
                                     Ranking<size_t> &pathRanking, Ranking<size_t> &expectedRanking,
                                     double forGeneralization, double dulcior) const {
-    log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
-                << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
-                << query << ','
-                << querySize << ','
-                << strategyName << ','
-                << noise << ','
-                << (dulcior ? "T," : "F,")
-                << tuning_factor << ','
-                << (use_path_lambda_factor ? "T," : "F,")
-                << lambda << ','
-                << max_length << ','
-                << min_prob
-                << ",LogGeneralizationMetric," << forGeneralization << ",,0" << std::endl;
+//    log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
+//                << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
+//                << query << ','
+//                << querySize << ','
+//                << strategyName << ','
+//                << noise << ','
+//                << (dulcior ? "T," : "F,")
+//                << tuning_factor << ','
+//                << (use_path_lambda_factor ? "T," : "F,")
+//                << lambda << ','
+//                << max_length << ','
+//                << min_prob
+//                << ",LogGeneralizationMetric," << forGeneralization << ",,0" << std::endl;
 
     log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                 << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','

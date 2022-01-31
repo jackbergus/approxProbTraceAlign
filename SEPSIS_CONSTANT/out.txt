@@ -1,0 +1,466 @@
+/media/giacomo/BigData/CONF/fsm2/cmake-build-debug/fuzzyStringMatching2 --run --conf=SEPSIS_CONSTANT.yaml
+Reading graph '/home/giacomo/Scaricati/split-miner-2.0/sepsis/sepsis.bpmn' as a Simple BPMN (to Stochastic Petri Net) file. Getting the 0-th graph
+Using the constant estimator
+Removing 28 with label . and weight 1
+Removing 27 with label . and weight 1
+Removing 26 with label . and weight 1
+Removing 25 with label . and weight 1
+Removing 29 with label . and weight 1
+Removing 30 with label . and weight 1
+Removing 31 with label . and weight 1
+Removing 32 with label . and weight 1
+Removing 33 with label . and weight 1
+Removing 34 with label . and weight 1
+Removing 35 with label . and weight 1
+Removing 36 with label . and weight 1
+Removing 37 with label . and weight 1
+Removing 38 with label . and weight 1
+Removing 39 with label . and weight 1
+Removing 40 with label . and weight 1
+Removing 41 with label . and weight 1
+Removing 42 with label . and weight 1
+Removing 43 with label . and weight 1
+Removing 44 with label . and weight 1
+Removing 45 with label . and weight 1
+Removing 46 with label . and weight 1
+Removing 47 with label . and weight 1
+Removing 48 with label . and weight 1
+Removing 49 with label . and weight 1
+Removing 50 with label . and weight 1
+Removing 51 with label . and weight 1
+Removing 52 with label . and weight 1
+Removing 53 with label . and weight 1
+Removing 54 with label . and weight 1
+Removing 55 with label . and weight 1
+Removing 56 with label . and weight 1
+Removing 57 with label . and weight 1
+Removing 58 with label . and weight 1
+Step 0
+Step 1
+Step 2
+Step 3
+Step 4
+Step 5
+Step 6
+Step 7
+Step 8
+LogSample: histogramming. Keep Low = 0
+Reduced size, from 1050 to 1
+Trasforming the PetriNet (IS) into a Thompson automaton [transferring the edges from the nodes to the transitions]...  done (65573 ns)
+Performing the varepsilon-closure...  done (108410 ns)
+Converting to the simple benchmark graph
+ 1) Initializing the final graph
+ 2) Generating the correspondence full_action_name <-> char
+The map was generated as follows: 
+  - . <-> .
+  - ER Triage <-> a
+  - Release E <-> b
+  - Admission NC <-> c
+  - IV Antibiotics <-> d
+  - LacticAcid <-> e
+  - Release D <-> f
+  - ER Registration <-> g
+  - CRP <-> h
+  - Return ER <-> i
+  - ER Sepsis Triage <-> j
+  - Leucocytes <-> k
+  - Admission IC <-> l
+  - Release B <-> m
+  - IV Liquid <-> n
+  - Release A <-> o
+  - Release C <-> p
+ 3) Filling up the elements
+ 4) Converting the traces to single strings via correspondence
+6) Sampling some traces, just for limiting the execution time (for the moment)
+
+V map loaded
+Strategy 1 of 4: ONLY_EDGE_INFORMATION_PROPOSED
+ * generating embeddings...  [paths generated, now, generating embeddings!]0/59
+ ~~~~ probability: 0.00260417 path: gajndckhhp
+ ~~~~ probability: 0.00260417 path: gajndckhhf
+ ~~~~ probability: 0.00520833 path: gajndcchb
+ ~~~~ probability: 0.00130208 path: gajndcccho
+ ~~~~ probability: 0.00520833 path: gajndckhf
+ ~~~~ probability: 0.0104167 path: gajndchp
+ ~~~~ probability: 0.00260417 path: gajndccchm
+ ~~~~ probability: 0.00520833 path: gajndckhm
+ ~~~~ probability: 0.00260417 path: gajndckhhm
+ ~~~~ probability: 0.0104167 path: gajndchb
+ ~~~~ probability: 0.00260417 path: gajndccchf
+ ~~~~ probability: 0.00130208 path: gajndckhho
+ ~~~~ probability: 0.00260417 path: gajndchhhp
+ ~~~~ probability: 0.00260417 path: gajndcckhm
+ ~~~~ probability: 0.00520833 path: gajndchhb
+ ~~~~ probability: 0.00520833 path: gajndcchf
+ ~~~~ probability: 0.00520833 path: gajndchhp
+ ~~~~ probability: 0.00260417 path: gajndckhhb
+ ~~~~ probability: 0.00260417 path: gajndcchhf
+ ~~~~ probability: 0.00520833 path: gajndcho
+ ~~~~ probability: 0.00260417 path: gajndchho
+ ~~~~ probability: 0.00130208 path: gajndckkho
+ ~~~~ probability: 0.00130208 path: gajndcchho
+ ~~~~ probability: 0.00520833 path: gajndchoi
+ ~~~~ probability: 0.00260417 path: gajndchhoi
+ ~~~~ probability: 0.00260417 path: gajndcckhb
+ ~~~~ probability: 0.00520833 path: gajndlekhm
+ ~~~~ probability: 0.00520833 path: gajndlekhp
+ ~~~~ probability: 0.00520833 path: gajndlekhf
+ ~~~~ probability: 0.00260417 path: gajndckkhm
+ ~~~~ probability: 0.00260417 path: gajndckkhf
+ ~~~~ probability: 0.00260417 path: gajndckkhp
+ ~~~~ probability: 0.00260417 path: gajndchhhb
+ ~~~~ probability: 0.00260417 path: gajndckkhb
+ ~~~~ probability: 0.00260417 path: gajndccho
+ ~~~~ probability: 0.00520833 path: gajndchhf
+ ~~~~ probability: 0.00260417 path: gajndcchoi
+ ~~~~ probability: 0.00520833 path: gajndcchp
+ ~~~~ probability: 0.00520833 path: gajndcchm
+ ~~~~ probability: 0.00260417 path: gajndcchhp
+ ~~~~ probability: 0.00520833 path: gajndckhb
+ ~~~~ probability: 0.00260417 path: gajndckhoi
+ ~~~~ probability: 0.00260417 path: gajndckho
+ ~~~~ probability: 0.00260417 path: gajndccchb
+ ~~~~ probability: 0.00130208 path: gajndcckho
+ ~~~~ probability: 0.00260417 path: gajndcckhp
+ ~~~~ probability: 0.00260417 path: gajndccchp
+ ~~~~ probability: 0.00260417 path: gajndcchhb
+ ~~~~ probability: 0.00520833 path: gajndckhp
+ ~~~~ probability: 0.00520833 path: gajndchhm
+ ~~~~ probability: 0.00260417 path: gajndcchhm
+ ~~~~ probability: 0.0104167 path: gajndchf
+ ~~~~ probability: 0.00260417 path: gajndlekho
+ ~~~~ probability: 0.0104167 path: gajndchm
+ ~~~~ probability: 0.00260417 path: gajndcckhf
+ ~~~~ probability: 0.00260417 path: gajndchhhm
+ ~~~~ probability: 0.00520833 path: gajndlekhb
+ ~~~~ probability: 0.00130208 path: gajndchhho
+ ~~~~ probability: 0.00260417 path: gajndchhhf
+ done
+VPTree loading time with to-be-recomputed metric: (ns) 3.1917
+VPTree loading time with Embedding: (ns) 6.48466
+ * starting with query analysis!
+Similarity of: gaj vs. gajndckhhp = 0.416667
+Probability of: gajndckhhp = 0.00260417
+Similarity of: gaj vs. gajndckhhf = 0.416667
+Probability of: gajndckhhf = 0.00260417
+Similarity of: gaj vs. gajndcchb = 0.454545
+Probability of: gajndcchb = 0.00520833
+Similarity of: gaj vs. gajndcccho = 0.416667
+Probability of: gajndcccho = 0.00130208
+Similarity of: gaj vs. gajndckhf = 0.454545
+Probability of: gajndckhf = 0.00520833
+Similarity of: gaj vs. gajndchp = 0.5
+Probability of: gajndchp = 0.0104167
+Similarity of: gaj vs. gajndccchm = 0.416667
+Probability of: gajndccchm = 0.00260417
+Similarity of: gaj vs. gajndckhm = 0.454545
+Probability of: gajndckhm = 0.00520833
+Similarity of: gaj vs. gajndckhhm = 0.416667
+Probability of: gajndckhhm = 0.00260417
+Similarity of: gaj vs. gajndchb = 0.5
+Probability of: gajndchb = 0.0104167
+Similarity of: gaj vs. gajndccchf = 0.416667
+Probability of: gajndccchf = 0.00260417
+Similarity of: gaj vs. gajndckhho = 0.416667
+Probability of: gajndckhho = 0.00130208
+Similarity of: gaj vs. gajndchhhp = 0.416667
+Probability of: gajndchhhp = 0.00260417
+Similarity of: gaj vs. gajndcckhm = 0.416667
+Probability of: gajndcckhm = 0.00260417
+Similarity of: gaj vs. gajndchhb = 0.454545
+Probability of: gajndchhb = 0.00520833
+Similarity of: gaj vs. gajndcchf = 0.454545
+Probability of: gajndcchf = 0.00520833
+Similarity of: gaj vs. gajndchhp = 0.454545
+Probability of: gajndchhp = 0.00520833
+Similarity of: gaj vs. gajndckhhb = 0.416667
+Probability of: gajndckhhb = 0.00260417
+Similarity of: gaj vs. gajndcchhf = 0.416667
+Probability of: gajndcchhf = 0.00260417
+Similarity of: gaj vs. gajndcho = 0.5
+Probability of: gajndcho = 0.00520833
+Similarity of: gaj vs. gajndchho = 0.454545
+Probability of: gajndchho = 0.00260417
+Similarity of: gaj vs. gajndckkho = 0.416667
+Probability of: gajndckkho = 0.00130208
+Similarity of: gaj vs. gajndcchho = 0.416667
+Probability of: gajndcchho = 0.00130208
+Similarity of: gaj vs. gajndchoi = 0.454545
+Probability of: gajndchoi = 0.00520833
+Similarity of: gaj vs. gajndchhoi = 0.416667
+Probability of: gajndchhoi = 0.00260417
+Similarity of: gaj vs. gajndcckhb = 0.416667
+Probability of: gajndcckhb = 0.00260417
+Similarity of: gaj vs. gajndlekhm = 0.416667
+Probability of: gajndlekhm = 0.00520833
+Similarity of: gaj vs. gajndlekhp = 0.416667
+Probability of: gajndlekhp = 0.00520833
+Similarity of: gaj vs. gajndlekhf = 0.416667
+Probability of: gajndlekhf = 0.00520833
+Similarity of: gaj vs. gajndckkhm = 0.416667
+Probability of: gajndckkhm = 0.00260417
+Similarity of: gaj vs. gajndckkhf = 0.416667
+Probability of: gajndckkhf = 0.00260417
+Similarity of: gaj vs. gajndckkhp = 0.416667
+Probability of: gajndckkhp = 0.00260417
+Similarity of: gaj vs. gajndchhhb = 0.416667
+Probability of: gajndchhhb = 0.00260417
+Similarity of: gaj vs. gajndckkhb = 0.416667
+Probability of: gajndckkhb = 0.00260417
+Similarity of: gaj vs. gajndccho = 0.454545
+Probability of: gajndccho = 0.00260417
+Similarity of: gaj vs. gajndchhf = 0.454545
+Probability of: gajndchhf = 0.00520833
+Similarity of: gaj vs. gajndcchoi = 0.416667
+Probability of: gajndcchoi = 0.00260417
+Similarity of: gaj vs. gajndcchp = 0.454545
+Probability of: gajndcchp = 0.00520833
+Similarity of: gaj vs. gajndcchm = 0.454545
+Probability of: gajndcchm = 0.00520833
+Similarity of: gaj vs. gajndcchhp = 0.416667
+Probability of: gajndcchhp = 0.00260417
+Similarity of: gaj vs. gajndckhb = 0.454545
+Probability of: gajndckhb = 0.00520833
+Similarity of: gaj vs. gajndckhoi = 0.416667
+Probability of: gajndckhoi = 0.00260417
+Similarity of: gaj vs. gajndckho = 0.454545
+Probability of: gajndckho = 0.00260417
+Similarity of: gaj vs. gajndccchb = 0.416667
+Probability of: gajndccchb = 0.00260417
+Similarity of: gaj vs. gajndcckho = 0.416667
+Probability of: gajndcckho = 0.00130208
+Similarity of: gaj vs. gajndcckhp = 0.416667
+Probability of: gajndcckhp = 0.00260417
+Similarity of: gaj vs. gajndccchp = 0.416667
+Probability of: gajndccchp = 0.00260417
+Similarity of: gaj vs. gajndcchhb = 0.416667
+Probability of: gajndcchhb = 0.00260417
+Similarity of: gaj vs. gajndckhp = 0.454545
+Probability of: gajndckhp = 0.00520833
+Similarity of: gaj vs. gajndchhm = 0.454545
+Probability of: gajndchhm = 0.00520833
+Similarity of: gaj vs. gajndcchhm = 0.416667
+Probability of: gajndcchhm = 0.00260417
+Similarity of: gaj vs. gajndchf = 0.5
+Probability of: gajndchf = 0.0104167
+Similarity of: gaj vs. gajndlekho = 0.416667
+Probability of: gajndlekho = 0.00260417
+Similarity of: gaj vs. gajndchm = 0.5
+Probability of: gajndchm = 0.0104167
+Similarity of: gaj vs. gajndcckhf = 0.416667
+Probability of: gajndcckhf = 0.00260417
+Similarity of: gaj vs. gajndchhhm = 0.416667
+Probability of: gajndchhhm = 0.00260417
+Similarity of: gaj vs. gajndlekhb = 0.416667
+Probability of: gajndlekhb = 0.00520833
+Similarity of: gaj vs. gajndchhho = 0.416667
+Probability of: gajndchhho = 0.00130208
+Similarity of: gaj vs. gajndchhhf = 0.416667
+Probability of: gajndchhhf = 0.00260417
+    - trace: gaj
+     - changed: ga
+     - changed: aj
+     - changed: a
+     - changed: g
+     - changed: gma
+     - changed: mga
+     - changed: baj
+     - changed: jbg
+Phase done!
+Strategy 2 of 4: EDGE_WITH_NODE_INFORMATION_PROPOSED
+Strategy 3 of 4: ONLY_EDGE_INFORMATION_PREVIOUS
+ * generating embeddings...  [paths generated, now, generating embeddings!]0/59
+ ~~~~ probability: 0.00260417 path: gajndckhhp
+ ~~~~ probability: 0.00260417 path: gajndckhhf
+ ~~~~ probability: 0.00520833 path: gajndcchb
+ ~~~~ probability: 0.00130208 path: gajndcccho
+ ~~~~ probability: 0.00520833 path: gajndckhf
+ ~~~~ probability: 0.0104167 path: gajndchp
+ ~~~~ probability: 0.00260417 path: gajndccchm
+ ~~~~ probability: 0.00520833 path: gajndckhm
+ ~~~~ probability: 0.00260417 path: gajndckhhm
+ ~~~~ probability: 0.0104167 path: gajndchb
+ ~~~~ probability: 0.00260417 path: gajndccchf
+ ~~~~ probability: 0.00130208 path: gajndckhho
+ ~~~~ probability: 0.00260417 path: gajndchhhp
+ ~~~~ probability: 0.00260417 path: gajndcckhm
+ ~~~~ probability: 0.00520833 path: gajndchhb
+ ~~~~ probability: 0.00520833 path: gajndcchf
+ ~~~~ probability: 0.00520833 path: gajndchhp
+ ~~~~ probability: 0.00260417 path: gajndckhhb
+ ~~~~ probability: 0.00260417 path: gajndcchhf
+ ~~~~ probability: 0.00520833 path: gajndcho
+ ~~~~ probability: 0.00260417 path: gajndchho
+ ~~~~ probability: 0.00130208 path: gajndckkho
+ ~~~~ probability: 0.00130208 path: gajndcchho
+ ~~~~ probability: 0.00520833 path: gajndchoi
+ ~~~~ probability: 0.00260417 path: gajndchhoi
+ ~~~~ probability: 0.00260417 path: gajndcckhb
+ ~~~~ probability: 0.00520833 path: gajndlekhm
+ ~~~~ probability: 0.00520833 path: gajndlekhp
+ ~~~~ probability: 0.00520833 path: gajndlekhf
+ ~~~~ probability: 0.00260417 path: gajndckkhm
+ ~~~~ probability: 0.00260417 path: gajndckkhf
+ ~~~~ probability: 0.00260417 path: gajndckkhp
+ ~~~~ probability: 0.00260417 path: gajndchhhb
+ ~~~~ probability: 0.00260417 path: gajndckkhb
+ ~~~~ probability: 0.00260417 path: gajndccho
+ ~~~~ probability: 0.00520833 path: gajndchhf
+ ~~~~ probability: 0.00260417 path: gajndcchoi
+ ~~~~ probability: 0.00520833 path: gajndcchp
+ ~~~~ probability: 0.00520833 path: gajndcchm
+ ~~~~ probability: 0.00260417 path: gajndcchhp
+ ~~~~ probability: 0.00520833 path: gajndckhb
+ ~~~~ probability: 0.00260417 path: gajndckhoi
+ ~~~~ probability: 0.00260417 path: gajndckho
+ ~~~~ probability: 0.00260417 path: gajndccchb
+ ~~~~ probability: 0.00130208 path: gajndcckho
+ ~~~~ probability: 0.00260417 path: gajndcckhp
+ ~~~~ probability: 0.00260417 path: gajndccchp
+ ~~~~ probability: 0.00260417 path: gajndcchhb
+ ~~~~ probability: 0.00520833 path: gajndckhp
+ ~~~~ probability: 0.00520833 path: gajndchhm
+ ~~~~ probability: 0.00260417 path: gajndcchhm
+ ~~~~ probability: 0.0104167 path: gajndchf
+ ~~~~ probability: 0.00260417 path: gajndlekho
+ ~~~~ probability: 0.0104167 path: gajndchm
+ ~~~~ probability: 0.00260417 path: gajndcckhf
+ ~~~~ probability: 0.00260417 path: gajndchhhm
+ ~~~~ probability: 0.00520833 path: gajndlekhb
+ ~~~~ probability: 0.00130208 path: gajndchhho
+ ~~~~ probability: 0.00260417 path: gajndchhhf
+ done
+VPTree loading time with to-be-recomputed metric: (ns) 2.93423
+VPTree loading time with Embedding: (ns) 5.83874
+ * starting with query analysis!
+Similarity of: gaj vs. gajndckhhp = 0.416667
+Probability of: gajndckhhp = 0.00260417
+Similarity of: gaj vs. gajndckhhf = 0.416667
+Probability of: gajndckhhf = 0.00260417
+Similarity of: gaj vs. gajndcchb = 0.454545
+Probability of: gajndcchb = 0.00520833
+Similarity of: gaj vs. gajndcccho = 0.416667
+Probability of: gajndcccho = 0.00130208
+Similarity of: gaj vs. gajndckhf = 0.454545
+Probability of: gajndckhf = 0.00520833
+Similarity of: gaj vs. gajndchp = 0.5
+Probability of: gajndchp = 0.0104167
+Similarity of: gaj vs. gajndccchm = 0.416667
+Probability of: gajndccchm = 0.00260417
+Similarity of: gaj vs. gajndckhm = 0.454545
+Probability of: gajndckhm = 0.00520833
+Similarity of: gaj vs. gajndckhhm = 0.416667
+Probability of: gajndckhhm = 0.00260417
+Similarity of: gaj vs. gajndchb = 0.5
+Probability of: gajndchb = 0.0104167
+Similarity of: gaj vs. gajndccchf = 0.416667
+Probability of: gajndccchf = 0.00260417
+Similarity of: gaj vs. gajndckhho = 0.416667
+Probability of: gajndckhho = 0.00130208
+Similarity of: gaj vs. gajndchhhp = 0.416667
+Probability of: gajndchhhp = 0.00260417
+Similarity of: gaj vs. gajndcckhm = 0.416667
+Probability of: gajndcckhm = 0.00260417
+Similarity of: gaj vs. gajndchhb = 0.454545
+Probability of: gajndchhb = 0.00520833
+Similarity of: gaj vs. gajndcchf = 0.454545
+Probability of: gajndcchf = 0.00520833
+Similarity of: gaj vs. gajndchhp = 0.454545
+Probability of: gajndchhp = 0.00520833
+Similarity of: gaj vs. gajndckhhb = 0.416667
+Probability of: gajndckhhb = 0.00260417
+Similarity of: gaj vs. gajndcchhf = 0.416667
+Probability of: gajndcchhf = 0.00260417
+Similarity of: gaj vs. gajndcho = 0.5
+Probability of: gajndcho = 0.00520833
+Similarity of: gaj vs. gajndchho = 0.454545
+Probability of: gajndchho = 0.00260417
+Similarity of: gaj vs. gajndckkho = 0.416667
+Probability of: gajndckkho = 0.00130208
+Similarity of: gaj vs. gajndcchho = 0.416667
+Probability of: gajndcchho = 0.00130208
+Similarity of: gaj vs. gajndchoi = 0.454545
+Probability of: gajndchoi = 0.00520833
+Similarity of: gaj vs. gajndchhoi = 0.416667
+Probability of: gajndchhoi = 0.00260417
+Similarity of: gaj vs. gajndcckhb = 0.416667
+Probability of: gajndcckhb = 0.00260417
+Similarity of: gaj vs. gajndlekhm = 0.416667
+Probability of: gajndlekhm = 0.00520833
+Similarity of: gaj vs. gajndlekhp = 0.416667
+Probability of: gajndlekhp = 0.00520833
+Similarity of: gaj vs. gajndlekhf = 0.416667
+Probability of: gajndlekhf = 0.00520833
+Similarity of: gaj vs. gajndckkhm = 0.416667
+Probability of: gajndckkhm = 0.00260417
+Similarity of: gaj vs. gajndckkhf = 0.416667
+Probability of: gajndckkhf = 0.00260417
+Similarity of: gaj vs. gajndckkhp = 0.416667
+Probability of: gajndckkhp = 0.00260417
+Similarity of: gaj vs. gajndchhhb = 0.416667
+Probability of: gajndchhhb = 0.00260417
+Similarity of: gaj vs. gajndckkhb = 0.416667
+Probability of: gajndckkhb = 0.00260417
+Similarity of: gaj vs. gajndccho = 0.454545
+Probability of: gajndccho = 0.00260417
+Similarity of: gaj vs. gajndchhf = 0.454545
+Probability of: gajndchhf = 0.00520833
+Similarity of: gaj vs. gajndcchoi = 0.416667
+Probability of: gajndcchoi = 0.00260417
+Similarity of: gaj vs. gajndcchp = 0.454545
+Probability of: gajndcchp = 0.00520833
+Similarity of: gaj vs. gajndcchm = 0.454545
+Probability of: gajndcchm = 0.00520833
+Similarity of: gaj vs. gajndcchhp = 0.416667
+Probability of: gajndcchhp = 0.00260417
+Similarity of: gaj vs. gajndckhb = 0.454545
+Probability of: gajndckhb = 0.00520833
+Similarity of: gaj vs. gajndckhoi = 0.416667
+Probability of: gajndckhoi = 0.00260417
+Similarity of: gaj vs. gajndckho = 0.454545
+Probability of: gajndckho = 0.00260417
+Similarity of: gaj vs. gajndccchb = 0.416667
+Probability of: gajndccchb = 0.00260417
+Similarity of: gaj vs. gajndcckho = 0.416667
+Probability of: gajndcckho = 0.00130208
+Similarity of: gaj vs. gajndcckhp = 0.416667
+Probability of: gajndcckhp = 0.00260417
+Similarity of: gaj vs. gajndccchp = 0.416667
+Probability of: gajndccchp = 0.00260417
+Similarity of: gaj vs. gajndcchhb = 0.416667
+Probability of: gajndcchhb = 0.00260417
+Similarity of: gaj vs. gajndckhp = 0.454545
+Probability of: gajndckhp = 0.00520833
+Similarity of: gaj vs. gajndchhm = 0.454545
+Probability of: gajndchhm = 0.00520833
+Similarity of: gaj vs. gajndcchhm = 0.416667
+Probability of: gajndcchhm = 0.00260417
+Similarity of: gaj vs. gajndchf = 0.5
+Probability of: gajndchf = 0.0104167
+Similarity of: gaj vs. gajndlekho = 0.416667
+Probability of: gajndlekho = 0.00260417
+Similarity of: gaj vs. gajndchm = 0.5
+Probability of: gajndchm = 0.0104167
+Similarity of: gaj vs. gajndcckhf = 0.416667
+Probability of: gajndcckhf = 0.00260417
+Similarity of: gaj vs. gajndchhhm = 0.416667
+Probability of: gajndchhhm = 0.00260417
+Similarity of: gaj vs. gajndlekhb = 0.416667
+Probability of: gajndlekhb = 0.00520833
+Similarity of: gaj vs. gajndchhho = 0.416667
+Probability of: gajndchhho = 0.00130208
+Similarity of: gaj vs. gajndchhhf = 0.416667
+Probability of: gajndchhhf = 0.00260417
+    - trace: gaj
+     - changed: ga
+     - changed: aj
+     - changed: a
+     - changed: g
+     - changed: gma
+     - changed: mga
+     - changed: baj
+     - changed: jbg
+Phase done!
+Strategy 4 of 4: EDGE_WITH_NODE_INFORMATION_PREVIOUS
+
+Process finished with exit code 0

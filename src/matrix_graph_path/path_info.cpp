@@ -31,7 +31,7 @@ path_info::path_info(double probability, const std::string &path, const std::vec
 path_info::path_info() : probability{0.0}, path{""} {}
 
 std::ostream &operator<<(std::ostream &os, const path_info &info) {
-    os << "cost: " << info.probability << " path: " << info.path;
+    os << "probability: " << info.probability << " path: " << info.path;
     return os;
 }
 

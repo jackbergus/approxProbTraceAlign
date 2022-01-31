@@ -27,6 +27,7 @@
 #define FUZZYSTRINGMATCHING2_LABELLEDPATHVISITINGSTRATEGY_H
 
 #include <utils/pair_hash.h>
+#include <string>
 #include <unordered_map>
 #include <cmath>
 

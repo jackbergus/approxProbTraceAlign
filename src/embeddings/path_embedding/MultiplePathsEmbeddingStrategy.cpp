@@ -46,7 +46,10 @@ std::vector<struct path_info> MultiplePathsEmbeddingStrategy::collectPaths(ReadG
 ReadGraph::path_to_uembedding MultiplePathsEmbeddingStrategy::generateUnstructuredEmbeddingsFromRawPaths(ReadGraph &rg,
                                                                                                          std::vector<struct path_info> &it) {
     ReadGraph::path_to_uembedding result;
+    size_t i = 0;
     for (const auto& path: it) {
+        if (!(i % 100)) std::cout << i << "/" << it.size() << std::endl;
+        i++;
         result[path] = (generatePathEmbedding(rg, path));
     }
     return result;

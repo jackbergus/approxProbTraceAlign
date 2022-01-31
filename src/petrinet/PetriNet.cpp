@@ -283,42 +283,6 @@ MetaReachabilityGraph PetriNet::generateMetaReachabilityGraph(const Marking &m0,
         mrg.print(of, transition_labelling, eSize_plusOne);
     }*/
 
-    /// Assertion zone
-    std::cerr << "(performing assertion)" << std::flush;
-    // 1) there should be only one vertex having no ingoing edges
-    {
-        std::map<size_t, std::unordered_set<size_t>> ingoingEdges2;
-        for (const auto& cp: mrg.outgoingEdges) {
-            for (const auto& e : cp.second) {
-                ingoingEdges2[e.dst].emplace(e.dst);
-                ///ingoingEdges2[e.halfEdge.adjacentVertexId].emplace(e.halfEdge.edgeLabel, cp.first);
-            }
-        }
-        size_t toCount = 0;
-        for (const auto& v : mrg.node_id_assoc.getElements()) {
-            if (ingoingEdges2.find(v.first) == ingoingEdges2.end()) {
-                toCount++;
-                std::cout << v.first << std::endl;
-            }
-        }
-        if (mrg.isInitialEStateAddedAfterwards) {
-            if (ingoingEdges2.find(mrg.initialEState) == ingoingEdges2.end()) {
-                toCount++;
-                std::cout << mrg.initialEState << std::endl;
-            }
-        }
-        if (mrg.isFinalEStateAddedAfterwards) {
-            if (ingoingEdges2.find(mrg.finalEState) == ingoingEdges2.end()) {
-                toCount++;
-                std::cout << mrg.finalEState << std::endl;
-            }
-        }
-        if(toCount != 1) {
-            std::cerr << "Warning: something seems not ok!" << std::endl;
-        }
-    }
-
-    std::cerr << "done!" << std::endl;
     return mrg;
 }
 

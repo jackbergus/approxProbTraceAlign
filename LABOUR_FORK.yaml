@@ -1,0 +1,32 @@
+input_file_format: Petri_BPMN
+input_file: /home/giacomo/Scaricati/split-miner-2.0/labour/labour.bpmn
+is_input_compressed: false
+ith_graph: 0
+trace_file_format: XESLog
+traces_file: /home/giacomo/Scaricati/split-miner-2.0/labour/labour.xes
+are_traces_compressed: false
+separator_if_any: ";"
+add_traces_to_log: false
+max_length: 10
+min_prob: 1.0000000000000001e-05
+lambda: 0.070000000000000007
+tuning_factor: 0
+use_tuning_factor: true
+use_path_lambda_factor: true
+numberOfTraceAlterations: 20
+use_estimator: true
+estimator_type: W_FORK
+operations:
+    -   operation: LogFilterFrequency
+        factor: 1.0
+        keep_low_up_otherwise: false
+fileStrategyMap:
+    EuclideanSpace: zip "x+y" "(x-y)*(x-y)" 0.0 v0 v1
+    TransformedSpace: (fold "x+(y*y)" 0.0 v1)-(fold "x+(y*y)" 0.0 v0)
+    ProbabilitySimilarity: (fold "x*y" 1.0 v1)-(fold "x*y" 1.0 v0)
+varepsilon: "."
+admissibleCharList: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+noiseThreshold:
+    -   0.29999999999999999
+    -   0.20000000000000001
+seedError: 3

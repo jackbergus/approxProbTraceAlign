@@ -1,0 +1,10 @@
+sepsis.bpmn,sepsis.xes,gaj,3,ONLY_EDGE_INFORMATION_PROPOSED,0,VPTree+Metric,3.1917,,0
+sepsis.bpmn,sepsis.xes,gaj,3,ONLY_EDGE_INFORMATION_PROPOSED,0,VPTree+Transformed,0.436648,,0
+sepsis.bpmn,sepsis.xes,gaj,3,ONLY_EDGE_INFORMATION_PROPOSED,0,VPKDTreeMinkowski+Transformed,0.961929,,0
+sepsis.bpmn,sepsis.xes,gaj,3,ONLY_EDGE_INFORMATION_PROPOSED,0,VPTree+Embedding,1.86685,,0
+sepsis.bpmn,sepsis.xes,gaj,3,ONLY_EDGE_INFORMATION_PROPOSED,0,VPKDTreeMinkowski+Embedding,0.149088,,0
+sepsis.bpmn,sepsis.xes,gaj,3,ONLY_EDGE_INFORMATION_PREVIOUS,0,VPTree+Metric,2.93423,,0
+sepsis.bpmn,sepsis.xes,gaj,3,ONLY_EDGE_INFORMATION_PREVIOUS,0,VPTree+Transformed,0.500338,,0
+sepsis.bpmn,sepsis.xes,gaj,3,ONLY_EDGE_INFORMATION_PREVIOUS,0,VPKDTreeMinkowski+Transformed,1.13224,,0
+sepsis.bpmn,sepsis.xes,gaj,3,ONLY_EDGE_INFORMATION_PREVIOUS,0,VPTree+Embedding,1.92472,,0
+sepsis.bpmn,sepsis.xes,gaj,3,ONLY_EDGE_INFORMATION_PREVIOUS,0,VPKDTreeMinkowski+Embedding,0.107871,,0
