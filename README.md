@@ -53,6 +53,6 @@ This project is licensed under the GPLv2 License - see the [LICENSE](LICENSE.) f
 
 ## Acknowledgments
 
-* This work was part of a paper co-authored with Fabrizio Maggi, Marco Montali & Rafael Peñaloza
+* This work was part of a paper co-authored with Fabrizio Maggi, Marco Montali & Rafael Peñaloza, and Ramon Farga Pereira
 
 
