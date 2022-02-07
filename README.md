@@ -53,6 +53,6 @@ This project is licensed under the GPLv2 License - see the [LICENSE](LICENSE.) f
 
 ## Acknowledgments
 
-* This work was part of the papers "[_A Tool for Computing Probabilistic Trace Alignments_](https://dx.doi.org/10.1007/978-3-030-79108-7_14)" and “[Probabilistic Trace Alignments](https://ieeexplore.ieee.org/document/9576856/)", co-authored with Fabrizio Maggi, Marco Montali & Rafael Peñaloza
+* This work was part of the papers "[_A Tool for Computing Probabilistic Trace Alignments_](https://dx.doi.org/10.1007/978-3-030-79108-7_14)" and “[_Probabilistic Trace Alignments_](https://ieeexplore.ieee.org/document/9576856/)", co-authored with Fabrizio Maggi, Marco Montali & Rafael Peñaloza
 
 
