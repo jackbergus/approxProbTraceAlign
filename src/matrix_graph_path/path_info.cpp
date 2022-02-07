@@ -30,8 +30,24 @@ path_info::path_info(double probability, const std::string &path, const std::vec
 
 path_info::path_info() : probability{0.0}, path{""} {}
 
+std::string string_to_hex2(const std::string& input)
+{
+    static const char hex_digits[] = "0123456789ABCDEF";
+
+    std::string output;
+    output.reserve(input.length() * 2);
+    for (unsigned char c : input)
+    {
+        output.push_back('\\');
+        output.push_back('x');
+        output.push_back(hex_digits[c >> 4]);
+        output.push_back(hex_digits[c & 15]);
+    }
+    return output;
+}
+
 std::ostream &operator<<(std::ostream &os, const path_info &info) {
-    os << "probability: " << info.probability << " path: " << info.path;
+    os << "probability: " << info.probability << " path: " << string_to_hex2(info.path);
     return os;
 }
 

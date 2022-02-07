@@ -40,6 +40,8 @@ struct path_info {
     path_info();
     path_info(const path_info&) = default;
     path_info& operator=(const path_info&) = default;
+    path_info(path_info&&) = default;
+    path_info& operator=(path_info&&) = default;
 
     friend std::ostream &operator<<(std::ostream &os, const path_info &info);
 

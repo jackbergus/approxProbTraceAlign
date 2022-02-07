@@ -31,6 +31,7 @@
 #include <iostream>
 #include <functional>
 #include <sstream>
+#include <cassert>
 
 /**
  * A fixed bimap will help to store a bijection as a map of hash keys
@@ -62,6 +63,14 @@ public:
         std::ostringstream oss{}, vos{};
         oss << "k_" << key;
         vos << "v_" << value;
+        assert(map.find(oss.str()) == map.end());
+        if ((map.find(vos.str()) != map.end())) {
+            K key2 = getKey(value);
+            std::cout << key2 << std::endl;
+            V val = getValue(key2);
+            std::cout << val << std::endl;
+            assert(map.find(vos.str()) == map.end());
+        }
         map[oss.str()] = size;
         map[vos.str()] = size;
         size++;

@@ -6,7 +6,7 @@ trace_file_format: XESLog
 traces_file: /home/giacomo/Scaricati/split-miner-2.0/labour/labour.xes
 are_traces_compressed: false
 separator_if_any: ";"
-add_traces_to_log: false
+add_traces_to_log: true
 max_length: 10
 min_prob: 1.0000000000000001e-05
 lambda: 0.070000000000000007

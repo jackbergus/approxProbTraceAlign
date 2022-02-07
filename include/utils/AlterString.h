@@ -90,16 +90,19 @@ struct AlterString {
                     std::uniform_int_distribution<size_t> randomPosition{0UL, (size_t)std::distance(toAlter.begin(), it)};
                     size_t j = randomPosition(mersennePosition);
                     std::iter_swap(it, toAlter.begin()+j);
-                    it++;
+                    it = toAlter.begin() + (std::max(i,j)+1);
                     maxRemoves--;
                     maxInsertions--;
                 }
             } else {
                 it++;
             }
-            if ((it == toAlter.end()) && ((maxRemoves != 0) || (maxInsertions != 0))) {
-                it = toAlter.begin();
-                originalSize = toAlter.size();
+            if (it >= toAlter.end()) {
+                if (((maxRemoves != 0) || (maxInsertions != 0))) {
+                    it = toAlter.begin();
+                    originalSize = toAlter.size();
+                } else
+                    return toAlter;
             }
         }
         return toAlter;

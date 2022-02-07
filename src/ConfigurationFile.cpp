@@ -135,6 +135,22 @@ typedef knn::Matrixi Matrixi;
                     record_opt_ranking& operator=(const record_opt_ranking& ) = default;
                 };
 
+std::string string_to_hex(const std::string& input)
+{
+    static const char hex_digits[] = "0123456789ABCDEF";
+
+    std::string output;
+    output.reserve(input.length() * 2);
+    for (unsigned char c : input)
+    {
+        output.push_back('\\');
+        output.push_back('x');
+        output.push_back(hex_digits[c >> 4]);
+        output.push_back(hex_digits[c & 15]);
+    }
+    return output;
+}
+
 void ConfigurationFile::run() {
 
     {
@@ -291,10 +307,12 @@ void ConfigurationFile::run() {
             std::string newAdmissibleCharList; // Avoiding to insert some chars that are not within the trace
             for (const auto &cp : action_to_single_char.getElements()) {
                 newAdmissibleCharList += cp.second;
-                std::cout << "  - " << cp.first << " <-> " << cp.second << std::endl;
+                std::cout << "  - " << cp.first << " <-> " << string_to_hex(std::string(1, cp.second)) << std::endl;
             }
             std::swap(admissibleCharList, newAdmissibleCharList);
         }
+        admissibleCharList.erase(std::remove(admissibleCharList.begin(), admissibleCharList.end(), varepsilon), admissibleCharList.end());
+
         traceNoiser.clear();
         for (const auto &dbl : noiseThreshold) {
             traceNoiser.emplace_back(admissibleCharList, dbl, seedError);
@@ -318,10 +336,18 @@ void ConfigurationFile::run() {
     if (this->add_traces_to_log) {
         std::cout << "5) Adding some further traces to the log from the generated paths. Settings: maxLength = "
                   << this->max_length << " minProb = " << this->min_prob << std::endl;
+        finalLog.clear();
+        double currProb = -1;
+        path_info best;
         for (const auto &path : finalGraph.iterateOverPaths(false, max_length, min_prob)) {
-            std::cout << " New trace = '" << path.path << "' with probability = " << path.probability << std::endl;
-            finalLog.emplace_back(path);
+            if (path.probability > currProb) {
+                best = path;
+                currProb = path.probability;
+            }
+
         }
+        std::cout << " New trace = '" << best.path << "' with probability = " << currProb << std::endl;
+        finalLog.emplace_back(best);
     } else {
         std::cout << "6) Sampling some traces, just for limiting the execution time (for the moment)" << std::endl;
         size_t N = 3;
@@ -480,7 +506,7 @@ void ConfigurationFile::run() {
              << 0.0 << ','
              << "VPTreeLoading+Embedding," << embeddingWholeTraces + proposedLoading << ",,0" << std::endl;
 #endif
-        steady_clock::time_point knnProposedStartLoad = steady_clock::now();
+        /*steady_clock::time_point knnProposedStartLoad = steady_clock::now();
         Matrix dataPoints(embedding_space.size(), map.size());
         size_t j = 0;
         for (const auto &path : map) {
@@ -494,7 +520,7 @@ void ConfigurationFile::run() {
         kdtreeProposed.setTakeRoot(true);
         kdtreeProposed.setMaxDistance(2.5);
         kdtreeProposed.setThreads(1);
-        kdtreeProposed.build();
+        kdtreeProposed.build();*/
 
 #ifdef OLD_PIPELINE
         steady_clock::time_point knnProposedEndLoad = steady_clock::now();
@@ -541,7 +567,7 @@ void ConfigurationFile::run() {
                         vpTreeActualDistanceEndLoad - vpTreeActualDistanceStartLoad).count() / 1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                      << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
-                     << query.first << ','
+                     << string_to_hex(query.first) << ','
                      << query.first.size() << ','
                      << strategyName << ','
                      << 0.0 << ','
@@ -577,7 +603,7 @@ void ConfigurationFile::run() {
                     }
                     for (auto it = M.rbegin(); it != M.rend(); it++) {
                         for (const auto& rec : it->second) {
-                            file << rec.actualQuery << ',' << rec.pathToRank << ',' << rec.similarity << ','  << rec.probability << ',' << it->first << std::endl;
+                            file << string_to_hex(rec.actualQuery) << ',' << string_to_hex(rec.pathToRank) << ',' << rec.similarity << ','  << rec.probability << ',' << it->first << std::endl;
                         }
                     }
                     M.clear();
@@ -590,7 +616,7 @@ void ConfigurationFile::run() {
                         vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count() / 1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                      << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
-                     << query.first << ','
+                     << string_to_hex(query.first) << ','
                      << query.first.size() << ','
                      << strategyName << ','
                      << 0.0 << ','
@@ -628,14 +654,14 @@ void ConfigurationFile::run() {
                         vpTreeTransformedEndQuery - vpTreeTransformedStartQuery).count() / 1000000.0;
                 log2 << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                      << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
-                     << query.first << ','
+                     << string_to_hex(query.first) << ','
                      << query.first.size() << ','
                      << strategyName << ','
                      << 0.0 << ','
                      << "VPKDTreeMinkowski+Transformed," << transformedQuery << ",,0" << std::endl;
             }
 
-
+#if 0
             {
                 steady_clock::time_point embeddingGenerationStart = steady_clock::now();
                 ReadGraph g = ReadGraph::fromString(actualQuery, 1.0);
@@ -677,15 +703,16 @@ void ConfigurationFile::run() {
                      << 0.0 << ','
                      << "VPKDTreeMinkowski+Embedding," << toAdd + transformedQueryProposed << ",,0" << std::endl;
             }
+#endif
 
             double noise = 0.0;
-            std::cout << "    - trace: " << actualQuery << std::endl;
+            std::cout << "    - trace: " << string_to_hex(actualQuery) << std::endl;
             Ranking<size_t> precomputedTraceRanking = performBenchmark(similarity, embedding_space, strategy,
                                                                        graphStrategy, map, actualQuery, noise, mapPath,
                                                                        log1);
 
             for (auto &noiser : query.second) {
-                std::cout << "     - changed: " << noiser.first << std::endl;
+                std::cout << "     - changed: " << string_to_hex(noiser.first) << std::endl;
                 performBenchmark(similarity, embedding_space, strategy, graphStrategy, map, noiser.first, noiser.second,
                                  mapPath, log1, &precomputedTraceRanking);
             }
@@ -874,7 +901,7 @@ ConfigurationFile::performBenchmark(
         }
         for (auto it = AP.rbegin(); it != AP.rend(); it++) {
             for (const auto &rec: it->second) {
-                file << rec.actualQuery << ',' << rec.pathToRank << ',' << rec.similarity << ',' << rec.probability
+                file <<  string_to_hex(rec.actualQuery) << ',' << string_to_hex(rec.pathToRank) << ',' << rec.similarity << ',' << rec.probability
                      << ',' << it->first << std::endl;
             }
         }
@@ -888,7 +915,7 @@ ConfigurationFile::performBenchmark(
         }
         for (auto it = M.rbegin(); it != M.rend(); it++) {
             for (const auto &rec: it->second) {
-                file << rec.actualQuery << ',' << rec.pathToRank << ',' << rec.similarity << ',' << rec.probability
+                file << string_to_hex(rec.actualQuery) << ',' << string_to_hex(rec.pathToRank) << ',' << rec.similarity << ',' << rec.probability
                      << ',' << it->first << std::endl;
             }
         }
@@ -980,7 +1007,7 @@ void ConfigurationFile::log_ranking(const std::string &query, double noise, std:
 
     log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                 << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
-                << query << ','
+                << string_to_hex(query) << ','
                 << querySize << ','
                 << strategyName << ','
                 << noise << ','
@@ -1008,6 +1035,7 @@ void ConfigurationFile::log_ranking(const std::string &query, double noise, std:
                 << std::endl;*/
 
     if (noise != 0.0) {
+#if 0
         double noise1 = precomputedTraceRanking->SpearmanCorrelationIndex(pathRanking, 1.0);
         ///double noise2 = minimum_edit_maximum_substring(pathRanking, *precomputedTraceRanking);
         if (std::isinf(noise1)) {
@@ -1015,10 +1043,11 @@ void ConfigurationFile::log_ranking(const std::string &query, double noise, std:
             double noise1 = precomputedTraceRanking->SpearmanCorrelationIndex(pathRanking, 1.0);
             ///double noise2 = minimum_edit_maximum_substring(pathRanking, *precomputedTraceRanking);
         }
+#endif
         ///assert(precomputedTraceRanking);
         log_quality << input_file.substr(input_file.find_last_of("/\\") + 1) << ','
                     << traces_file.substr(traces_file.find_last_of("/\\") + 1) << ','
-                    << query << ','
+                    << string_to_hex(query) << ','
                     << querySize << ','
                     << strategyName << ','
                     << noise << ','
@@ -1307,6 +1336,27 @@ ConfigurationFile::ConfigurationFile(const std::string &filename) : configuratio
         PARSE_ENUM(estimator_type, spd_we::WeightEstimatorCases);
 
         PARSE_STRING(admissibleCharList);
+
+        {
+            std::set<char> chars;
+            admissibleCharList.erase(
+                    std::remove_if(
+                            admissibleCharList.begin(),
+                            admissibleCharList.end(),
+                            [&chars] (char i) {
+                                // If encountered character, remove this one.
+                                if (chars.count(i)) { return true; }
+
+                                // Otherwise, mark this character encountered and don't remove.
+                                chars.insert(i);
+                                return false;
+                            }
+                    ),
+                    admissibleCharList.end()
+            );
+        }
+
+
         {
             auto it = config["noiseThreshold"];
             noiseThreshold.clear();
