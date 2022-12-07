@@ -41,10 +41,10 @@ class DistanceExpressionEvaluator : public expressionBaseVisitor {
     const char empty[0] = {};
     antlr4::ANTLRInputStream stream;
     std::istringstream sstr;
-    expressionLexer* lexer;
-    expressionParser* parser;
-    antlr4::CommonTokenStream* tokens;
-    expressionParser::ExpressionContext *expr;
+    expressionLexer* lexer = nullptr;
+    expressionParser* parser = nullptr;
+    antlr4::CommonTokenStream* tokens = nullptr;
+    expressionParser::ExpressionContext *expr = nullptr;
     std::string orig_for_move_or_copy;
     UnterstuetzenStrategie strategy;
 
